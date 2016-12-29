@@ -4,15 +4,16 @@
 // Copyright 1983 Bug-Byte Ltd (Manic Miner)
 // Copyright 2010, 2012-2016 Richard Dymond (this disassembly)
 
-  ORG 32765
+#include <stdlib.h>
 
-  JP BEGIN
+  // ORG 32765
+
+  // JP BEGIN
 
 // Cavern name
 //
 // The cavern name is copied here and then used by the routine at STARTGAME.
-CAVERNNAME:
-  DEFS 32
+char *CAVERNNAME[32];
 
 // Cavern tiles
 //
@@ -24,22 +25,14 @@ CAVERNNAME:
 // Landing Bay and The Bank. It is also used in The Menagerie as spider silk,
 // and in Miner Willy meets the Kong Beast and Return of the Alien Kong Beast as
 // a switch.
-BACKGROUND:
-  DEFS 9                  // Background tile (also used by the routines at MOVEWILLY, CRUMBLE, LIGHTBEAM, EUGENE, KONGBEAST and WILLYATTR)
-FLOOR:
-  DEFS 9                  // Floor tile (also used by the routine at LIGHTBEAM)
-CRUMBLING:
-  DEFS 9                  // Crumbling floor tile (also used by the routine at MOVEWILLY)
-WALL:
-  DEFS 9                  // Wall tile (also used by the routines at MOVEWILLY, MOVEWILLY2 and LIGHTBEAM)
-CONVEYOR:
-  DEFS 9                  // Conveyor tile (also used by the routine at MOVEWILLY2)
-NASTY1:
-  DEFS 9                  // Nasty tile 1 (also used by the routines at MOVEWILLY and WILLYATTR)
-NASTY2:
-  DEFS 9                  // Nasty tile 2 (also used by the routines at MOVEWILLY and WILLYATTR)
-EXTRA:
-  DEFS 9                  // Extra tile (also used by the routine at CHKSWITCH)
+uint8_t BACKGROUND[9]; // Background tile (also used by the routines at MOVEWILLY, CRUMBLE, LIGHTBEAM, EUGENE, KONGBEAST and WILLYATTR)
+uint8_t FLOOR[9];      // Floor tile (also used by the routine at LIGHTBEAM)
+uint8_t CRUMBLING[9];  // Crumbling floor tile (also used by the routine at MOVEWILLY)
+uint8_t WALL[9];       // Wall tile (also used by the routines at MOVEWILLY, MOVEWILLY2 and LIGHTBEAM)
+uint8_t CONVEYOR[9];   // Conveyor tile (also used by the routine at MOVEWILLY2)
+uint8_t NASTY1[9];     // Nasty tile 1 (also used by the routines at MOVEWILLY and WILLYATTR)
+uint8_t NASTY2[9];     // Nasty tile 2 (also used by the routines at MOVEWILLY and WILLYATTR)
+uint8_t EXTRA[9];      // Extra tile (also used by the routine at CHKSWITCH)
 
 // Willy's pixel y-coordinate (x2)
 //
@@ -48,16 +41,14 @@ EXTRA:
 // of the entry in the screen buffer address lookup table at SBUFADDRS that
 // corresponds to Willy's pixel y-coordinate; in practice, this is twice Willy's
 // actual pixel y-coordinate.
-PIXEL_Y:
-  DEFB 0
+uint8_t PIXEL_Y;
 
 // Willy's animation frame
 //
 // Initialised upon entry to a cavern or after losing a life by the routine at
 // STARTGAME, used by the routine at DRAWWILLY, and updated by the routine at
 // MOVEWILLY2. Possible values are 0, 1, 2 and 3.
-FRAME:
-  DEFB 0
+uint8_t FRAME;
 
 // Willy's direction and movement flags
 //
@@ -71,8 +62,7 @@ FRAME:
 // | 1      | Willy's movement flag (set=moving)      | MOVEWILLY, MOVEWILLY2 |
 // | 2-7    | Unused (always reset)                   |                       |
 // +--------+-----------------------------------------+-----------------------+
-DMFLAGS:
-  DEFB 0
+uint8_t DMFLAGS;
 
 // Airborne status indicator
 //
@@ -89,47 +79,39 @@ DMFLAGS:
 // |       | MOVEWILLY2)                                                   |
 // | 255   | Willy has collided with a nasty or a guardian (see KILLWILLY) |
 // +-------+---------------------------------------------------------------+
-AIRBORNE:
-  DEFB 0
+uint8_t AIRBORNE;
 
 // Address of Willy's location in the attribute buffer at 23552
 //
 // Initialised by the routine at STARTGAME, used by the routines at MOVEWILLY,
 // CHKPORTAL, CHKSWITCH, WILLYATTRS and DRAWWILLY, and updated by the routine at
 // MOVEWILLY2.
-LOCATION:
-  DEFW 0
+uint8_t LOCATION;
 
 // Jumping animation counter
 //
 // Initialised by the routine at STARTGAME, and used by the routines at
 // MOVEWILLY and MOVEWILLY2.
-JUMPING:
-  DEFB 0
+uint8_t JUMPING;
 
 // Conveyor definition
 //
 // The conveyor definition is copied here by the routine at STARTGAME.
-CONVDIR:
-  DEFB 0                  // Direction (0=left, 1=right; used by the routines at MOVEWILLY2 and MVCONVEYOR)
-CONVLOC:
-  DEFW 0                  // Address of the conveyor's location in the screen buffer at 28672 (used by the routine at MVCONVEYOR)
-CONVLEN:
-  DEFB 0                  // Length (used by the routine at MVCONVEYOR)
+uint8_t CONVDIR;  // Direction (0=left, 1=right; used by the routines at MOVEWILLY2 and MVCONVEYOR)
+uint16_t CONVLOC; // Address of the conveyor's location in the screen buffer at 28672 (used by the routine at MVCONVEYOR)
+uint8_t CONVLEN;  // Length (used by the routine at MVCONVEYOR)
 
 // Border colour
 //
 // Initialised and used by the routine at STARTGAME, and also used by the
 // routines at LOOP, MOVEWILLY and KONGBEAST.
-BORDER:
-  DEFB 0
+uint8_t BORDER;
 
 // Attribute of the last item drawn
 //
 // Used by the routines at EUGENE and DRAWITEMS. Holds the attribute byte of the
 // last item drawn, or 0 if all the items have been collected.
-ITEMATTR:
-  DEFB 0
+uint8_t ITEMATTR;
 
 // Item definitions
 //
@@ -146,32 +128,27 @@ ITEMATTR:
 // |         | at 24576                                                        |
 // | 4       | Unused (always 255)                                             |
 // +---------+-----------------------------------------------------------------+
-ITEMS:
-  DEFS 5                  // Item 1
-  DEFS 5                  // Item 2
-  DEFS 5                  // Item 3
-  DEFS 5                  // Item 4
-  DEFS 5                  // Item 5
-  DEFB 0                  // Terminator (set to 255)
+uint16_t ITEMS[5][5];
+// DEFS 5                  // Item 1
+// DEFS 5                  // Item 2
+// DEFS 5                  // Item 3
+// DEFS 5                  // Item 4
+// DEFS 5                  // Item 5
+// DEFB 0                  // Terminator (set to 255)
 
 // Portal definition
 //
 // The portal definition is copied here by the routine at STARTGAME.
-PORTAL:
-  DEFB 0                  // Attribute byte (used by the routines at DRAWITEMS and CHKPORTAL)
-PORTALG:
-  DEFS 32                 // Graphic data (used by the routine at CHKPORTAL)
-PORTALLOC1:
-  DEFW 0                  // Address of the portal's location in the attribute buffer at 23552 (used by the routine at CHKPORTAL)
-PORTALLOC2:
-  DEFW 0                  // Address of the portal's location in the screen buffer at 24576 (used by the routine at CHKPORTAL)
+uint8_t PORTAL;      // Attribute byte (used by the routines at DRAWITEMS and CHKPORTAL)
+uint8_t PORTALG[32]; // Graphic data (used by the routine at CHKPORTAL)
+uint16_t PORTALLOC1; // Address of the portal's location in the attribute buffer at 23552 (used by the routine at CHKPORTAL)
+uint16_t PORTALLOC2; // Address of the portal's location in the screen buffer at 24576 (used by the routine at CHKPORTAL)
 
 // Item graphic
 //
 // The item graphic is copied here by the routine at STARTGAME, and then used by
 // the routine at DRAWITEMS.
-ITEM:
-  DEFS 8
+uint8_t ITEM[8];
 
 // Remaining air supply
 //
@@ -180,8 +157,7 @@ ITEM:
 // Its value ranges from 36 to 63 and is actually the LSB of the display file
 // address for the cell at the right end of the air bar. The amount of air to
 // draw in this cell is determined by the value of the game clock at CLOCK.
-AIR:
-  DEFB 0
+uint8_t AIR;
 
 // Game clock
 //
@@ -190,8 +166,7 @@ AIR:
 // routines at MOVEHG, EUGENE and KONGBEAST. Its value (which is always a
 // multiple of 4) is also used by the routine at DECAIR to compute the amount of
 // air to draw in the cell at the right end of the air bar.
-CLOCK:
-  DEFB 0
+uint8_t CLOCK;
 
 // Horizontal guardians
 //
@@ -217,21 +192,20 @@ CLOCK:
 // | 6    | LSB of the address of the rightmost point of the guardian's path   |
 // |      | in the attribute buffer                                            |
 // +------+--------------------------------------------------------------------+
-HGUARDS:
-  DEFS 7                  // Horizontal guardian 1
-HGUARD2:
-  DEFS 7                  // Horizontal guardian 2
-  DEFS 7                  // Horizontal guardian 3
-  DEFS 7                  // Horizontal guardian 4
-  DEFB 0                  // Terminator (set to 255)
+// IMPORTANT: we probably want to store them all in HGUARDS array. -MRC-
+uint8_t HGUARDS[4][7];       // Horizontal guardian 1
+// HGUARD2:
+//   DEFS 7                  // Horizontal guardian 2
+//   DEFS 7                  // Horizontal guardian 3
+//   DEFS 7                  // Horizontal guardian 4
+//   DEFB 0                  // Terminator (set to 255)
 
 // Eugene's direction or the Kong Beast's status
 //
 // Initialised by the routine at STARTGAME, and used by the routines at EUGENE
 // (to hold Eugene's direction: 0=down, 1=up) and KONGBEAST (to hold the Kong
 // Beast's status: 0=on the ledge, 1=falling, 2=dead).
-EUGDIR:
-  DEFB 0
+uint8_t EUGDIR;
 
 // Eugene's or the Kong Beast's pixel y-coordinate
 //
@@ -241,8 +215,7 @@ EUGDIR:
 // from the top of the screen as it descends onto Willy), EUGENE (to hold
 // Eugene's pixel y-coordinate) and KONGBEAST (to hold the Kong Beast's pixel
 // y-coordinate).
-EUGHGT:
-  DEFB 0
+uint8_t EUGHGT;
 
 // Vertical guardians
 //
@@ -270,43 +243,48 @@ EUGHGT:
 // Eugene's Lair: the routine at STARTGAME copies the graphic data for the
 // Eugene sprite into the last 32 bytes of this area, where it is then used by
 // the routine at EUGENE.
-VGUARDS:
-  DEFS 7                  // Vertical guardian 1
-  DEFS 7                  // Vertical guardian 2
-  DEFS 7                  // Vertical guardian 3
-  DEFS 7                  // Vertical guardian 4
-  DEFB 0                  // Terminator (set to 255 in caverns that have four vertical guardians)
-  DEFS 6                  // Spare
+uint8_t VGUARDS[4][7];
+  // DEFS 7                  // Vertical guardian 1
+  // DEFS 7                  // Vertical guardian 2
+  // DEFS 7                  // Vertical guardian 3
+  // DEFS 7                  // Vertical guardian 4
+  // DEFB 0                  // Terminator (set to 255 in caverns that have four vertical guardians)
+  // DEFS 6                  // Spare
+// IMPORTANT: do we need to handle the "spare"? -MRC-
 
 // Guardian graphic data
 //
 // The guardian graphic data is copied here by the routine at STARTGAME, and
 // then used by the routines at DRAWHG, SKYLABS, VGUARDIANS and KONGBEAST.
-GGDATA:
-  DEFS 256
+uint8_t GGDATA[256];
 
 // Willy sprite graphic data
 //
 // Used by the routines at START, LOOP and DRAWWILLY.
-MANDAT:
-  DEFB 6,0,62,0,124,0,52,0,62,0,60,0,24,0,60,0
-  DEFB 126,0,126,0,247,0,251,0,60,0,118,0,110,0,119,0
-  DEFB 1,128,15,128,31,0,13,0,15,128,15,0,6,0,15,0
-  DEFB 27,128,27,128,27,128,29,128,15,0,6,0,6,0,7,0
-WILLYR2:
-  DEFB 0,96,3,224,7,192,3,64,3,224,3,192,1,128,3,192
-  DEFB 7,224,7,224,15,112,15,176,3,192,7,96,6,224,7,112
-WILLYR3:
-  DEFB 0,24,0,248,1,240,0,208,0,248,0,240,0,96,0,240
-  DEFB 1,248,3,252,7,254,6,246,0,248,1,218,3,14,3,132
-  DEFB 24,0,31,0,15,128,11,0,31,0,15,0,6,0,15,0
-  DEFB 31,128,63,192,127,224,111,96,31,0,91,128,112,192,33,192
-  DEFB 6,0,7,192,3,224,2,192,7,192,3,192,1,128,3,192
-  DEFB 7,224,7,224,14,240,13,240,3,192,6,224,7,96,14,224
-  DEFB 1,128,1,240,0,248,0,176,1,240,0,240,0,96,0,240
-  DEFB 1,248,1,216,1,216,1,184,0,240,0,96,0,96,0,224
-  DEFB 0,96,0,124,0,62,0,44,0,124,0,60,0,24,0,60
-  DEFB 0,126,0,126,0,239,0,223,0,60,0,110,0,118,0,238
+uint8_t MANDAT[64] = {
+  6,0,62,0,124,0,52,0,62,0,60,0,24,0,60,0,
+  126,0,126,0,247,0,251,0,60,0,118,0,110,0,119,0,
+  1,128,15,128,31,0,13,0,15,128,15,0,6,0,15,0,
+  27,128,27,128,27,128,29,128,15,0,6,0,6,0,7,0,
+};
+
+uint8_t WILLYR2[32] = {
+  0,96,3,224,7,192,3,64,3,224,3,192,1,128,3,192,
+  7,224,7,224,15,112,15,176,3,192,7,96,6,224,7,112,
+};
+
+uint8_t WILLYR3[160] = {
+  0,24,0,248,1,240,0,208,0,248,0,240,0,96,0,240,
+  1,248,3,252,7,254,6,246,0,248,1,218,3,14,3,132,
+  24,0,31,0,15,128,11,0,31,0,15,0,6,0,15,0,
+  31,128,63,192,127,224,111,96,31,0,91,128,112,192,33,192,
+  6,0,7,192,3,224,2,192,7,192,3,192,1,128,3,192,
+  7,224,7,224,14,240,13,240,3,192,6,224,7,96,14,224,
+  1,128,1,240,0,248,0,176,1,240,0,240,0,96,0,240,
+  1,248,1,216,1,216,1,184,0,240,0,96,0,96,0,224,
+  0,96,0,124,0,62,0,44,0,124,0,60,0,24,0,60,
+  0,126,0,126,0,239,0,223,0,60,0,110,0,118,0,238,
+};
 
 // Screen buffer address lookup table
 //
@@ -314,148 +292,152 @@ WILLYR3:
 // DRAWWILLY. The value of the Nth entry (0<=N<=127) in this lookup table is the
 // screen buffer address for the point with pixel coordinates (x,y)=(0,N), with
 // the origin (0,0) at the top-left corner.
-SBUFADDRS:
-  DEFW 24576              // y=0
-  DEFW 24832              // y=1
-  DEFW 25088              // y=2
-  DEFW 25344              // y=3
-  DEFW 25600              // y=4
-  DEFW 25856              // y=5
-  DEFW 26112              // y=6
-  DEFW 26368              // y=7
-  DEFW 24608              // y=8
-  DEFW 24864              // y=9
-  DEFW 25120              // y=10
-  DEFW 25376              // y=11
-  DEFW 25632              // y=12
-  DEFW 25888              // y=13
-  DEFW 26144              // y=14
-  DEFW 26400              // y=15
-  DEFW 24640              // y=16
-  DEFW 24896              // y=17
-  DEFW 25152              // y=18
-  DEFW 25408              // y=19
-  DEFW 25664              // y=20
-  DEFW 25920              // y=21
-  DEFW 26176              // y=22
-  DEFW 26432              // y=23
-  DEFW 24672              // y=24
-  DEFW 24928              // y=25
-  DEFW 25184              // y=26
-  DEFW 25440              // y=27
-  DEFW 25696              // y=28
-  DEFW 25952              // y=29
-  DEFW 26208              // y=30
-  DEFW 26464              // y=31
-  DEFW 24704              // y=32
-  DEFW 24960              // y=33
-  DEFW 25216              // y=34
-  DEFW 25472              // y=35
-  DEFW 25728              // y=36
-  DEFW 25984              // y=37
-  DEFW 26240              // y=38
-  DEFW 26496              // y=39
-  DEFW 24736              // y=40
-  DEFW 24992              // y=41
-  DEFW 25248              // y=42
-  DEFW 25504              // y=43
-  DEFW 25760              // y=44
-  DEFW 26016              // y=45
-  DEFW 26272              // y=46
-  DEFW 26528              // y=47
-  DEFW 24768              // y=48
-  DEFW 25024              // y=49
-  DEFW 25280              // y=50
-  DEFW 25536              // y=51
-  DEFW 25792              // y=52
-  DEFW 26048              // y=53
-  DEFW 26304              // y=54
-  DEFW 26560              // y=55
-  DEFW 24800              // y=56
-  DEFW 25056              // y=57
-  DEFW 25312              // y=58
-  DEFW 25568              // y=59
-  DEFW 25824              // y=60
-  DEFW 26080              // y=61
-  DEFW 26336              // y=62
-  DEFW 26592              // y=63
-  DEFW 26624              // y=64
-  DEFW 26880              // y=65
-  DEFW 27136              // y=66
-  DEFW 27392              // y=67
-  DEFW 27648              // y=68
-  DEFW 27904              // y=69
-  DEFW 28160              // y=70
-  DEFW 28416              // y=71
-  DEFW 26656              // y=72
-  DEFW 26912              // y=73
-  DEFW 27168              // y=74
-  DEFW 27424              // y=75
-  DEFW 27680              // y=76
-  DEFW 27936              // y=77
-  DEFW 28192              // y=78
-  DEFW 28448              // y=79
-  DEFW 26688              // y=80
-  DEFW 26944              // y=81
-  DEFW 27200              // y=82
-  DEFW 27456              // y=83
-  DEFW 27712              // y=84
-  DEFW 27968              // y=85
-  DEFW 28224              // y=86
-  DEFW 28480              // y=87
-  DEFW 26720              // y=88
-  DEFW 26976              // y=89
-  DEFW 27232              // y=90
-  DEFW 27488              // y=91
-  DEFW 27744              // y=92
-  DEFW 28000              // y=93
-  DEFW 28256              // y=94
-  DEFW 28512              // y=95
-  DEFW 26752              // y=96
-  DEFW 27008              // y=97
-  DEFW 27264              // y=98
-  DEFW 27520              // y=99
-  DEFW 27776              // y=100
-  DEFW 28032              // y=101
-  DEFW 28288              // y=102
-  DEFW 28544              // y=103
-  DEFW 26784              // y=104
-  DEFW 27040              // y=105
-  DEFW 27296              // y=106
-  DEFW 27552              // y=107
-  DEFW 27808              // y=108
-  DEFW 28064              // y=109
-  DEFW 28320              // y=110
-  DEFW 28576              // y=111
-  DEFW 26816              // y=112
-  DEFW 27072              // y=113
-  DEFW 27328              // y=114
-  DEFW 27584              // y=115
-  DEFW 27840              // y=116
-  DEFW 28096              // y=117
-  DEFW 28352              // y=118
-  DEFW 28608              // y=119
-  DEFW 26848              // y=120
-  DEFW 27104              // y=121
-  DEFW 27360              // y=122
-  DEFW 27616              // y=123
-  DEFW 27872              // y=124
-  DEFW 28128              // y=125
-  DEFW 28384              // y=126
-  DEFW 28640              // y=127
+uint16_t SBUFADDRS[128] = {
+  24576,              // y=0
+  24832,              // y=1
+  25088,              // y=2
+  25344,              // y=3
+  25600,              // y=4
+  25856,              // y=5
+  26112,              // y=6
+  26368,              // y=7
+  24608,              // y=8
+  24864,              // y=9
+  25120,              // y=10
+  25376,              // y=11
+  25632,              // y=12
+  25888,              // y=13
+  26144,              // y=14
+  26400,              // y=15
+  24640,              // y=16
+  24896,              // y=17
+  25152,              // y=18
+  25408,              // y=19
+  25664,              // y=20
+  25920,              // y=21
+  26176,              // y=22
+  26432,              // y=23
+  24672,              // y=24
+  24928,              // y=25
+  25184,              // y=26
+  25440,              // y=27
+  25696,              // y=28
+  25952,              // y=29
+  26208,              // y=30
+  26464,              // y=31
+  24704,              // y=32
+  24960,              // y=33
+  25216,              // y=34
+  25472,              // y=35
+  25728,              // y=36
+  25984,              // y=37
+  26240,              // y=38
+  26496,              // y=39
+  24736,              // y=40
+  24992,              // y=41
+  25248,              // y=42
+  25504,              // y=43
+  25760,              // y=44
+  26016,              // y=45
+  26272,              // y=46
+  26528,              // y=47
+  24768,              // y=48
+  25024,              // y=49
+  25280,              // y=50
+  25536,              // y=51
+  25792,              // y=52
+  26048,              // y=53
+  26304,              // y=54
+  26560,              // y=55
+  24800,              // y=56
+  25056,              // y=57
+  25312,              // y=58
+  25568,              // y=59
+  25824,              // y=60
+  26080,              // y=61
+  26336,              // y=62
+  26592,              // y=63
+  26624,              // y=64
+  26880,              // y=65
+  27136,              // y=66
+  27392,              // y=67
+  27648,              // y=68
+  27904,              // y=69
+  28160,              // y=70
+  28416,              // y=71
+  26656,              // y=72
+  26912,              // y=73
+  27168,              // y=74
+  27424,              // y=75
+  27680,              // y=76
+  27936,              // y=77
+  28192,              // y=78
+  28448,              // y=79
+  26688,              // y=80
+  26944,              // y=81
+  27200,              // y=82
+  27456,              // y=83
+  27712,              // y=84
+  27968,              // y=85
+  28224,              // y=86
+  28480,              // y=87
+  26720,              // y=88
+  26976,              // y=89
+  27232,              // y=90
+  27488,              // y=91
+  27744,              // y=92
+  28000,              // y=93
+  28256,              // y=94
+  28512,              // y=95
+  26752,              // y=96
+  27008,              // y=97
+  27264,              // y=98
+  27520,              // y=99
+  27776,              // y=100
+  28032,              // y=101
+  28288,              // y=102
+  28544,              // y=103
+  26784,              // y=104
+  27040,              // y=105
+  27296,              // y=106
+  27552,              // y=107
+  27808,              // y=108
+  28064,              // y=109
+  28320,              // y=110
+  28576,              // y=111
+  26816,              // y=112
+  27072,              // y=113
+  27328,              // y=114
+  27584,              // y=115
+  27840,              // y=116
+  28096,              // y=117
+  28352,              // y=118
+  28608,              // y=119
+  26848,              // y=120
+  27104,              // y=121
+  27360,              // y=122
+  27616,              // y=123
+  27872,              // y=124
+  28128,              // y=125
+  28384,              // y=126
+  28640,              // y=127
+};
+
+// -------------------------------------------------------------- //
+//  IMPORTANT: no JP START as we still have declarations to make  //
+// -------------------------------------------------------------- //
 
 // The game has just loaded
 BEGIN:
-  DI                      // Disable interrupts
-  LD SP,40190             // Place the stack somewhere safe (near the end of the source code remnants at SOURCE)
-  JP START                // Display the title screen and play the theme tune
+  // DI                      // Disable interrupts
+  // LD SP,40190             // Place the stack somewhere safe (near the end of the source code remnants at SOURCE)
+  // JP START                // Display the title screen and play the theme tune
 
 // Current cavern number
 //
 // Initialised by the routine at START, used by the routines at STARTGAME, LOOP,
 // DRAWSHEET and DRAWHG, and updated by the routine at NXSHEET.
-SHEET:
-  DEFB 0
+uint8_t SHEET;
 
 // Left-right movement table
 //
@@ -466,104 +448,93 @@ SHEET:
 // or by a conveyor).
 //
 // One of the first four entries is used when Willy is not moving.
-LRMOVEMENT:
-  DEFB 0                  // V=0 (facing right, no movement) + no movement: V'=0 (no change)
-  DEFB 1                  // V=1 (facing left, no movement) + no movement: V'=1 (no change)
-  DEFB 0                  // V=2 (facing right, moving) + no movement: V'=0 (facing right, no movement) (i.e. stop)
-  DEFB 1                  // V=3 (facing left, moving) + no movement: V'=1 (facing left, no movement) (i.e. stop)
+uint8_t LRMOVEMENT[16] = {
+  0,                  // V=0 (facing right, no movement) + no movement: V'=0 (no change)
+  1,                  // V=1 (facing left, no movement) + no movement: V'=1 (no change)
+  0,                  // V=2 (facing right, moving) + no movement: V'=0 (facing right, no movement) (i.e. stop)
+  1,                  // V=3 (facing left, moving) + no movement: V'=1 (facing left, no movement) (i.e. stop)
 // One of the next four entries is used when Willy is moving left.
-  DEFB 1                  // V=0 (facing right, no movement) + move left: V'=1 (facing left, no movement) (i.e. turn around)
-  DEFB 3                  // V=1 (facing left, no movement) + move left: V'=3 (facing left, moving)
-  DEFB 1                  // V=2 (facing right, moving) + move left: V'=1 (facing left, no movement) (i.e. turn around)
-  DEFB 3                  // V=3 (facing left, moving) + move left: V'=3 (no change)
+  1,                  // V=0 (facing right, no movement) + move left: V'=1 (facing left, no movement) (i.e. turn around)
+  3,                  // V=1 (facing left, no movement) + move left: V'=3 (facing left, moving)
+  1,                  // V=2 (facing right, moving) + move left: V'=1 (facing left, no movement) (i.e. turn around)
+  3,                  // V=3 (facing left, moving) + move left: V'=3 (no change)
 // One of the next four entries is used when Willy is moving right.
-  DEFB 2                  // V=0 (facing right, no movement) + move right: V'=2 (facing right, moving)
-  DEFB 0                  // V=1 (facing left, no movement) + move right: V'=0 (facing right, no movement) (i.e. turn around)
-  DEFB 2                  // V=2 (facing right, moving) + move right: V'=2 (no change)
-  DEFB 0                  // V=3 (facing left, moving) + move right: V'=0 (facing right, no movement) (i.e. turn around)
+  2,                  // V=0 (facing right, no movement) + move right: V'=2 (facing right, moving)
+  0,                  // V=1 (facing left, no movement) + move right: V'=0 (facing right, no movement) (i.e. turn around)
+  2,                  // V=2 (facing right, moving) + move right: V'=2 (no change)
+  0,                  // V=3 (facing left, moving) + move right: V'=0 (facing right, no movement) (i.e. turn around)
 // One of the final four entries is used when Willy is being pulled both left
 // and right; each entry leaves the flags at DMFLAGS unchanged (so Willy carries
 // on moving in the direction he's already moving, or remains stationary).
-  DEFB 0                  // V=V'=0 (facing right, no movement)
-  DEFB 1                  // V=V'=1 (facing left, no movement)
-  DEFB 2                  // V=V'=2 (facing right, moving)
-  DEFB 3                  // V=V'=3 (facing left, moving)
+  0,                  // V=V'=0 (facing right, no movement)
+  1,                  // V=V'=1 (facing left, no movement)
+  2,                  // V=V'=2 (facing right, moving)
+  3,                  // V=V'=3 (facing left, moving)
+};
 
 // 'AIR'
 //
 // Used by the routine at STARTGAME.
-MESSAIR:
-  DEFM "AIR"
+char MESSAIR[] = "AIR";
 
 // Unused
-  DEFM "0000"
+// DEFM "0000"
 
 // High score
 //
 // Used by the routine at LOOP and updated by the routine at ENDGAM.
-HGHSCOR:
-  DEFM "000000"
+char HGHSCOR[] = "000000";
 
 // Score
 //
 // Initialised by the routine at STARTGAME, and used by the routines at LOOP,
 // ENDGAM, NXSHEET and INCSCORE.
-SCORE:
-  DEFM "0000"             // Overflow digits (these may be updated, but are never printed)
-SCORBUF:
-  DEFM "000000"
+char SCORE[] = "0000";             // Overflow digits (these may be updated, but are never printed)
+char SCORBUF[] = "000000";
 
 // 'High Score 000000   Score 000000'
 //
 // Used by the routine at STARTGAME.
-MESSHSSC:
-  DEFM "High Score 000000   Score 000000"
+char MESSHSSC[] = "High Score 000000   Score 000000";
 
 // 'Game'
 //
 // Used by the routine at ENDGAM.
-MESSG:
-  DEFM "Game"
+char MESSG[] = "Game";
 
 // 'Over'
 //
 // Used by the routine at ENDGAM.
-MESSO:
-  DEFM "Over"
+char MESSO[] = "Over";
 
 // Lives remaining
 //
 // Initialised to 2 by the routine at START, and used and updated by the
 // routines at LOOP and INCSCORE.
-NOMEN:
-  DEFB 0
+uint8_t NOMEN;
 
 // Screen flash counter
 //
 // Initialised by the routine at START, and used by the routines at LOOP and INCSCORE.
-FLASH:
-  DEFB 0
+uint8_t FLASH;
 
 // Kempston joystick indicator
 //
 // Initialised by the routine at START, and used by the routines at LOOP,
 // MOVEWILLY2 and CHECKENTER. Holds 1 if a joystick is present, 0 otherwise.
-KEMP:
-  DEFB 0
+uint8_t KEMP;
 
 // Game mode indicator
 //
 // Initialised by the routine at START, and used by the routines at STARTGAME,
 // LOOP and NXSHEET. Holds 0 when a game is in progress, or a value from 1 to 64
 // when in demo mode.
-DEMO:
-  DEFB 0
+uint8_t DEMO;
 
 // In-game music note index
 //
 // Initialised by the routine at START, and used and updated by the routine at LOOP.
-NOTEINDEX:
-  DEFB 0
+uint8_t NOTEINDEX;
 
 // Music flags
 //
@@ -577,30 +548,31 @@ NOTEINDEX:
 // | 1      | In-game music flag (set=music off, reset=music on)              |
 // | 2-7    | Unused                                                          |
 // +--------+-----------------------------------------------------------------+
-MUSICFLAGS:
-  DEFB 0
+uint8_t MUSICFLAGS;
 
 // 6031769 key counter
 //
 // Used by the routines at LOOP and NXSHEET.
-CHEAT:
-  DEFB 0
+uint8_t CHEAT;
 
+// IMPORTANT: Using GCC `0b` extension for these binary numbers
+//            I've also create an array of 16...is this correct? -MRC-
 // 6031769
 //
 // Used by the routine at LOOP. In each pair of bytes here, bits 0-4 of the
 // first byte correspond to keys 1-2-3-4-5, and bits 0-4 of the second byte
 // correspond to keys 0-9-8-7-6; among those bits, a zero indicates a key being
 // pressed.
-  DEFB %00011111,%00011111 // (no keys pressed)
-CHEATDT:
-  DEFB %00011111,%00001111 // 6
-  DEFB %00011111,%00011110 // 0
-  DEFB %00011011,%00011111 // 3
-  DEFB %00011110,%00011111 // 1
-  DEFB %00011111,%00010111 // 7
-  DEFB %00011111,%00001111 // 6
-  DEFB %00011111,%00011101 // 9
+int CHEATDT[16] = {
+  0b00011111,0b00011111, // (no keys pressed)
+  0b00011111,0b00001111, // 6
+  0b00011111,0b00011110, // 0
+  0b00011011,0b00011111, // 3
+  0b00011110,0b00011111, // 1
+  0b00011111,0b00010111, // 7
+  0b00011111,0b00001111, // 6
+  0b00011111,0b00011101, // 9
+};
 
 // Title screen tune data (The Blue Danube)
 //
@@ -608,112 +580,116 @@ CHEATDT:
 // three bytes each, one group for each note in the tune. The first byte in each
 // group determines the duration of the note, and the second and third bytes
 // determine the frequency (and also the piano keys that light up).
-THEMETUNE:
-  DEFB 80,128,129
-  DEFB 80,102,103
-  DEFB 80,86,87
-  DEFB 50,86,87
-  DEFB 50,171,203
-  DEFB 50,43,51
-  DEFB 50,43,51
-  DEFB 50,171,203
-  DEFB 50,51,64
-  DEFB 50,51,64
-  DEFB 50,171,203
-  DEFB 50,128,129
-  DEFB 50,128,129
-  DEFB 50,102,103
-  DEFB 50,86,87
-  DEFB 50,96,86
-  DEFB 50,171,192
-  DEFB 50,43,48
-  DEFB 50,43,48
-  DEFB 50,171,192
-  DEFB 50,48,68
-  DEFB 50,48,68
-  DEFB 50,171,192
-  DEFB 50,136,137
-  DEFB 50,136,137
-  DEFB 50,114,115
-  DEFB 50,76,77
-  DEFB 50,76,77
-  DEFB 50,171,192
-  DEFB 50,38,48
-  DEFB 50,38,48
-  DEFB 50,171,192
-  DEFB 50,48,68
-  DEFB 50,48,68
-  DEFB 50,171,192
-  DEFB 50,136,137
-  DEFB 50,136,137
-  DEFB 50,114,115
-  DEFB 50,76,77
-  DEFB 50,76,77
-  DEFB 50,171,203
-  DEFB 50,38,51
-  DEFB 50,38,51
-  DEFB 50,171,203
-  DEFB 50,51,64
-  DEFB 50,51,64
-  DEFB 50,171,203
-  DEFB 50,128,129
-  DEFB 50,128,129
-  DEFB 50,102,103
-  DEFB 50,86,87
-  DEFB 50,64,65
-  DEFB 50,128,171
-  DEFB 50,32,43
-  DEFB 50,32,43
-  DEFB 50,128,171
-  DEFB 50,43,51
-  DEFB 50,43,51
-  DEFB 50,128,171
-  DEFB 50,128,129
-  DEFB 50,128,129
-  DEFB 50,102,103
-  DEFB 50,86,87
-  DEFB 50,64,65
-  DEFB 50,128,152
-  DEFB 50,32,38
-  DEFB 50,32,38
-  DEFB 50,128,152
-  DEFB 50,38,48
-  DEFB 50,38,48
-  DEFB 50,0,0
-  DEFB 50,114,115
-  DEFB 50,114,115
-  DEFB 50,96,97
-  DEFB 50,76,77
-  DEFB 50,76,153
-  DEFB 50,76,77
-  DEFB 50,76,77
-  DEFB 50,76,153
-  DEFB 50,91,92
-  DEFB 50,86,87
-  DEFB 50,51,205
-  DEFB 50,51,52
-  DEFB 50,51,52
-  DEFB 50,51,205
-  DEFB 50,64,65
-  DEFB 50,102,103
-  DEFB 100,102,103
-  DEFB 50,114,115
-  DEFB 100,76,77
-  DEFB 50,86,87
-  DEFB 50,128,203
-  DEFB 25,128,0
-  DEFB 25,128,129
-  DEFB 50,128,203
-  DEFB 255                // End marker
+uint8_t THEMETUNE[298] = {
+  80,128,129,
+  80,102,103,
+  80,86,87,
+  50,86,87,
+  50,171,203,
+  50,43,51,
+  50,43,51,
+  50,171,203,
+  50,51,64,
+  50,51,64,
+  50,171,203,
+  50,128,129,
+  50,128,129,
+  50,102,103,
+  50,86,87,
+  50,96,86,
+  50,171,192,
+  50,43,48,
+  50,43,48,
+  50,171,192,
+  50,48,68,
+  50,48,68,
+  50,171,192,
+  50,136,137,
+  50,136,137,
+  50,114,115,
+  50,76,77,
+  50,76,77,
+  50,171,192,
+  50,38,48,
+  50,38,48,
+  50,171,192,
+  50,48,68,
+  50,48,68,
+  50,171,192,
+  50,136,137,
+  50,136,137,
+  50,114,115,
+  50,76,77,
+  50,76,77,
+  50,171,203,
+  50,38,51,
+  50,38,51,
+  50,171,203,
+  50,51,64,
+  50,51,64,
+  50,171,203,
+  50,128,129,
+  50,128,129,
+  50,102,103,
+  50,86,87,
+  50,64,65,
+  50,128,171,
+  50,32,43,
+  50,32,43,
+  50,128,171,
+  50,43,51,
+  50,43,51,
+  50,128,171,
+  50,128,129,
+  50,128,129,
+  50,102,103,
+  50,86,87,
+  50,64,65,
+  50,128,152,
+  50,32,38,
+  50,32,38,
+  50,128,152,
+  50,38,48,
+  50,38,48,
+  50,0,0,
+  50,114,115,
+  50,114,115,
+  50,96,97,
+  50,76,77,
+  50,76,153,
+  50,76,77,
+  50,76,77,
+  50,76,153,
+  50,91,92,
+  50,86,87,
+  50,51,205,
+  50,51,52,
+  50,51,52,
+  50,51,205,
+  50,64,65,
+  50,102,103,
+  100,102,103,
+  50,114,115,
+  100,76,77,
+  50,86,87,
+  50,128,203,
+  25,128,0,
+  25,128,129,
+  50,128,203,
+
+  // End marker
+  255,255,255, // IMPORTANT: padded to make another group of 3 -MRC-
+};
 
 // In-game tune data (In the Hall of the Mountain King)
 //
 // Used by the routine at LOOP.
-GAMETUNE:
-  DEFB 128,114,102,96,86,102,86,86,81,96,81,81,86,102,86,86
-  DEFB 128,114,102,96,86,102,86,86,81,96,81,81,86,86,86,86
-  DEFB 128,114,102,96,86,102,86,86,81,96,81,81,86,102,86,86
-  DEFB 128,114,102,96,86,102,86,64,86,102,128,102,86,86,86,86
+uint8_t GAMETUNE[64] = {
+  128,114,102,96,86,102,86,86,81,96,81,81,86,102,86,86,
+  128,114,102,96,86,102,86,86,81,96,81,81,86,86,86,86,
+  128,114,102,96,86,102,86,86,81,96,81,81,86,102,86,86,
+  128,114,102,96,86,102,86,64,86,102,128,102,86,86,86,86,
+};
 
 // Display the title screen and play the theme tune
 //
@@ -2886,639 +2862,643 @@ CHECKENTER_0:
   CP 1                    // Reset the zero flag if ENTER is being pressed
   RET
 
+
+// IMPORTANT: commenting our all remnants -MRC-
+
 // Source code remnants
 //
 // The source code here corresponds to the code at SEE37708.
-SOURCE:
-  DEFM 9,"DEC",9,"E"      // DEC E
-  DEFW 3960               // 3960 JR NZ,NOFLP6
-  DEFB 13
-  DEFM 9,"JR",9,"NZ,NOFLP6"
-  DEFW 3970               // 3970 LD E,(HL)
-  DEFB 10
-  DEFM 9,"LD",9,"E,(HL)"
-  DEFW 3980               // 3980 XOR 24
-  DEFB 7
-  DEFM 9,"XOR",9,"24"
-  DEFW 3990               // 3990 NOFLP6 DJNZ TM51
-  DEFB 16
-  DEFM "NOFLP6",9,"DJNZ",9,"TM51"
-  DEFW 4000               // 4000 DEC C
-  DEFB 6
-  DEFM 9,"DEC",9,"C"
-  DEFW 4010               // 4010 JR NZ,TM51
-  DEFB 11
-  DEFM 9,"JR",9,"NZ,TM51"
-  DEFW 4020               // 4020 NONOTE4 LD A,(DEMO)
-  DEFB 19
-  DEFM "NONOTE4",9,"LD",9,"A,(DEMO)"
-  DEFW 4030               // 4030 OR A
-  DEFB 5
-  DEFM 9,"OR",9,"A"
-  DEFW 4040               // 4040 JR Z,NODEM1
-  DEFB 12
-  DEFM 9,"JR",9,"Z,NODEM1"
-  DEFW 4050               // 4050 DEC A
-  DEFB 6
-  DEFM 9,"DEC",9,"A"
-  DEFW 4060               // 4060 JP Z,MANDEAD
-  DEFB 13
-  DEFM 9,"JP",9,"Z,MANDEAD"
-  DEFW 4070               // 4070 LD (DEMO),A
-  DEFB 12
-  DEFM 9,"LD",9,"(DEMO),A"
-  DEFW 4080               // 4080 LD BC,0FEH
-  DEFB 11
-  DEFM 9,"LD",9,"BC,0FEH"
-  DEFW 4090               // 4090 IN A,(C)
-  DEFB 9
-  DEFM 9,"IN",9,"A,(C)"
-  DEFW 4100               // 4100 AND 31
-  DEFB 7
-  DEFM 9,"AND",9,"31"
-  DEFW 4110               // 4110 CP 31
-  DEFB 6
-  DEFM 9,"CP",9,"31"
-  DEFW 4120               // 4120 JP NZ,START
-  DEFB 12
-  DEFM 9,"JP",9,"NZ,START"
-  DEFW 4130               // 4130 LD A,(KEMP)
-  DEFB 12
-  DEFM 9,"LD",9,"A,(KEMP)"
-  DEFW 4140               // 4140 OR A
-  DEFB 5
-  DEFM 9,"OR",9,"A"
-  DEFW 4150               // 4150 JR Z,NODEM1
-  DEFB 12
-  DEFM 9,"JR",9,"Z,NODEM1"
-  DEFW 4160               // 4160 IN A,(31)
-  DEFB 10
-  DEFM 9,"IN",9,"A,(31)"
-  DEFW 4170               // 4170 OR A
-  DEFB 5
-  DEFM 9,"OR",9,"A"
-  DEFW 4180               // 4180 JP NZ,START
-  DEFB 12
-  DEFM 9,"JP",9,"NZ,START"
-  DEFW 4190               // 4190 NODEM1 LD BC,0EFFEH
-  DEFB 19
-  DEFM "NODEM1",9,"LD",9,"BC,0EFFEH"
-  DEFW 4200               // 4200 IN A,(C)
-  DEFB 9
-  DEFM 9,"IN",9,"A,(C)"
-  DEFW 4210               // 4210 BIT 4,A
-  DEFB 8
-  DEFM 9,"BIT",9,"4,A"
-  DEFW 4220               // 4220 JP NZ,CKCHEAT
-  DEFB 14
-  DEFM 9,"JP",9,"NZ,CKCHEAT"
-  DEFW 4230               // 4230 LD A,(CHEAT)
-  DEFB 13
-  DEFM 9,"LD",9,"A,(CHEAT)"
-  DEFW 4240               // 4240 CP 7
-  DEFB 5
-  DEFM 9,"CP",9,"7"
-  DEFW 4250               // 4250 JP NZ,CKCHEAT
-  DEFB 14
-  DEFM 9,"JP",9,"NZ,CKCHEAT"
-  DEFW 4260               // 4260 LD B,0F7H
-  DEFB 10
-  DEFM 9,"LD",9,"B,0F7H"
-  DEFW 4270               // 4270 IN A,(C)
-  DEFB 9
-  DEFM 9,"IN",9,"A,(C)"
-  DEFW 4280               // 4280 CPL
-  DEFB 4
-  DEFM 9,"CPL"
-  DEFW 4290               // 4290 AND 31
-  DEFB 7
-  DEFM 9,"AND",9,"31"
-  DEFW 4300               // 4300 CP 20
-  DEFB 6
-  DEFM 9,"CP",9,"20"
-  DEFW 4310               // 4310 JP NC,CKCHEAT
-  DEFB 14
-  DEFM 9,"JP",9,"NC,CKCHEAT"
-  DEFW 4320               // 4320 LD (SHEET),A
-  DEFB 13
-  DEFM 9,"LD",9,"(SHEET),A"
-  DEFW 4330               // 4330 JP NEWSHT
-  DEFB 10
-  DEFM 9,"JP",9,"NEWSHT"
-  DEFW 4340               // 4340 CKCHEAT LD A,(CHEAT)
-  DEFB 20
-  DEFM "CKCHEAT",9,"LD",9,"A,(CHEAT)"
-  DEFW 4350               // 4350 CP 7
-  DEFB 5
-  DEFM 9,"CP",9,"7"
-  DEFW 4360               // 4360 JP Z,LOOP
-  DEFB 10
-  DEFM 9,"JP",9,"Z,LOOP"
-  DEFW 4370               // 4370 RLCA
-  DEFB 5
-  DEFM 9,"RLCA"
-  DEFW 4380               // 4380 LD E,A
-  DEFB 7
-  DEFM 9,"LD",9,"E,A"
-  DEFW 4390               // 4390 LD D,0
-  DEFB 7
-  DEFM 9,"LD",9,"D,0"
-  DEFW 4400               // 4400 LD IX,CHEATDT
-  DEFB 14
-  DEFM 9,"LD",9,"IX,CHEATDT"
-  DEFW 4410               // 4410 ADD IX,DE
-  DEFB 10
-  DEFM 9,"ADD",9,"IX,DE"
-  DEFW 4420               // 4420 LD BC,0F7FEH
-  DEFB 13
-  DEFM 9,"LD",9,"BC,0F7FEH"
-  DEFW 4430               // 4430 IN A,(C)
-  DEFB 9
-  DEFM 9,"IN",9,"A,(C)"
-  DEFW 4440               // 4440 AND 31
-  DEFB 7
-  DEFM 9,"AND",9,"31"
-  DEFW 4450               // 4450 CP (IX+0)
-  DEFB 10
-  DEFM 9,"CP",9,"(IX+0)"
-  DEFW 4460               // 4460 JR Z,CKNXCHT
-  DEFB 13
-  DEFM 9,"JR",9,"Z,CKNXCHT"
-  DEFW 4470               // 4470 CP 31
-  DEFB 6
-  DEFM 9,"CP",9,"31"
-  DEFW 4480               // 4480 JP Z,LOOP
-  DEFB 10
-  DEFM 9,"JP",9,"Z,LOOP"
-  DEFW 4490               // 4490 CP (IX-2)
-  DEFB 10
-  DEFM 9,"CP",9,"(IX-2)"
-  DEFW 4500               // 4500 JP Z,LOOP
-  DEFB 10
-  DEFM 9,"JP",9,"Z,LOOP"
-  DEFW 4510               // 4510 XOR A
-  DEFB 6
-  DEFM 9,"XOR",9,"A"
-  DEFW 4520               // 4520 LD (CHEAT),A
-  DEFB 13
-  DEFM 9,"LD",9,"(CHEAT),A"
-  DEFW 4530               // 4530 JP LOOP
-  DEFB 8
-  DEFM 9,"JP",9,"LOOP"
-  DEFW 4540               // 4540 CKNXCHT LD B,0EFH
-  DEFB 17
-  DEFM "CKNXCHT",9,"LD",9,"B,0EFH"
-  DEFW 4550               // 4550 IN A,(C)
-  DEFB 9
-  DEFM 9,"IN",9,"A,(C)"
-  DEFW 4560               // 4560 AND 31
-  DEFB 7
-  DEFM 9,"AND",9,"31"
-  DEFW 4570               // 4570 CP (IX+1)
-  DEFB 10
-  DEFM 9,"CP",9,"(IX+1)"
-  DEFW 4580               // 4580 JR Z,INCCHT
-  DEFB 12
-  DEFM 9,"JR",9,"Z,INCCHT"
-  DEFW 4590               // 4590 CP 31
-  DEFB 6
-  DEFM 9,"CP",9,"31"
-  DEFW 4600               // 4600 JP Z,LOOP
-  DEFB 10
-  DEFM 9,"JP",9,"Z,LOOP"
-  DEFW 4610               // 4610 CP (IX-1)
-  DEFB 10
-  DEFM 9,"CP",9,"(IX-1)"
-  DEFW 4620               // 4620 JP Z,LOOP
-  DEFB 10
-  DEFM 9,"JP",9,"Z,LOOP"
-  DEFW 4630               // 4630 XOR A
-  DEFB 6
-  DEFM 9,"XOR",9,"A"
-  DEFW 4640               // 4640 LD (CHEAT),A
-  DEFB 13
-  DEFM 9,"LD",9,"(CHEAT),A"
-  DEFW 4650               // 4650 JP LOOP
-  DEFB 8
-  DEFM 9,"JP",9,"LOOP"
-  DEFW 4660               // 4660 INCCHT LD A,(CHEAT)
-  DEFB 19
-  DEFM "INCCHT",9,"LD",9,"A,(CHEAT)"
-  DEFW 4670               // 4670 INC A
-  DEFB 6
-  DEFM 9,"INC",9,"A"
-  DEFW 4680               // 4680 LD (CHEAT),A
-  DEFB 13
-  DEFM 9,"LD",9,"(CHEAT),A"
-  DEFW 4690               // 4690 JP LOOP
-  DEFB 8
-  DEFM 9,"JP",9,"LOOP"
-  DEFW 4700               // 4700 MANDEAD LD A,(DEMO)
-  DEFB 19
-  DEFM "MANDEAD",9,"LD",9,"A,(DEMO)"
-  DEFW 4710               // 4710 OR A
-  DEFB 5
-  DEFM 9,"OR",9,"A"
-  DEFW 4720               // 4720 JP NZ,NXSHEET
-  DEFB 14
-  DEFM 9,"JP",9,"NZ,NXSHEET"
-  DEFW 4730               // 4730 LD A,47H
-  DEFB 9
-  DEFM 9,"LD",9,"A,47H"
-  DEFW 4740               // 4740 LPDEAD1 LD HL,5800H
-  DEFB 19
-  DEFM "LPDEAD1",9,"LD",9,"HL,5800H"
-  DEFW 4750               // 4750 LD DE,5801H
-  DEFB 12
-  DEFM 9,"LD",9,"DE,5801H"
-  DEFW 4760               // 4760 LD BC,1FFH
-  DEFB 11
-  DEFM 9,"LD",9,"BC,1FFH"
-  DEFW 4770               // 4770 LD (HL),A
-  DEFB 10
-  DEFM 9,"LD",9,"(HL),A"
-  DEFW 4780               // 4780 LDIR
-  DEFB 5
-  DEFM 9,"LDIR"
-  DEFW 4790               // 4790 LD E,A
-  DEFB 7
-  DEFM 9,"LD",9,"E,A"
-  DEFW 4800               // 4800 CPL
-  DEFB 4
-  DEFM 9,"CPL"
-  DEFW 4810               // 4810 AND 7
-  DEFB 6
-  DEFM 9,"AND",9,"7"
-  DEFW 4820               // 4820 RLCA
-  DEFB 5
-  DEFM 9,"RLCA"
-  DEFW 4830               // 4830 RLCA
-  DEFB 5
-  DEFM 9,"RLCA"
-  DEFW 4840               // 4840 RLCA
-  DEFB 5
-  DEFM 9,"RLCA"
-  DEFW 4850               // 4850 OR 7
-  DEFB 5
-  DEFM 9,"OR",9,"7"
-  DEFW 4860               // 4860 LD D,A
-  DEFB 7
-  DEFM 9,"LD",9,"D,A"
-  DEFW 4870               // 4870 LD C,E
-  DEFB 7
-  DEFM 9,"LD",9,"C,E"
-  DEFW 4880               // 4880 RRC C
-  DEFB 6
-  DEFM 9,"RRC",9,"C"
-  DEFW 4890               // 4890 RRC C
-  DEFB 6
-  DEFM 9,"RRC",9,"C"
-  DEFW 4900               // 4900 RRC C
-  DEFB 6
-  DEFM 9,"RRC",9,"C"
-  DEFW 4910               // 4910 OR 16
-  DEFB 6
-  DEFM 9,"OR",9,"16"
-  DEFW 4920               // 4920 XOR A
-  DEFB 6
-  DEFM 9,"XOR",9,"A"
-  DEFW 4930               // 4930 TM21 OUT (254),A
-  DEFB 16
-  DEFM "TM21",9,"OUT",9,"(254),A"
-  DEFW 4940               // 4940 XOR 24
-  DEFB 7
-  DEFM 9,"XOR",9,"24"
-  DEFW 4950               // 4950 LD B,D
-  DEFB 7
-  DEFM 9,"LD",9,"B,D"
-  DEFW 4960               // 4960 TM22 DJNZ TM22
-  DEFB 14
-  DEFM "TM22",9,"DJNZ",9,"TM22"
-  DEFW 4970               // 4970 DEC C
-  DEFB 6
-  DEFM 9,"DEC",9,"C"
-  DEFW 4980               // 4980 JR NZ,TM21
-  DEFB 11
-  DEFM 9,"JR",9,"NZ,TM21"
-  DEFW 4990               // 4990 LD A,E
-  DEFB 7
-  DEFM 9,"LD",9,"A,E"
-  DEFW 5000               // 5000 DEC A
-  DEFB 6
-  DEFM 9,"DEC",9,"A"
-  DEFW 5010               // 5010 CP 3FH
-  DEFB 7
-  DEFM 9,"CP",9,"3FH"
-  DEFW 5020               // 5020 JR NZ,LPDEAD1
-  DEFB 14
-  DEFM 9,"JR",9,"NZ,LPDEAD1"
-  DEFW 5030               // 5030 LD HL,NOMEN
-  DEFB 12
-  DEFM 9,"LD",9,"HL,NOMEN"
-  DEFW 5040               // 5040 LD A,(HL)
-  DEFB 10
-  DEFM 9,"LD",9,"A,(HL)"
-  DEFW 5050               // 5050 OR A
-  DEFB 5
-  DEFM 9,"OR",9,"A"
-  DEFW 5060               // 5060 JP Z,ENDGAM
-  DEFB 12
-  DEFM 9,"JP",9,"Z,ENDGAM"
-  DEFW 5070               // 5070 DEC (HL)
-  DEFB 9
-  DEFM 9,"DEC",9,"(HL)"
-  DEFW 5080               // 5080 JP NEWSHT
-  DEFB 10
-  DEFM 9,"JP",9,"NEWSHT"
-  DEFW 5090               // 5090 ENDGAM LD HL,HGHSCOR
-  DEFB 20
-  DEFM "ENDGAM",9,"LD",9,"HL,HGHSCOR"
-  DEFW 5100               // 5100 LD DE,SCORBUF
-  DEFB 14
-  DEFM 9,"LD",9,"DE,SCORBUF"
-  DEFW 5110               // 5110 LD B,6
-  DEFB 7
-  DEFM 9,"LD",9,"B,6"
-  DEFW 5120               // 5120 LPHGH LD A,(DE)
-  DEFB 15
-  DEFM "LPHGH",9,"LD",9,"A,(DE)"
-  DEFW 5130               // 5130 CP (HL)
-  DEFB 8
-  DEFM 9,"CP",9,"(HL)"
-  DEFW 5140               // 5140 JP C,FEET
-  DEFB 10
-  DEFM 9,"JP",9,"C,FEET"
-  DEFW 5150               // 5150 JP NZ,NEWHGH
-  DEFB 13
-  DEFM 9,"JP",9,"NZ,NEWHGH"
-  DEFW 5160               // 5160 INC HL
-  DEFB 7
-  DEFM 9,"INC",9,"HL"
-  DEFW 5170               // 5170 INC DE
-  DEFB 7
-  DEFM 9,"INC",9,"DE"
-  DEFW 5180               // 5180 DJNZ LPHGH
-  DEFB 11
-  DEFM 9,"DJNZ",9,"LPHGH"
-  DEFW 5190               // 5190 NEWHGH LD HL,SCORBUF
-  DEFB 20
-  DEFM "NEWHGH",9,"LD",9,"HL,SCORBUF"
-  DEFW 5200               // 5200 LD DE,HGHSCOR
-  DEFB 14
-  DEFM 9,"LD",9,"DE,HGHSCOR"
-  DEFW 5210               // 5210 LD BC,6
-  DEFB 8
-  DEFM 9,"LD",9,"BC,6"
-  DEFW 5220               // 5220 LDIR
-  DEFB 5
-  DEFM 9,"LDIR"
-  DEFW 5230               // 5230 FEET LD HL,4000H
-  DEFB 16
-  DEFM "FEET",9,"LD",9,"HL,4000H"
-  DEFW 5240               // 5240 LD DE,4001H
-  DEFB 12
-  DEFM 9,"LD",9,"DE,4001H"
-  DEFW 5250               // 5250 LD BC,0FFFH
-  DEFB 12
-  DEFM 9,"LD",9,"BC,0FFFH"
-  DEFW 5260               // 5260 LD (HL),0
-  DEFB 10
-  DEFM 9,"LD",9,"(HL),0"
-  DEFW 5270               // 5270 LDIR
-  DEFB 5
-  DEFM 9,"LDIR"
-  DEFW 5280               // 5280 XOR A
-  DEFB 6
-  DEFM 9,"XOR",9,"A"
-  DEFW 5290               // 5290 LD (EUGHGT),A
-  DEFB 14
-  DEFM 9,"LD",9,"(EUGHGT),A"
-  DEFW 5300               // 5300 LD DE,MANDAT+64
-  DEFB 16
-  DEFM 9,"LD",9,"DE,MANDAT+64"
-  DEFW 5310               // 5310 LD HL,488FH
-  DEFB 12
-  DEFM 9,"LD",9,"HL,488FH"
-  DEFW 5320               // 5320 LD C,0
-  DEFB 7
-  DEFM 9,"LD",9,"C,0"
-  DEFW 5330               // 5330 CALL DRWFIX
-  DEFB 12
-  DEFM 9,"CALL",9,"DRWFIX"
-  DEFW 5340               // 5340 LD DE,0B6E0H
-  DEFB 13
-  DEFM 9,"LD",9,"DE,0B6E0H"
-  DEFW 5350               // 5350 LD HL,48CFH
-  DEFB 12
-  DEFM 9,"LD",9,"HL,48CFH"
-  DEFW 5360               // 5360 LD C,0
-  DEFB 7
-  DEFM 9,"LD",9,"C,0"
-  DEFW 5370               // 5370 CALL DRWFIX
-  DEFB 12
-  DEFM 9,"CALL",9,"DRWFIX"
-  DEFW 5380               // 5380 LOOPFT LD A,(EUGHGT)
-  DEFB 20
-  DEFM "LOOPFT",9,"LD",9,"A,(EUGHGT)"
-  DEFW 5390               // 5390 LD C,A
-  DEFB 7
-  DEFM 9,"LD",9,"C,A"
-  DEFW 5400               // 5400 LD B,83H
-  DEFB 9
-  DEFM 9,"LD",9,"B,83H"
-  DEFW 5410               // 5410 LD A,(BC)
-  DEFB 10
-  DEFM 9,"LD",9,"A,(BC)"
-  DEFW 5420               // 5420 OR 0FH
-  DEFB 7
-  DEFM 9,"OR",9,"0FH"
-  DEFW 5430               // 5430 LD L,A
-  DEFB 7
-  DEFM 9,"LD",9,"L,A"
-  DEFW 5440               // 5440 INC BC
-  DEFB 7
-  DEFM 9,"INC",9,"BC"
-  DEFW 5450               // 5450 LD A,(BC)
-  DEFB 10
-  DEFM 9,"LD",9,"A,(BC)"
-  DEFW 5460               // 5460 SUB 20H
-  DEFB 8
-  DEFM 9,"SUB",9,"20H"
-  DEFW 5470               // 5470 LD H,A
-  DEFB 7
-  DEFM 9,"LD",9,"H,A"
-  DEFW 5480               // 5480 LD DE,0BAE0H
-  DEFB 13
-  DEFM 9,"LD",9,"DE,0BAE0H"
-  DEFW 5490               // 5490 LD C,0
-  DEFB 7
-  DEFM 9,"LD",9,"C,0"
-  DEFW 5500               // 5500 CALL DRWFIX
-  DEFB 12
-  DEFM 9,"CALL",9,"DRWFIX"
-  DEFW 5510               // 5510 LD A,(EUGHGT)
-  DEFB 14
-  DEFM 9,"LD",9,"A,(EUGHGT)"
-  DEFW 5520               // 5520 CPL
-  DEFB 4
-  DEFM 9,"CPL"
-  DEFW 5530               // 5530 LD E,A
-  DEFB 7
-  DEFM 9,"LD",9,"E,A"
-  DEFW 5540               // 5540 XOR A
-  DEFB 6
-  DEFM 9,"XOR",9,"A"
-  DEFW 5550               // 5550 LD BC,40H
-  DEFB 10
-  DEFM 9,"LD",9,"BC,40H"
-  DEFW 5560               // 5560 TM111 OUT (254),A
-  DEFB 17
-  DEFM "TM111",9,"OUT",9,"(254),A"
-  DEFW 5570               // 5570 XOR 24
-  DEFB 7
-  DEFM 9,"XOR",9,"24"
-  DEFW 5580               // 5580 LD B,E
-  DEFB 7
-  DEFM 9,"LD",9,"B,E"
-  DEFW 5590               // 5590 TM112 DJNZ TM112
-  DEFB 16
-  DEFM "TM112",9,"DJNZ",9,"TM112"
-  DEFW 5600               // 5600 DEC C
-  DEFB 6
-  DEFM 9,"DEC",9,"C"
-  DEFW 5610               // 5610 JR NZ,TM111
-  DEFB 12
-  DEFM 9,"JR",9,"NZ,TM111"
-  DEFW 5620               // 5620 LD HL,5800H
-  DEFB 12
-  DEFM 9,"LD",9,"HL,5800H"
-  DEFW 5630               // 5630 LD DE,5801H
-  DEFB 12
-  DEFM 9,"LD",9,"DE,5801H"
-  DEFW 5640               // 5640 LD BC,1FFH
-  DEFB 11
-  DEFM 9,"LD",9,"BC,1FFH"
-  DEFW 5650               // 5650 LD A,(EUGHGT)
-  DEFB 14
-  DEFM 9,"LD",9,"A,(EUGHGT)"
-  DEFW 5660               // 5660 AND 0CH
-  DEFB 8
-  DEFM 9,"AND",9,"0CH"
-  DEFW 5670               // 5670 RLCA
-  DEFB 5
-  DEFM 9,"RLCA"
-  DEFW 5680               // 5680 OR 47H
-  DEFB 7
-  DEFM 9,"OR",9,"47H"
-  DEFW 5690               // 5690 LD (HL),A
-  DEFB 10
-  DEFM 9,"LD",9,"(HL),A"
-  DEFW 5700               // 5700 LDIR
-  DEFB 5
-  DEFM 9,"LDIR"
-  DEFW 5710               // 5710 LD A,(EUGHGT)
-  DEFB 14
-  DEFM 9,"LD",9,"A,(EUGHGT)"
-  DEFW 5720               // 5720 ADD A,4
-  DEFB 8
-  DEFM 9,"ADD",9,"A,4"
-  DEFW 5730               // 5730 LD (EUGHGT),A
-  DEFB 14
-  DEFM 9,"LD",9,"(EUGHGT),A"
-  DEFW 5740               // 5740 CP 0C4H
-  DEFB 8
-  DEFM 9,"CP",9,"0C4H"
-  DEFW 5750               // 5750 JR NZ,LOOPFT
-  DEFB 13
-  DEFM 9,"JR",9,"NZ,LOOPFT"
-  DEFW 5760               // 5760 LD IX,MESSG
-  DEFB 12
-  DEFM 9,"LD",9,"IX,MESSG"
-  DEFW 5770               // 5770 LD C,4
-  DEFB 7
-  DEFM 9,"LD",9,"C,4"
-  DEFW 5780               // 5780 LD DE,40CAH
-  DEFB 12
-  DEFM 9,"LD",9,"DE,40CAH"
-  DEFW 5790               // 5790 CALL PMESS
-  DEFB 11
-  DEFM 9,"CALL",9,"PMESS"
-  DEFW 5800               // 5800 LD IX,MESSO
-  DEFB 12
-  DEFM 9,"LD",9,"IX,MESSO"
-  DEFW 5810               // 5810 LD C,4
-  DEFB 7
-  DEFM 9,"LD",9,"C,4"
-  DEFW 5820               // 5820 LD DE,40D2H
-  DEFB 12
-  DEFM 9,"LD",9,"DE,40D2H"
-  DEFW 5830               // 5830 CALL PMESS
-  DEFB 11
-  DEFM 9,"CALL",9,"PMESS"
-  DEFW 5840               // 5840 LD BC,0
-  DEFB 8
-  DEFM 9,"LD",9,"BC,0"
-  DEFW 5850               // 5850 LD D,6
-  DEFB 7
-  DEFM 9,"LD",9,"D,6"
-  DEFW 5860               // 5860 TM91 DJNZ TM91
-  DEFB 14
-  DEFM "TM91",9,"DJNZ",9,"TM91"
-  DEFW 5870               // 5870 LD A,C
-  DEFB 7
-  DEFM 9,"LD",9,"A,C"
-  DEFW 5880               // 5880 A[ND 7]
-  DEFB 6
-  DEFM 9,"A"
+// SOURCE:
+//   DEFM 9,"DEC",9,"E"      // DEC E
+//   DEFW 3960               // 3960 JR NZ,NOFLP6
+//   DEFB 13
+//   DEFM 9,"JR",9,"NZ,NOFLP6"
+//   DEFW 3970               // 3970 LD E,(HL)
+//   DEFB 10
+//   DEFM 9,"LD",9,"E,(HL)"
+//   DEFW 3980               // 3980 XOR 24
+//   DEFB 7
+//   DEFM 9,"XOR",9,"24"
+//   DEFW 3990               // 3990 NOFLP6 DJNZ TM51
+//   DEFB 16
+//   DEFM "NOFLP6",9,"DJNZ",9,"TM51"
+//   DEFW 4000               // 4000 DEC C
+//   DEFB 6
+//   DEFM 9,"DEC",9,"C"
+//   DEFW 4010               // 4010 JR NZ,TM51
+//   DEFB 11
+//   DEFM 9,"JR",9,"NZ,TM51"
+//   DEFW 4020               // 4020 NONOTE4 LD A,(DEMO)
+//   DEFB 19
+//   DEFM "NONOTE4",9,"LD",9,"A,(DEMO)"
+//   DEFW 4030               // 4030 OR A
+//   DEFB 5
+//   DEFM 9,"OR",9,"A"
+//   DEFW 4040               // 4040 JR Z,NODEM1
+//   DEFB 12
+//   DEFM 9,"JR",9,"Z,NODEM1"
+//   DEFW 4050               // 4050 DEC A
+//   DEFB 6
+//   DEFM 9,"DEC",9,"A"
+//   DEFW 4060               // 4060 JP Z,MANDEAD
+//   DEFB 13
+//   DEFM 9,"JP",9,"Z,MANDEAD"
+//   DEFW 4070               // 4070 LD (DEMO),A
+//   DEFB 12
+//   DEFM 9,"LD",9,"(DEMO),A"
+//   DEFW 4080               // 4080 LD BC,0FEH
+//   DEFB 11
+//   DEFM 9,"LD",9,"BC,0FEH"
+//   DEFW 4090               // 4090 IN A,(C)
+//   DEFB 9
+//   DEFM 9,"IN",9,"A,(C)"
+//   DEFW 4100               // 4100 AND 31
+//   DEFB 7
+//   DEFM 9,"AND",9,"31"
+//   DEFW 4110               // 4110 CP 31
+//   DEFB 6
+//   DEFM 9,"CP",9,"31"
+//   DEFW 4120               // 4120 JP NZ,START
+//   DEFB 12
+//   DEFM 9,"JP",9,"NZ,START"
+//   DEFW 4130               // 4130 LD A,(KEMP)
+//   DEFB 12
+//   DEFM 9,"LD",9,"A,(KEMP)"
+//   DEFW 4140               // 4140 OR A
+//   DEFB 5
+//   DEFM 9,"OR",9,"A"
+//   DEFW 4150               // 4150 JR Z,NODEM1
+//   DEFB 12
+//   DEFM 9,"JR",9,"Z,NODEM1"
+//   DEFW 4160               // 4160 IN A,(31)
+//   DEFB 10
+//   DEFM 9,"IN",9,"A,(31)"
+//   DEFW 4170               // 4170 OR A
+//   DEFB 5
+//   DEFM 9,"OR",9,"A"
+//   DEFW 4180               // 4180 JP NZ,START
+//   DEFB 12
+//   DEFM 9,"JP",9,"NZ,START"
+//   DEFW 4190               // 4190 NODEM1 LD BC,0EFFEH
+//   DEFB 19
+//   DEFM "NODEM1",9,"LD",9,"BC,0EFFEH"
+//   DEFW 4200               // 4200 IN A,(C)
+//   DEFB 9
+//   DEFM 9,"IN",9,"A,(C)"
+//   DEFW 4210               // 4210 BIT 4,A
+//   DEFB 8
+//   DEFM 9,"BIT",9,"4,A"
+//   DEFW 4220               // 4220 JP NZ,CKCHEAT
+//   DEFB 14
+//   DEFM 9,"JP",9,"NZ,CKCHEAT"
+//   DEFW 4230               // 4230 LD A,(CHEAT)
+//   DEFB 13
+//   DEFM 9,"LD",9,"A,(CHEAT)"
+//   DEFW 4240               // 4240 CP 7
+//   DEFB 5
+//   DEFM 9,"CP",9,"7"
+//   DEFW 4250               // 4250 JP NZ,CKCHEAT
+//   DEFB 14
+//   DEFM 9,"JP",9,"NZ,CKCHEAT"
+//   DEFW 4260               // 4260 LD B,0F7H
+//   DEFB 10
+//   DEFM 9,"LD",9,"B,0F7H"
+//   DEFW 4270               // 4270 IN A,(C)
+//   DEFB 9
+//   DEFM 9,"IN",9,"A,(C)"
+//   DEFW 4280               // 4280 CPL
+//   DEFB 4
+//   DEFM 9,"CPL"
+//   DEFW 4290               // 4290 AND 31
+//   DEFB 7
+//   DEFM 9,"AND",9,"31"
+//   DEFW 4300               // 4300 CP 20
+//   DEFB 6
+//   DEFM 9,"CP",9,"20"
+//   DEFW 4310               // 4310 JP NC,CKCHEAT
+//   DEFB 14
+//   DEFM 9,"JP",9,"NC,CKCHEAT"
+//   DEFW 4320               // 4320 LD (SHEET),A
+//   DEFB 13
+//   DEFM 9,"LD",9,"(SHEET),A"
+//   DEFW 4330               // 4330 JP NEWSHT
+//   DEFB 10
+//   DEFM 9,"JP",9,"NEWSHT"
+//   DEFW 4340               // 4340 CKCHEAT LD A,(CHEAT)
+//   DEFB 20
+//   DEFM "CKCHEAT",9,"LD",9,"A,(CHEAT)"
+//   DEFW 4350               // 4350 CP 7
+//   DEFB 5
+//   DEFM 9,"CP",9,"7"
+//   DEFW 4360               // 4360 JP Z,LOOP
+//   DEFB 10
+//   DEFM 9,"JP",9,"Z,LOOP"
+//   DEFW 4370               // 4370 RLCA
+//   DEFB 5
+//   DEFM 9,"RLCA"
+//   DEFW 4380               // 4380 LD E,A
+//   DEFB 7
+//   DEFM 9,"LD",9,"E,A"
+//   DEFW 4390               // 4390 LD D,0
+//   DEFB 7
+//   DEFM 9,"LD",9,"D,0"
+//   DEFW 4400               // 4400 LD IX,CHEATDT
+//   DEFB 14
+//   DEFM 9,"LD",9,"IX,CHEATDT"
+//   DEFW 4410               // 4410 ADD IX,DE
+//   DEFB 10
+//   DEFM 9,"ADD",9,"IX,DE"
+//   DEFW 4420               // 4420 LD BC,0F7FEH
+//   DEFB 13
+//   DEFM 9,"LD",9,"BC,0F7FEH"
+//   DEFW 4430               // 4430 IN A,(C)
+//   DEFB 9
+//   DEFM 9,"IN",9,"A,(C)"
+//   DEFW 4440               // 4440 AND 31
+//   DEFB 7
+//   DEFM 9,"AND",9,"31"
+//   DEFW 4450               // 4450 CP (IX+0)
+//   DEFB 10
+//   DEFM 9,"CP",9,"(IX+0)"
+//   DEFW 4460               // 4460 JR Z,CKNXCHT
+//   DEFB 13
+//   DEFM 9,"JR",9,"Z,CKNXCHT"
+//   DEFW 4470               // 4470 CP 31
+//   DEFB 6
+//   DEFM 9,"CP",9,"31"
+//   DEFW 4480               // 4480 JP Z,LOOP
+//   DEFB 10
+//   DEFM 9,"JP",9,"Z,LOOP"
+//   DEFW 4490               // 4490 CP (IX-2)
+//   DEFB 10
+//   DEFM 9,"CP",9,"(IX-2)"
+//   DEFW 4500               // 4500 JP Z,LOOP
+//   DEFB 10
+//   DEFM 9,"JP",9,"Z,LOOP"
+//   DEFW 4510               // 4510 XOR A
+//   DEFB 6
+//   DEFM 9,"XOR",9,"A"
+//   DEFW 4520               // 4520 LD (CHEAT),A
+//   DEFB 13
+//   DEFM 9,"LD",9,"(CHEAT),A"
+//   DEFW 4530               // 4530 JP LOOP
+//   DEFB 8
+//   DEFM 9,"JP",9,"LOOP"
+//   DEFW 4540               // 4540 CKNXCHT LD B,0EFH
+//   DEFB 17
+//   DEFM "CKNXCHT",9,"LD",9,"B,0EFH"
+//   DEFW 4550               // 4550 IN A,(C)
+//   DEFB 9
+//   DEFM 9,"IN",9,"A,(C)"
+//   DEFW 4560               // 4560 AND 31
+//   DEFB 7
+//   DEFM 9,"AND",9,"31"
+//   DEFW 4570               // 4570 CP (IX+1)
+//   DEFB 10
+//   DEFM 9,"CP",9,"(IX+1)"
+//   DEFW 4580               // 4580 JR Z,INCCHT
+//   DEFB 12
+//   DEFM 9,"JR",9,"Z,INCCHT"
+//   DEFW 4590               // 4590 CP 31
+//   DEFB 6
+//   DEFM 9,"CP",9,"31"
+//   DEFW 4600               // 4600 JP Z,LOOP
+//   DEFB 10
+//   DEFM 9,"JP",9,"Z,LOOP"
+//   DEFW 4610               // 4610 CP (IX-1)
+//   DEFB 10
+//   DEFM 9,"CP",9,"(IX-1)"
+//   DEFW 4620               // 4620 JP Z,LOOP
+//   DEFB 10
+//   DEFM 9,"JP",9,"Z,LOOP"
+//   DEFW 4630               // 4630 XOR A
+//   DEFB 6
+//   DEFM 9,"XOR",9,"A"
+//   DEFW 4640               // 4640 LD (CHEAT),A
+//   DEFB 13
+//   DEFM 9,"LD",9,"(CHEAT),A"
+//   DEFW 4650               // 4650 JP LOOP
+//   DEFB 8
+//   DEFM 9,"JP",9,"LOOP"
+//   DEFW 4660               // 4660 INCCHT LD A,(CHEAT)
+//   DEFB 19
+//   DEFM "INCCHT",9,"LD",9,"A,(CHEAT)"
+//   DEFW 4670               // 4670 INC A
+//   DEFB 6
+//   DEFM 9,"INC",9,"A"
+//   DEFW 4680               // 4680 LD (CHEAT),A
+//   DEFB 13
+//   DEFM 9,"LD",9,"(CHEAT),A"
+//   DEFW 4690               // 4690 JP LOOP
+//   DEFB 8
+//   DEFM 9,"JP",9,"LOOP"
+//   DEFW 4700               // 4700 MANDEAD LD A,(DEMO)
+//   DEFB 19
+//   DEFM "MANDEAD",9,"LD",9,"A,(DEMO)"
+//   DEFW 4710               // 4710 OR A
+//   DEFB 5
+//   DEFM 9,"OR",9,"A"
+//   DEFW 4720               // 4720 JP NZ,NXSHEET
+//   DEFB 14
+//   DEFM 9,"JP",9,"NZ,NXSHEET"
+//   DEFW 4730               // 4730 LD A,47H
+//   DEFB 9
+//   DEFM 9,"LD",9,"A,47H"
+//   DEFW 4740               // 4740 LPDEAD1 LD HL,5800H
+//   DEFB 19
+//   DEFM "LPDEAD1",9,"LD",9,"HL,5800H"
+//   DEFW 4750               // 4750 LD DE,5801H
+//   DEFB 12
+//   DEFM 9,"LD",9,"DE,5801H"
+//   DEFW 4760               // 4760 LD BC,1FFH
+//   DEFB 11
+//   DEFM 9,"LD",9,"BC,1FFH"
+//   DEFW 4770               // 4770 LD (HL),A
+//   DEFB 10
+//   DEFM 9,"LD",9,"(HL),A"
+//   DEFW 4780               // 4780 LDIR
+//   DEFB 5
+//   DEFM 9,"LDIR"
+//   DEFW 4790               // 4790 LD E,A
+//   DEFB 7
+//   DEFM 9,"LD",9,"E,A"
+//   DEFW 4800               // 4800 CPL
+//   DEFB 4
+//   DEFM 9,"CPL"
+//   DEFW 4810               // 4810 AND 7
+//   DEFB 6
+//   DEFM 9,"AND",9,"7"
+//   DEFW 4820               // 4820 RLCA
+//   DEFB 5
+//   DEFM 9,"RLCA"
+//   DEFW 4830               // 4830 RLCA
+//   DEFB 5
+//   DEFM 9,"RLCA"
+//   DEFW 4840               // 4840 RLCA
+//   DEFB 5
+//   DEFM 9,"RLCA"
+//   DEFW 4850               // 4850 OR 7
+//   DEFB 5
+//   DEFM 9,"OR",9,"7"
+//   DEFW 4860               // 4860 LD D,A
+//   DEFB 7
+//   DEFM 9,"LD",9,"D,A"
+//   DEFW 4870               // 4870 LD C,E
+//   DEFB 7
+//   DEFM 9,"LD",9,"C,E"
+//   DEFW 4880               // 4880 RRC C
+//   DEFB 6
+//   DEFM 9,"RRC",9,"C"
+//   DEFW 4890               // 4890 RRC C
+//   DEFB 6
+//   DEFM 9,"RRC",9,"C"
+//   DEFW 4900               // 4900 RRC C
+//   DEFB 6
+//   DEFM 9,"RRC",9,"C"
+//   DEFW 4910               // 4910 OR 16
+//   DEFB 6
+//   DEFM 9,"OR",9,"16"
+//   DEFW 4920               // 4920 XOR A
+//   DEFB 6
+//   DEFM 9,"XOR",9,"A"
+//   DEFW 4930               // 4930 TM21 OUT (254),A
+//   DEFB 16
+//   DEFM "TM21",9,"OUT",9,"(254),A"
+//   DEFW 4940               // 4940 XOR 24
+//   DEFB 7
+//   DEFM 9,"XOR",9,"24"
+//   DEFW 4950               // 4950 LD B,D
+//   DEFB 7
+//   DEFM 9,"LD",9,"B,D"
+//   DEFW 4960               // 4960 TM22 DJNZ TM22
+//   DEFB 14
+//   DEFM "TM22",9,"DJNZ",9,"TM22"
+//   DEFW 4970               // 4970 DEC C
+//   DEFB 6
+//   DEFM 9,"DEC",9,"C"
+//   DEFW 4980               // 4980 JR NZ,TM21
+//   DEFB 11
+//   DEFM 9,"JR",9,"NZ,TM21"
+//   DEFW 4990               // 4990 LD A,E
+//   DEFB 7
+//   DEFM 9,"LD",9,"A,E"
+//   DEFW 5000               // 5000 DEC A
+//   DEFB 6
+//   DEFM 9,"DEC",9,"A"
+//   DEFW 5010               // 5010 CP 3FH
+//   DEFB 7
+//   DEFM 9,"CP",9,"3FH"
+//   DEFW 5020               // 5020 JR NZ,LPDEAD1
+//   DEFB 14
+//   DEFM 9,"JR",9,"NZ,LPDEAD1"
+//   DEFW 5030               // 5030 LD HL,NOMEN
+//   DEFB 12
+//   DEFM 9,"LD",9,"HL,NOMEN"
+//   DEFW 5040               // 5040 LD A,(HL)
+//   DEFB 10
+//   DEFM 9,"LD",9,"A,(HL)"
+//   DEFW 5050               // 5050 OR A
+//   DEFB 5
+//   DEFM 9,"OR",9,"A"
+//   DEFW 5060               // 5060 JP Z,ENDGAM
+//   DEFB 12
+//   DEFM 9,"JP",9,"Z,ENDGAM"
+//   DEFW 5070               // 5070 DEC (HL)
+//   DEFB 9
+//   DEFM 9,"DEC",9,"(HL)"
+//   DEFW 5080               // 5080 JP NEWSHT
+//   DEFB 10
+//   DEFM 9,"JP",9,"NEWSHT"
+//   DEFW 5090               // 5090 ENDGAM LD HL,HGHSCOR
+//   DEFB 20
+//   DEFM "ENDGAM",9,"LD",9,"HL,HGHSCOR"
+//   DEFW 5100               // 5100 LD DE,SCORBUF
+//   DEFB 14
+//   DEFM 9,"LD",9,"DE,SCORBUF"
+//   DEFW 5110               // 5110 LD B,6
+//   DEFB 7
+//   DEFM 9,"LD",9,"B,6"
+//   DEFW 5120               // 5120 LPHGH LD A,(DE)
+//   DEFB 15
+//   DEFM "LPHGH",9,"LD",9,"A,(DE)"
+//   DEFW 5130               // 5130 CP (HL)
+//   DEFB 8
+//   DEFM 9,"CP",9,"(HL)"
+//   DEFW 5140               // 5140 JP C,FEET
+//   DEFB 10
+//   DEFM 9,"JP",9,"C,FEET"
+//   DEFW 5150               // 5150 JP NZ,NEWHGH
+//   DEFB 13
+//   DEFM 9,"JP",9,"NZ,NEWHGH"
+//   DEFW 5160               // 5160 INC HL
+//   DEFB 7
+//   DEFM 9,"INC",9,"HL"
+//   DEFW 5170               // 5170 INC DE
+//   DEFB 7
+//   DEFM 9,"INC",9,"DE"
+//   DEFW 5180               // 5180 DJNZ LPHGH
+//   DEFB 11
+//   DEFM 9,"DJNZ",9,"LPHGH"
+//   DEFW 5190               // 5190 NEWHGH LD HL,SCORBUF
+//   DEFB 20
+//   DEFM "NEWHGH",9,"LD",9,"HL,SCORBUF"
+//   DEFW 5200               // 5200 LD DE,HGHSCOR
+//   DEFB 14
+//   DEFM 9,"LD",9,"DE,HGHSCOR"
+//   DEFW 5210               // 5210 LD BC,6
+//   DEFB 8
+//   DEFM 9,"LD",9,"BC,6"
+//   DEFW 5220               // 5220 LDIR
+//   DEFB 5
+//   DEFM 9,"LDIR"
+//   DEFW 5230               // 5230 FEET LD HL,4000H
+//   DEFB 16
+//   DEFM "FEET",9,"LD",9,"HL,4000H"
+//   DEFW 5240               // 5240 LD DE,4001H
+//   DEFB 12
+//   DEFM 9,"LD",9,"DE,4001H"
+//   DEFW 5250               // 5250 LD BC,0FFFH
+//   DEFB 12
+//   DEFM 9,"LD",9,"BC,0FFFH"
+//   DEFW 5260               // 5260 LD (HL),0
+//   DEFB 10
+//   DEFM 9,"LD",9,"(HL),0"
+//   DEFW 5270               // 5270 LDIR
+//   DEFB 5
+//   DEFM 9,"LDIR"
+//   DEFW 5280               // 5280 XOR A
+//   DEFB 6
+//   DEFM 9,"XOR",9,"A"
+//   DEFW 5290               // 5290 LD (EUGHGT),A
+//   DEFB 14
+//   DEFM 9,"LD",9,"(EUGHGT),A"
+//   DEFW 5300               // 5300 LD DE,MANDAT+64
+//   DEFB 16
+//   DEFM 9,"LD",9,"DE,MANDAT+64"
+//   DEFW 5310               // 5310 LD HL,488FH
+//   DEFB 12
+//   DEFM 9,"LD",9,"HL,488FH"
+//   DEFW 5320               // 5320 LD C,0
+//   DEFB 7
+//   DEFM 9,"LD",9,"C,0"
+//   DEFW 5330               // 5330 CALL DRWFIX
+//   DEFB 12
+//   DEFM 9,"CALL",9,"DRWFIX"
+//   DEFW 5340               // 5340 LD DE,0B6E0H
+//   DEFB 13
+//   DEFM 9,"LD",9,"DE,0B6E0H"
+//   DEFW 5350               // 5350 LD HL,48CFH
+//   DEFB 12
+//   DEFM 9,"LD",9,"HL,48CFH"
+//   DEFW 5360               // 5360 LD C,0
+//   DEFB 7
+//   DEFM 9,"LD",9,"C,0"
+//   DEFW 5370               // 5370 CALL DRWFIX
+//   DEFB 12
+//   DEFM 9,"CALL",9,"DRWFIX"
+//   DEFW 5380               // 5380 LOOPFT LD A,(EUGHGT)
+//   DEFB 20
+//   DEFM "LOOPFT",9,"LD",9,"A,(EUGHGT)"
+//   DEFW 5390               // 5390 LD C,A
+//   DEFB 7
+//   DEFM 9,"LD",9,"C,A"
+//   DEFW 5400               // 5400 LD B,83H
+//   DEFB 9
+//   DEFM 9,"LD",9,"B,83H"
+//   DEFW 5410               // 5410 LD A,(BC)
+//   DEFB 10
+//   DEFM 9,"LD",9,"A,(BC)"
+//   DEFW 5420               // 5420 OR 0FH
+//   DEFB 7
+//   DEFM 9,"OR",9,"0FH"
+//   DEFW 5430               // 5430 LD L,A
+//   DEFB 7
+//   DEFM 9,"LD",9,"L,A"
+//   DEFW 5440               // 5440 INC BC
+//   DEFB 7
+//   DEFM 9,"INC",9,"BC"
+//   DEFW 5450               // 5450 LD A,(BC)
+//   DEFB 10
+//   DEFM 9,"LD",9,"A,(BC)"
+//   DEFW 5460               // 5460 SUB 20H
+//   DEFB 8
+//   DEFM 9,"SUB",9,"20H"
+//   DEFW 5470               // 5470 LD H,A
+//   DEFB 7
+//   DEFM 9,"LD",9,"H,A"
+//   DEFW 5480               // 5480 LD DE,0BAE0H
+//   DEFB 13
+//   DEFM 9,"LD",9,"DE,0BAE0H"
+//   DEFW 5490               // 5490 LD C,0
+//   DEFB 7
+//   DEFM 9,"LD",9,"C,0"
+//   DEFW 5500               // 5500 CALL DRWFIX
+//   DEFB 12
+//   DEFM 9,"CALL",9,"DRWFIX"
+//   DEFW 5510               // 5510 LD A,(EUGHGT)
+//   DEFB 14
+//   DEFM 9,"LD",9,"A,(EUGHGT)"
+//   DEFW 5520               // 5520 CPL
+//   DEFB 4
+//   DEFM 9,"CPL"
+//   DEFW 5530               // 5530 LD E,A
+//   DEFB 7
+//   DEFM 9,"LD",9,"E,A"
+//   DEFW 5540               // 5540 XOR A
+//   DEFB 6
+//   DEFM 9,"XOR",9,"A"
+//   DEFW 5550               // 5550 LD BC,40H
+//   DEFB 10
+//   DEFM 9,"LD",9,"BC,40H"
+//   DEFW 5560               // 5560 TM111 OUT (254),A
+//   DEFB 17
+//   DEFM "TM111",9,"OUT",9,"(254),A"
+//   DEFW 5570               // 5570 XOR 24
+//   DEFB 7
+//   DEFM 9,"XOR",9,"24"
+//   DEFW 5580               // 5580 LD B,E
+//   DEFB 7
+//   DEFM 9,"LD",9,"B,E"
+//   DEFW 5590               // 5590 TM112 DJNZ TM112
+//   DEFB 16
+//   DEFM "TM112",9,"DJNZ",9,"TM112"
+//   DEFW 5600               // 5600 DEC C
+//   DEFB 6
+//   DEFM 9,"DEC",9,"C"
+//   DEFW 5610               // 5610 JR NZ,TM111
+//   DEFB 12
+//   DEFM 9,"JR",9,"NZ,TM111"
+//   DEFW 5620               // 5620 LD HL,5800H
+//   DEFB 12
+//   DEFM 9,"LD",9,"HL,5800H"
+//   DEFW 5630               // 5630 LD DE,5801H
+//   DEFB 12
+//   DEFM 9,"LD",9,"DE,5801H"
+//   DEFW 5640               // 5640 LD BC,1FFH
+//   DEFB 11
+//   DEFM 9,"LD",9,"BC,1FFH"
+//   DEFW 5650               // 5650 LD A,(EUGHGT)
+//   DEFB 14
+//   DEFM 9,"LD",9,"A,(EUGHGT)"
+//   DEFW 5660               // 5660 AND 0CH
+//   DEFB 8
+//   DEFM 9,"AND",9,"0CH"
+//   DEFW 5670               // 5670 RLCA
+//   DEFB 5
+//   DEFM 9,"RLCA"
+//   DEFW 5680               // 5680 OR 47H
+//   DEFB 7
+//   DEFM 9,"OR",9,"47H"
+//   DEFW 5690               // 5690 LD (HL),A
+//   DEFB 10
+//   DEFM 9,"LD",9,"(HL),A"
+//   DEFW 5700               // 5700 LDIR
+//   DEFB 5
+//   DEFM 9,"LDIR"
+//   DEFW 5710               // 5710 LD A,(EUGHGT)
+//   DEFB 14
+//   DEFM 9,"LD",9,"A,(EUGHGT)"
+//   DEFW 5720               // 5720 ADD A,4
+//   DEFB 8
+//   DEFM 9,"ADD",9,"A,4"
+//   DEFW 5730               // 5730 LD (EUGHGT),A
+//   DEFB 14
+//   DEFM 9,"LD",9,"(EUGHGT),A"
+//   DEFW 5740               // 5740 CP 0C4H
+//   DEFB 8
+//   DEFM 9,"CP",9,"0C4H"
+//   DEFW 5750               // 5750 JR NZ,LOOPFT
+//   DEFB 13
+//   DEFM 9,"JR",9,"NZ,LOOPFT"
+//   DEFW 5760               // 5760 LD IX,MESSG
+//   DEFB 12
+//   DEFM 9,"LD",9,"IX,MESSG"
+//   DEFW 5770               // 5770 LD C,4
+//   DEFB 7
+//   DEFM 9,"LD",9,"C,4"
+//   DEFW 5780               // 5780 LD DE,40CAH
+//   DEFB 12
+//   DEFM 9,"LD",9,"DE,40CAH"
+//   DEFW 5790               // 5790 CALL PMESS
+//   DEFB 11
+//   DEFM 9,"CALL",9,"PMESS"
+//   DEFW 5800               // 5800 LD IX,MESSO
+//   DEFB 12
+//   DEFM 9,"LD",9,"IX,MESSO"
+//   DEFW 5810               // 5810 LD C,4
+//   DEFB 7
+//   DEFM 9,"LD",9,"C,4"
+//   DEFW 5820               // 5820 LD DE,40D2H
+//   DEFB 12
+//   DEFM 9,"LD",9,"DE,40D2H"
+//   DEFW 5830               // 5830 CALL PMESS
+//   DEFB 11
+//   DEFM 9,"CALL",9,"PMESS"
+//   DEFW 5840               // 5840 LD BC,0
+//   DEFB 8
+//   DEFM 9,"LD",9,"BC,0"
+//   DEFW 5850               // 5850 LD D,6
+//   DEFB 7
+//   DEFM 9,"LD",9,"D,6"
+//   DEFW 5860               // 5860 TM91 DJNZ TM91
+//   DEFB 14
+//   DEFM "TM91",9,"DJNZ",9,"TM91"
+//   DEFW 5870               // 5870 LD A,C
+//   DEFB 7
+//   DEFM 9,"LD",9,"A,C"
+//   DEFW 5880               // 5880 A[ND 7]
+//   DEFB 6
+//   DEFM 9,"A"
 
 // '...MANIC MINER . . © BUG-BYTE ltd. 1983...'
 //
 // Used by the routine at START.
-MESSINTRO:
-  DEFM ".  .  .  .  .  .  .  .  .  .  . MANIC MINER . . "
-  DEFM 127," BUG-BYTE ltd. 1983 . . By Matthew Smith . . . "
-  DEFM "Q to P = Left & Right . . Bottom row = Jump . . "
-  DEFM "A to G = Pause . . H to L = Tune On/Off . . . "
-  DEFM "Guide Miner Willy through 20 lethal caverns"
-  DEFM " .  .  .  .  .  .  .  ."
+char MESSINTRO[] =
+  ".  .  .  .  .  .  .  .  .  .  . MANIC MINER . . "
+  127," BUG-BYTE ltd. 1983 . . By Matthew Smith . . . "
+  "Q to P = Left & Right . . Bottom row = Jump . . "
+  "A to G = Pause . . H to L = Tune On/Off . . . "
+  "Guide Miner Willy through 20 lethal caverns"
+  " .  .  .  .  .  .  .  .";
 
 // Attribute data for the bottom two-thirds of the title screen
 //
 // Used by the routine at START. The graphic data for the middle third of the
 // title screen is located at TITLESCR2.
-LOWERATTRS:
-  DEFB 22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22
-  DEFB 22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22
-  DEFB 23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23
-  DEFB 23,23,23,23,23,16,16,16,16,16,16,16,16,23,23,23
-  DEFB 23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23
-  DEFB 23,23,23,23,23,22,22,22,22,22,22,22,22,23,23,23
-  DEFB 19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19
-  DEFB 19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19
-  DEFB 23,23,23,23,23,23,16,16,16,16,16,16,22,22,22,22
-  DEFB 22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16
-  DEFB 16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16
-  DEFB 16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16
-  DEFB 56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56
-  DEFB 56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56
-  DEFB 56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56
-  DEFB 56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56
-  DEFB 48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,48
-  DEFB 48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,48
-  DEFB 87,87,87,87,87,87,87,87,87,87,103,103,103,103,103,103
-  DEFB 103,103,103,103,103,103,103,103,103,103,103,103,103,103,103,103
-  DEFB 70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70
-  DEFB 70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70
-  DEFB 70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70
-  DEFB 70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70
-  DEFB 70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70
-  DEFB 70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70
-  DEFB 69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69
-  DEFB 69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69
-  DEFB 69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69
-  DEFB 69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+uint8_t LOWERATTRS[512] = {
+  22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,
+  22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,
+  23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+  23,23,23,23,23,16,16,16,16,16,16,16,16,23,23,23,
+  23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+  23,23,23,23,23,22,22,22,22,22,22,22,22,23,23,23,
+  19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
+  19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
+  23,23,23,23,23,23,16,16,16,16,16,16,22,22,22,22,
+  22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,
+  16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,
+  16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,
+  56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,
+  56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,
+  56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,
+  56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,
+  48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,
+  48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,
+  87,87,87,87,87,87,87,87,87,87,103,103,103,103,103,103,
+  103,103,103,103,103,103,103,103,103,103,103,103,103,103,103,103,
+  70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,
+  70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,
+  70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,
+  70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,
+  70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,
+  70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,
+  69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,
+  69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,
+  69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,
+  69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+};
 
 // Title screen graphic data
 //
@@ -3529,264 +3509,267 @@ LOWERATTRS:
 //
 // The attributes for the middle third of the title screen are located at
 // LOWERATTRS.
-TITLESCR1:
-  DEFB 5,0,0,0,0,0,224,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,1,129,129,128,0,0,0,0,0,0
-  DEFB 59,0,8,99,0,0,224,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,255,255,0,0,0,0,7,255,224
-  DEFB 3,0,0,84,0,255,0,0,7,224,0,0,15,223,220,0
-  DEFB 0,0,0,0,0,0,0,255,255,0,34,34,34,8,224,16
-  DEFB 0,255,159,148,243,0,63,192,31,248,3,252,0,0,0,0
-  DEFB 0,36,66,66,36,68,0,0,0,0,119,119,119,0,255,0
-  DEFB 0,0,0,138,0,7,255,252,7,224,63,255,224,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,74,0,0,0,1,255,255,128,0,0,224,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 1,0,1,185,128,48,255,255,7,192,255,255,15,255,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 1,36,0,18,64,18,64,18,64,1,34,64,17,65,2,16
-  DEFB 36,16,33,0,0,16,0,0,0,0,0,0,0,0,0,33
-  DEFB 7,0,0,0,0,0,248,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,3,66,66,192,0,0,0,0,0,0
-  DEFB 22,0,0,0,0,0,200,0,0,0,0,0,1,240,0,0
-  DEFB 0,0,0,0,0,0,0,255,255,0,0,0,0,4,0,32
-  DEFB 5,0,0,85,0,255,0,0,127,254,0,0,15,239,120,0
-  DEFB 0,0,0,0,0,0,0,129,129,0,119,119,119,9,16,16
-  DEFB 0,127,15,85,244,0,127,224,31,248,7,254,0,0,0,0
-  DEFB 0,36,66,68,34,66,0,0,0,0,119,119,119,49,255,140
-  DEFB 0,0,0,82,0,1,255,254,7,224,127,255,128,0,0,15
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,82,0,112,0,3,255,255,192,0,14,240,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 7,0,3,16,0,48,127,255,1,240,255,252,1,255,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 1,36,48,33,81,48,36,49,32,32,66,16,52,33,3,18
-  DEFB 2,19,64,0,0,66,0,0,0,0,0,0,0,0,0,49
-  DEFB 3,0,0,0,0,0,208,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,7,36,36,224,0,0,0,0,0,0
-  DEFB 29,0,0,0,0,0,180,0,0,0,0,0,7,248,0,0
-  DEFB 0,0,0,0,0,0,0,129,129,0,0,0,0,4,24,32
-  DEFB 5,0,0,148,0,208,0,0,127,254,0,0,31,255,151,128
-  DEFB 0,101,118,86,134,86,0,129,129,0,119,119,119,9,80,16
-  DEFB 0,62,7,85,192,0,255,224,31,248,7,255,0,0,0,0
-  DEFB 0,34,66,68,36,66,0,0,0,0,119,119,119,50,255,76
-  DEFB 0,0,0,81,0,0,127,254,0,0,127,254,0,0,0,255
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,6,82,48,127,0,3,255,255,192,0,254,248,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 15,0,0,0,0,0,63,255,7,224,255,240,0,63,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 2,19,21,2,67,96,33,52,80,49,33,80,55,97,80,40
-  DEFB 18,3,70,0,0,36,0,0,0,0,0,0,0,0,0,39
-  DEFB 1,0,0,0,0,0,224,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,15,24,24,240,0,0,0,0,0,0
-  DEFB 31,0,0,0,0,0,246,0,0,0,0,0,15,252,0,0
-  DEFB 0,0,0,0,0,0,0,129,129,0,0,0,0,4,0,32
-  DEFB 23,0,0,162,0,248,0,0,127,254,0,0,31,255,239,92
-  DEFB 112,133,151,84,104,103,0,129,129,0,255,255,255,63,255,252
-  DEFB 0,20,2,84,192,1,255,240,31,248,15,255,128,0,0,0
-  DEFB 0,66,68,34,36,34,0,0,0,0,119,119,119,52,255,44
-  DEFB 0,0,0,149,0,0,31,255,0,0,255,248,0,0,15,255
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,15,81,248,127,240,7,255,255,224,15,254,248,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 15,0,0,0,0,0,30,127,3,240,255,128,0,3,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 33,48,84,48,103,40,145,32,52,81,144,36,49,84,97,32
-  DEFB 52,81,144,0,0,131,0,0,0,0,0,0,0,0,0,115
-  DEFB 6,0,0,0,0,0,228,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,31,24,24,248,0,0,0,0,0,0
-  DEFB 5,0,7,129,192,48,200,0,0,0,0,0,30,59,176,0
-  DEFB 0,0,0,0,0,0,0,129,129,0,0,0,0,4,0,32
-  DEFB 29,0,0,170,0,192,0,0,63,252,0,0,14,127,238,222
-  DEFB 248,102,102,102,102,102,0,129,129,0,255,255,255,127,255,254
-  DEFB 0,0,0,146,128,1,255,240,15,240,15,255,128,0,0,0
-  DEFB 0,66,36,66,66,68,0,0,0,0,119,119,119,63,255,252
-  DEFB 0,0,0,165,0,0,7,255,3,192,255,224,0,0,63,255
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,127,137,252,127,255,7,255,255,224,255,254,252,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 63,0,0,0,0,0,0,31,1,128,254,0,0,0,193,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 116,17,87,145,81,33,2,70,25,18,2,73,18,6,116,33
-  DEFB 52,97,33,0,0,33,0,0,0,0,0,0,0,0,0,67
-  DEFB 11,0,0,0,0,0,208,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,63,36,36,252,0,0,0,0,0,0
-  DEFB 3,0,2,195,160,0,208,0,0,0,0,0,29,215,216,0
-  DEFB 0,0,0,0,0,0,0,129,129,0,0,0,0,4,0,32
-  DEFB 31,0,0,170,0,128,1,128,63,252,1,128,15,191,238,222
-  DEFB 248,102,102,102,102,102,0,129,129,0,119,119,119,255,255,255
-  DEFB 0,0,0,138,0,3,255,248,15,240,31,255,192,0,0,0
-  DEFB 0,36,66,36,36,36,0,0,0,0,119,119,119,48,255,12
-  DEFB 0,0,0,169,0,0,1,254,31,248,127,128,0,0,255,255
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,1,255,170,252,255,255,199,255,255,227,255,255,254,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 255,0,0,0,0,0,0,15,15,192,240,0,0,0,62,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 248,16,47,70,33,113,21,70,49,38,21,66,19,21,3,36
-  DEFB 52,81,81,0,0,81,0,0,0,0,0,0,0,0,0,36
-  DEFB 5,0,0,0,0,0,180,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,127,66,66,254,0,0,0,0,0,0
-  DEFB 6,0,1,83,192,0,184,0,0,0,0,0,11,239,232,0
-  DEFB 0,0,0,0,0,0,0,129,129,0,0,0,0,0,0,32
-  DEFB 10,0,0,170,0,0,7,128,63,252,1,224,7,223,207,111
-  DEFB 120,102,102,102,102,102,0,255,255,0,119,119,119,255,255,255
-  DEFB 0,0,0,170,0,3,255,248,15,240,31,255,192,0,0,0
-  DEFB 0,34,66,68,34,66,0,0,0,0,119,119,119,48,60,12
-  DEFB 0,0,0,170,0,0,0,124,127,254,62,0,0,15,255,255
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,15,255,170,254,255,255,207,255,255,243,255,255,254,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 255,0,0,0,0,0,0,7,3,240,224,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 1,32,49,32,51,32,49,32,2,16,66,16,18,64,16,66
-  DEFB 64,16,66,0,0,130,0,0,0,0,0,0,0,0,0,64
-  DEFB 42,0,0,0,0,0,248,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,255,129,129,255,0,0,0,0,0,0
-  DEFB 3,0,0,163,0,0,100,0,0,0,0,0,7,223,236,0
-  DEFB 0,0,0,0,0,0,0,255,255,0,0,0,0,4,0,32
-  DEFB 7,0,0,162,0,0,31,192,63,252,3,248,3,143,135,191
-  DEFB 240,102,102,102,102,102,0,255,255,0,119,119,119,255,255,255
-  DEFB 0,0,0,170,0,7,255,252,15,240,63,255,224,0,0,0
-  DEFB 126,166,246,166,246,166,0,0,0,0,119,119,119,48,0,12
-  DEFB 0,0,0,138,0,0,0,24,255,255,24,0,0,255,255,255
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,63,255,74,255,255,255,207,255,255,243,255,255,255,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 255,0,0,0,0,0,0,1,1,192,128,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 252,189,254,188,253,190,203,223,235,207,205,239,207,191,254,205
-  DEFB 188,206,189,0,0,219,0,0,0,0,0,0,0,0,0,189
-TITLESCR2:
-  DEFB 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
-  DEFB 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,130,12,63,134,30,51,128,0,0,34,49,140,60,96
-  DEFB 12,96,96,0,0,139,162,251,192,139,160,136,128,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,252,252,254,124,124,0,254,198,254,254
-  DEFB 252,0,254,124,0,124,254,16,252,254,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199
-  DEFB 193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 170,170,170,170,170,170,170,170,170,170,170,170,170,170,170,170
-  DEFB 170,170,170,170,170,170,170,170,170,170,170,170,170,170,170,170
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,65,0,12,96,198,14,49,129,0,0,32,49,140,28,96
-  DEFB 76,48,112,0,0,217,50,130,32,137,32,133,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,254,254,254,254,254,0,254,230,254,254
-  DEFB 254,0,254,254,0,254,254,56,254,254,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199
-  DEFB 193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68
-  DEFB 68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68
-  DEFB 0,3,255,30,4,14,15,120,58,0,7,248,59,220,30,255
-  DEFB 159,240,0,0,0,1,255,136,243,206,137,255,128,0,0,0
-  DEFB 0,130,0,12,64,198,6,48,198,0,0,32,49,140,12,97
-  DEFB 140,24,16,0,0,169,42,227,192,169,32,130,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,198,198,192,194,194,0,192,246,48,192
-  DEFB 198,0,48,198,0,194,48,108,198,48,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199
-  DEFB 193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17
-  DEFB 17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17
-  DEFB 0,6,7,60,14,7,6,48,198,0,8,56,113,142,12,97
-  DEFB 140,56,0,0,0,2,4,20,138,36,202,0,0,0,0,0
-  DEFB 0,140,0,30,225,239,2,120,56,0,0,112,123,222,4,255
-  DEFB 158,14,32,0,0,137,38,130,128,169,32,130,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,254,254,240,248,248,0,240,246,48,240
-  DEFB 254,0,48,198,0,248,48,198,254,48,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199
-  DEFB 193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,9,139,108,14,7,134,49,131,0,16,44,113,143,12,96
-  DEFB 76,24,0,0,0,1,196,34,243,196,170,96,0,0,0,0
-  DEFB 0,112,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,7,192,0,0,139,162,250,96,83,190,250,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,252,252,240,62,62,0,240,222,48,240
-  DEFB 252,0,48,198,0,62,48,198,252,48,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199
-  DEFB 193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,9,147,204,27,6,198,51,128,0,16,44,177,141,140,98
-  DEFB 12,24,0,0,0,0,36,62,162,132,154,32,0,0,0,0
-  DEFB 255,7,255,255,255,255,255,255,255,255,255,255,255,255,255,255
-  DEFB 255,240,31,240,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,192,216,192,134,134,0,192,222,48,192
-  DEFB 216,0,48,198,0,134,48,254,216,48,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199
-  DEFB 193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,6,35,140,19,6,102,51,0,0,19,38,177,140,204,126
-  DEFB 15,240,0,0,0,255,196,34,154,110,137,192,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,192,204,254,254,254,0,254,206,48,254
-  DEFB 204,0,48,254,0,254,48,254,204,48,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199
-  DEFB 193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,67,12,49,134,54,51,0,0,12,39,49,140,108,98
-  DEFB 12,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,192,198,254,124,124,0,254,198,48,254
-  DEFB 198,0,48,124,0,124,48,198,198,48,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  DEFB 7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199
-  DEFB 193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-  DEFB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+uint8_t TITLESCR1[2048] = {
+  5,0,0,0,0,0,224,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,1,129,129,128,0,0,0,0,0,0,
+  59,0,8,99,0,0,224,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,255,255,0,0,0,0,7,255,224,
+  3,0,0,84,0,255,0,0,7,224,0,0,15,223,220,0,
+  0,0,0,0,0,0,0,255,255,0,34,34,34,8,224,16,
+  0,255,159,148,243,0,63,192,31,248,3,252,0,0,0,0,
+  0,36,66,66,36,68,0,0,0,0,119,119,119,0,255,0,
+  0,0,0,138,0,7,255,252,7,224,63,255,224,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,74,0,0,0,1,255,255,128,0,0,224,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  1,0,1,185,128,48,255,255,7,192,255,255,15,255,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  1,36,0,18,64,18,64,18,64,1,34,64,17,65,2,16,
+  36,16,33,0,0,16,0,0,0,0,0,0,0,0,0,33,
+  7,0,0,0,0,0,248,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,3,66,66,192,0,0,0,0,0,0,
+  22,0,0,0,0,0,200,0,0,0,0,0,1,240,0,0,
+  0,0,0,0,0,0,0,255,255,0,0,0,0,4,0,32,
+  5,0,0,85,0,255,0,0,127,254,0,0,15,239,120,0,
+  0,0,0,0,0,0,0,129,129,0,119,119,119,9,16,16,
+  0,127,15,85,244,0,127,224,31,248,7,254,0,0,0,0,
+  0,36,66,68,34,66,0,0,0,0,119,119,119,49,255,140,
+  0,0,0,82,0,1,255,254,7,224,127,255,128,0,0,15,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,82,0,112,0,3,255,255,192,0,14,240,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,0,3,16,0,48,127,255,1,240,255,252,1,255,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  1,36,48,33,81,48,36,49,32,32,66,16,52,33,3,18,
+  2,19,64,0,0,66,0,0,0,0,0,0,0,0,0,49,
+  3,0,0,0,0,0,208,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,7,36,36,224,0,0,0,0,0,0,
+  29,0,0,0,0,0,180,0,0,0,0,0,7,248,0,0,
+  0,0,0,0,0,0,0,129,129,0,0,0,0,4,24,32,
+  5,0,0,148,0,208,0,0,127,254,0,0,31,255,151,128,
+  0,101,118,86,134,86,0,129,129,0,119,119,119,9,80,16,
+  0,62,7,85,192,0,255,224,31,248,7,255,0,0,0,0,
+  0,34,66,68,36,66,0,0,0,0,119,119,119,50,255,76,
+  0,0,0,81,0,0,127,254,0,0,127,254,0,0,0,255,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,6,82,48,127,0,3,255,255,192,0,254,248,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  15,0,0,0,0,0,63,255,7,224,255,240,0,63,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  2,19,21,2,67,96,33,52,80,49,33,80,55,97,80,40,
+  18,3,70,0,0,36,0,0,0,0,0,0,0,0,0,39,
+  1,0,0,0,0,0,224,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,15,24,24,240,0,0,0,0,0,0,
+  31,0,0,0,0,0,246,0,0,0,0,0,15,252,0,0,
+  0,0,0,0,0,0,0,129,129,0,0,0,0,4,0,32,
+  23,0,0,162,0,248,0,0,127,254,0,0,31,255,239,92,
+  112,133,151,84,104,103,0,129,129,0,255,255,255,63,255,252,
+  0,20,2,84,192,1,255,240,31,248,15,255,128,0,0,0,
+  0,66,68,34,36,34,0,0,0,0,119,119,119,52,255,44,
+  0,0,0,149,0,0,31,255,0,0,255,248,0,0,15,255,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,15,81,248,127,240,7,255,255,224,15,254,248,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  15,0,0,0,0,0,30,127,3,240,255,128,0,3,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  33,48,84,48,103,40,145,32,52,81,144,36,49,84,97,32,
+  52,81,144,0,0,131,0,0,0,0,0,0,0,0,0,115,
+  6,0,0,0,0,0,228,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,31,24,24,248,0,0,0,0,0,0,
+  5,0,7,129,192,48,200,0,0,0,0,0,30,59,176,0,
+  0,0,0,0,0,0,0,129,129,0,0,0,0,4,0,32,
+  29,0,0,170,0,192,0,0,63,252,0,0,14,127,238,222,
+  248,102,102,102,102,102,0,129,129,0,255,255,255,127,255,254,
+  0,0,0,146,128,1,255,240,15,240,15,255,128,0,0,0,
+  0,66,36,66,66,68,0,0,0,0,119,119,119,63,255,252,
+  0,0,0,165,0,0,7,255,3,192,255,224,0,0,63,255,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,127,137,252,127,255,7,255,255,224,255,254,252,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  63,0,0,0,0,0,0,31,1,128,254,0,0,0,193,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  116,17,87,145,81,33,2,70,25,18,2,73,18,6,116,33,
+  52,97,33,0,0,33,0,0,0,0,0,0,0,0,0,67,
+  11,0,0,0,0,0,208,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,63,36,36,252,0,0,0,0,0,0,
+  3,0,2,195,160,0,208,0,0,0,0,0,29,215,216,0,
+  0,0,0,0,0,0,0,129,129,0,0,0,0,4,0,32,
+  31,0,0,170,0,128,1,128,63,252,1,128,15,191,238,222,
+  248,102,102,102,102,102,0,129,129,0,119,119,119,255,255,255,
+  0,0,0,138,0,3,255,248,15,240,31,255,192,0,0,0,
+  0,36,66,36,36,36,0,0,0,0,119,119,119,48,255,12,
+  0,0,0,169,0,0,1,254,31,248,127,128,0,0,255,255,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,1,255,170,252,255,255,199,255,255,227,255,255,254,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  255,0,0,0,0,0,0,15,15,192,240,0,0,0,62,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  248,16,47,70,33,113,21,70,49,38,21,66,19,21,3,36,
+  52,81,81,0,0,81,0,0,0,0,0,0,0,0,0,36,
+  5,0,0,0,0,0,180,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,127,66,66,254,0,0,0,0,0,0,
+  6,0,1,83,192,0,184,0,0,0,0,0,11,239,232,0,
+  0,0,0,0,0,0,0,129,129,0,0,0,0,0,0,32,
+  10,0,0,170,0,0,7,128,63,252,1,224,7,223,207,111,
+  120,102,102,102,102,102,0,255,255,0,119,119,119,255,255,255,
+  0,0,0,170,0,3,255,248,15,240,31,255,192,0,0,0,
+  0,34,66,68,34,66,0,0,0,0,119,119,119,48,60,12,
+  0,0,0,170,0,0,0,124,127,254,62,0,0,15,255,255,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,15,255,170,254,255,255,207,255,255,243,255,255,254,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  255,0,0,0,0,0,0,7,3,240,224,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  1,32,49,32,51,32,49,32,2,16,66,16,18,64,16,66,
+  64,16,66,0,0,130,0,0,0,0,0,0,0,0,0,64,
+  42,0,0,0,0,0,248,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,255,129,129,255,0,0,0,0,0,0,
+  3,0,0,163,0,0,100,0,0,0,0,0,7,223,236,0,
+  0,0,0,0,0,0,0,255,255,0,0,0,0,4,0,32,
+  7,0,0,162,0,0,31,192,63,252,3,248,3,143,135,191,
+  240,102,102,102,102,102,0,255,255,0,119,119,119,255,255,255,
+  0,0,0,170,0,7,255,252,15,240,63,255,224,0,0,0,
+  126,166,246,166,246,166,0,0,0,0,119,119,119,48,0,12,
+  0,0,0,138,0,0,0,24,255,255,24,0,0,255,255,255,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,63,255,74,255,255,255,207,255,255,243,255,255,255,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  255,0,0,0,0,0,0,1,1,192,128,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  252,189,254,188,253,190,203,223,235,207,205,239,207,191,254,205,
+  188,206,189,0,0,219,0,0,0,0,0,0,0,0,0,189,
+};
+
+uint8_t TITLESCR2[2048] = {
+  255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+  255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,130,12,63,134,30,51,128,0,0,34,49,140,60,96,
+  12,96,96,0,0,139,162,251,192,139,160,136,128,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,252,252,254,124,124,0,254,198,254,254,
+  252,0,254,124,0,124,254,16,252,254,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199,
+  193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  170,170,170,170,170,170,170,170,170,170,170,170,170,170,170,170,
+  170,170,170,170,170,170,170,170,170,170,170,170,170,170,170,170,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,65,0,12,96,198,14,49,129,0,0,32,49,140,28,96,
+  76,48,112,0,0,217,50,130,32,137,32,133,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,254,254,254,254,254,0,254,230,254,254,
+  254,0,254,254,0,254,254,56,254,254,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199,
+  193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,
+  68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,
+  0,3,255,30,4,14,15,120,58,0,7,248,59,220,30,255,
+  159,240,0,0,0,1,255,136,243,206,137,255,128,0,0,0,
+  0,130,0,12,64,198,6,48,198,0,0,32,49,140,12,97,
+  140,24,16,0,0,169,42,227,192,169,32,130,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,198,198,192,194,194,0,192,246,48,192,
+  198,0,48,198,0,194,48,108,198,48,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199,
+  193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,
+  17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,
+  0,6,7,60,14,7,6,48,198,0,8,56,113,142,12,97,
+  140,56,0,0,0,2,4,20,138,36,202,0,0,0,0,0,
+  0,140,0,30,225,239,2,120,56,0,0,112,123,222,4,255,
+  158,14,32,0,0,137,38,130,128,169,32,130,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,254,254,240,248,248,0,240,246,48,240,
+  254,0,48,198,0,248,48,198,254,48,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199,
+  193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,9,139,108,14,7,134,49,131,0,16,44,113,143,12,96,
+  76,24,0,0,0,1,196,34,243,196,170,96,0,0,0,0,
+  0,112,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,7,192,0,0,139,162,250,96,83,190,250,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,252,252,240,62,62,0,240,222,48,240,
+  252,0,48,198,0,62,48,198,252,48,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199,
+  193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,9,147,204,27,6,198,51,128,0,16,44,177,141,140,98,
+  12,24,0,0,0,0,36,62,162,132,154,32,0,0,0,0,
+  255,7,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+  255,240,31,240,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,192,216,192,134,134,0,192,222,48,192,
+  216,0,48,198,0,134,48,254,216,48,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199,
+  193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,6,35,140,19,6,102,51,0,0,19,38,177,140,204,126,
+  15,240,0,0,0,255,196,34,154,110,137,192,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,192,204,254,254,254,0,254,206,48,254,
+  204,0,48,254,0,254,48,254,204,48,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199,
+  193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,67,12,49,134,54,51,0,0,12,39,49,140,108,98,
+  12,192,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,192,198,254,124,124,0,254,198,48,254,
+  198,0,48,124,0,124,48,198,198,48,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  7,199,199,193,7,199,193,7,199,199,193,7,199,193,7,199,
+  193,7,199,199,193,7,199,193,7,199,199,193,7,199,193,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+};
 
 // Central Cavern (teleport: 6)
 //
