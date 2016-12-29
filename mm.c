@@ -4,9 +4,8 @@
 // Copyright 1983 Bug-Byte Ltd (Manic Miner)
 // Copyright 2010, 2012-2016 Richard Dymond (this disassembly)
 
-#include <stdlib.h>
-#include <string.h>
-
+#include "headers.h"
+#include "helpers.c"
 
 // ---------------------------SPECCY EMULATOR--------------------------------
 
@@ -841,11 +840,13 @@ START:
     LD C,0
     CALL DRWFIX
 
-    LD BC,100               // Pause for about 0.1s
-  START_3:
-    DJNZ START_3
-    DEC C
-    JR NZ,START_3
+    // Pause for about 0.1s
+    //   LD BC,100
+    // START_3:
+    //   DJNZ START_3
+    //   DEC C
+    //   JR NZ,START_3
+    millisleep(1);
 
     LD BC,49150             // Read keys H-J-K-L-ENTER
     IN A,(C)
