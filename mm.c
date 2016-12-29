@@ -7,9 +7,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-  // ORG 32765
 
-  // JP BEGIN
+// ---------------------------SPECCY EMULATOR--------------------------------
+
+// Screeen memory starts at: 16384 (6144)
+// Attributes mem starts at: 22528 ( 768)
+
+// Initialize a 48K block of memory, for general use
+// Holds memory for Screen, Attributes, input, sound, etc.
+// The emulator will tap into these for IO.
+uint8_t MEM[1024 * 48] = {};
+
+// ==========================================================================
+
+
+// ORG 32765
+// JP BEGIN
 
 // Cavern name
 //
@@ -717,91 +730,142 @@ int main() {
 // The first thing this routine does is initialise some game status buffer
 // variables in preparation for the next game.
 START:
-  XOR A                   // A=0
-  LD (SHEET),A            // Initialise the current cavern number at SHEET
-  LD (KEMP),A             // Initialise the Kempston joystick indicator at KEMP
-  LD (DEMO),A             // Initialise the game mode indicator at DEMO
-  LD (NOTEINDEX),A        // Initialise the in-game music note index at NOTEINDEX
-  LD (FLASH),A            // Initialise the screen flash counter at FLASH
-  LD A,2                  // Initialise the number of lives remaining at NOMEN
-  LD (NOMEN),A
-  LD HL,MUSICFLAGS        // Initialise the keypress flag in bit 0 at MUSICFLAGS
-  SET 0,(HL)
+  // XOR A                   // A=0
+  // LD (SHEET),A            // Initialise the current cavern number at SHEET
+  SHEET = 0;
+
+  // LD (KEMP),A             // Initialise the Kempston joystick indicator at KEMP
+  KEMP = 0;
+
+  // LD (DEMO),A             // Initialise the game mode indicator at DEMO
+  DEMO = 0;
+
+  // LD (NOTEINDEX),A        // Initialise the in-game music note index at NOTEINDEX
+  NOTEINDEX = 0;
+
+  // LD (FLASH),A            // Initialise the screen flash counter at FLASH
+  FLASH = 0;
+
+  // LD A,2                  // Initialise the number of lives remaining at NOMEN
+  // LD (NOMEN),A
+  NOMEN = 2;
+
+  // LD HL,MUSICFLAGS        // Initialise the keypress flag in bit 0 at MUSICFLAGS
+  // SET 0,(HL)
+  MUSICFLAGS |= 1 << 0;
+
 // Next, prepare the screen.
-  LD HL,16384             // Clear the entire display file
-  LD DE,16385
-  LD BC,6143
-  LD (HL),0
-  LDIR
-  LD HL,TITLESCR1         // Copy the graphic data at TITLESCR1 to the top
-  LD DE,16384             // two-thirds of the display file
-  LD BC,4096
-  LDIR
+
+  // Clear the entire display file
+  // LD HL,16384
+  // LD DE,16385
+  // LD BC,6143
+  // LD (HL),0
+  // LDIR
+  for (int i = 0; i <= 6143; i++) {
+    MEM[16384 + i] = 0;
+  }
+
+  // Copy the graphic data at TITLESCR1 to the top two-thirds of the display file
+  // LD HL,TITLESCR1
+  // LD DE,16384
+  // LD BC,4096
+  // LDIR
+  for (int i = 0; i < 4096; i++) {
+    MEM[16384 + i] = TITLESCR1[i];
+  }
+
   LD HL,18493             // Draw Willy at (9,29)
   LD DE,WILLYR2
   LD C,0
   CALL DRWFIX
-  LD HL,CAVERN19          // Copy the attribute bytes from CAVERN19 to the top
-  LD DE,22528             // third of the attribute file
-  LD BC,256
-  LDIR
-  LD HL,LOWERATTRS        // Copy the attribute bytes from LOWERATTRS to the
-  LD BC,512               // bottom two-thirds of the attribute file
-  LDIR
+
+  // LD HL,CAVERN19          // Copy the attribute bytes from CAVERN19 to the top
+  // LD DE,22528             // third of the attribute file
+  // LD BC,256
+  // LDIR
+  for (int i = 0; i < 256; i++) {
+    MEM[22528 + i] = CAVERN19[i];
+  }
+
+  // Copy the attribute bytes from LOWERATTRS to the bottom two-thirds of the attribute file
+  // LD HL,LOWERATTRS
+  // LD BC,512
+  // LDIR
+  for (int i = 0; i < 512; i++) {
+    MEM[22528 + 256 + i] = LOWERATTRS[i];
+  }
+
 // Now check whether there is a joystick connected.
-  LD BC,31                // B=0, C=31 (joystick port)
-  DI                      // Disable interrupts (which are already disabled)
-  XOR A                   // A=0
-START_0:
-  IN E,(C)                // Combine 256 readings of the joystick port in A; if
-  OR E                    // no joystick is connected, some of these readings
-  DJNZ START_0            // will have bit 5 set
-  AND 32                  // Is a joystick connected (bit 5 reset)?
-  JR NZ,START_1           // Jump if not
-  LD A,1                  // Set the Kempston joystick indicator at KEMP to 1
-  LD (KEMP),A
+//   LD BC,31                // B=0, C=31 (joystick port)
+//   DI                      // Disable interrupts (which are already disabled)
+//   XOR A                   // A=0
+// START_0:
+//   IN E,(C)                // Combine 256 readings of the joystick port in A; if
+//   OR E                    // no joystick is connected, some of these readings
+//   DJNZ START_0            // will have bit 5 set
+//   AND 32                  // Is a joystick connected (bit 5 reset)?
+//   JR NZ,START_1           // Jump if not
+//   LD A,1                  // Set the Kempston joystick indicator at KEMP to 1
+//   LD (KEMP),A
+  KEMP = 0; // IMPORTANT: no joystick support just yet! -MRC-
+
 // And finally, play the theme tune and check for keypresses.
-START_1:
+
+// START_1: // label only used in the KEMP detection routine above.
   LD IY,THEMETUNE         // Point IY at the theme tune data at THEMETUNE
   CALL PLAYTUNE           // Play the theme tune
   JP NZ,STARTGAME         // Start the game if ENTER or the fire button was pressed
-  XOR A                   // Initialise the game status buffer variable at
-  LD (EUGHGT),A           // EUGHGT; this will be used as an index for the message scrolled across the screen
-START_2:
-  LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-  LD IX,MESSINTRO         // Point IX at the corresponding location in the
-  LD IXl,A                // message at MESSINTRO
-  LD DE,20576             // Print 32 characters of the message at (19,0)
-  LD C,32
-  CALL PMESS
-  LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-  AND 6                   // Keep only bits 1 and 2, and move them into bits 6
-  RRCA                    // and 7, so that A holds 0, 64, 128 or 192; this
-  RRCA                    // value determines the animation frame to use for
-  RRCA                    // Willy
-  LD E,A                  // Point DE at the graphic data for Willy's sprite
-  LD D,130                // (MANDAT+A)
-  LD HL,18493             // Draw Willy at (9,29)
-  LD C,0
-  CALL DRWFIX
-  LD BC,100               // Pause for about 0.1s
-START_3:
-  DJNZ START_3
-  DEC C
-  JR NZ,START_3
-  LD BC,49150             // Read keys H-J-K-L-ENTER
-  IN A,(C)
-  AND 1                   // Keep only bit 0 of the result (ENTER)
-  CP 1                    // Is ENTER being pressed?
-  JR NZ,STARTGAME         // If so, start the game
-  LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-  INC A                   // Increment it
-  CP 224                  // Set the zero flag if we've reached the end of the message
-  LD (EUGHGT),A           // Store the new message index at EUGHGT
-  JR NZ,START_2           // Jump back unless we've finished scrolling the message across the screen
-  LD A,64                 // Initialise the game mode indicator at DEMO to 64:
-  LD (DEMO),A             // demo mode
+
+  // Initialise the game status buffer variable at EUGHGT;
+  // this will be used as an index for the message scrolled across the screen
+  // XOR A
+  // LD (EUGHGT),A
+  EUGHGT = 0;
+
+  for (;;) {
+    LD A,(EUGHGT)           // Pick up the message index from EUGHGT
+    LD IX,MESSINTRO         // Point IX at the corresponding location in the
+    LD IXl,A                // message at MESSINTRO
+    LD DE,20576             // Print 32 characters of the message at (19,0)
+    LD C,32
+    CALL PMESS
+    LD A,(EUGHGT)           // Pick up the message index from EUGHGT
+    AND 6                   // Keep only bits 1 and 2, and move them into bits 6
+    RRCA                    // and 7, so that A holds 0, 64, 128 or 192; this
+    RRCA                    // value determines the animation frame to use for
+    RRCA                    // Willy
+    LD E,A                  // Point DE at the graphic data for Willy's sprite
+    LD D,130                // (MANDAT+A)
+    LD HL,18493             // Draw Willy at (9,29)
+    LD C,0
+    CALL DRWFIX
+
+    LD BC,100               // Pause for about 0.1s
+  START_3:
+    DJNZ START_3
+    DEC C
+    JR NZ,START_3
+
+    LD BC,49150             // Read keys H-J-K-L-ENTER
+    IN A,(C)
+    AND 1                   // Keep only bit 0 of the result (ENTER)
+    CP 1                    // Is ENTER being pressed?
+    JR NZ,STARTGAME         // If so, start the game
+
+    LD A,(EUGHGT)           // Pick up the message index from EUGHGT
+    INC A                   // Increment it
+    CP 224                  // Set the zero flag if we've reached the end of the message
+    LD (EUGHGT),A           // Store the new message index at EUGHGT
+    JR NZ,START_2           // Jump back unless we've finished scrolling the message across the screen
+  }
+
+  // Initialise the game mode indicator at DEMO to 64: demo mode
+  // LD A,64
+  // LD (DEMO),A
+  DEMO = 64;
 // This routine continues into the one at STARTGAME.
+
 
 // Start the game (or demo mode)
 //
@@ -7826,71 +7890,75 @@ memcpy(GGDATA, newGGDATA, sizeof(newGGDATA));
 // // Used by the routine at STARTGAME.
 // //
 // // The first 512 bytes are the attributes that define the layout of the cavern.
-// CAVERN19:
-//   DEFB 44,34,34,34,34,34,44,40 // Attributes
-//   DEFB 40,40,40,40,47,47,47,47
-//   DEFB 47,40,40,40,40,40,46,50
-//   DEFB 50,46,40,40,40,40,40,40
-//   DEFB 44,34,34,34,34,34,44,40
-//   DEFB 40,47,40,40,47,47,47,47
-//   DEFB 47,40,40,40,40,40,58,56
-//   DEFB 56,58,40,40,40,42,42,42
-//   DEFB 44,34,34,22,34,44,46,46
-//   DEFB 46,46,46,46,47,47,47,47
-//   DEFB 47,46,43,46,43,46,58,56
-//   DEFB 56,58,47,47,47,42,42,42
-//   DEFB 40,44,44,22,44,46,46,46
-//   DEFB 46,46,46,46,46,40,40,40
-//   DEFB 44,44,44,44,44,44,58,58
-//   DEFB 58,58,47,47,47,40,42,40
-//   DEFB 40,47,40,22,40,46,46,46
-//   DEFB 46,46,46,46,46,44,44,44
-//   DEFB 38,38,38,38,38,38,38,38
-//   DEFB 38,38,38,38,38,38,38,38
-//   DEFB 40,44,44,22,44,46,46,46
-//   DEFB 46,46,46,46,46,39,38,38
-//   DEFB 38,38,38,0,0,38,0,0
-//   DEFB 0,0,0,0,0,0,0,38
-//   DEFB 12,38,38,38,38,33,33,33
-//   DEFB 14,14,33,33,33,39,38,38
-//   DEFB 38,38,38,0,0,38,0,0
-//   DEFB 0,0,0,0,0,0,0,38
-//   DEFB 38,38,38,38,38,38,38,38
-//   DEFB 38,38,38,38,38,38,38,38
-//   DEFB 38,38,38,0,0,38,0,0
-//   DEFB 0,0,0,0,0,0,0,38
-//   DEFB 38,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,66,66,38
-//   DEFB 38,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,38
-//   DEFB 38,5,5,5,5,5,5,5
-//   DEFB 5,5,5,5,5,5,5,5
-//   DEFB 5,5,5,5,5,5,5,0
-//   DEFB 0,0,2,0,0,0,0,38
-//   DEFB 38,0,0,0,0,0,0,0
-//   DEFB 0,68,0,0,68,0,0,0
-//   DEFB 0,68,0,0,0,68,0,0
-//   DEFB 0,0,0,0,66,0,0,38
-//   DEFB 38,66,66,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,38
-//   DEFB 38,0,0,0,0,66,66,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,38
-//   DEFB 38,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,0
-//   DEFB 0,0,0,0,0,0,0,38
-//   DEFB 38,66,66,66,66,66,66,66
-//   DEFB 66,66,66,66,66,66,66,66
-//   DEFB 66,66,66,66,66,66,66,66
-//   DEFB 66,66,66,66,66,66,66,38
+
+// IMPORTANT: required for start of game -MRC-
+uint8_t CAVERN19[512] = { // Attributes
+  44,34,34,34,34,34,44,40,
+  40,40,40,40,47,47,47,47,
+  47,40,40,40,40,40,46,50,
+  50,46,40,40,40,40,40,40,
+  44,34,34,34,34,34,44,40,
+  40,47,40,40,47,47,47,47,
+  47,40,40,40,40,40,58,56,
+  56,58,40,40,40,42,42,42,
+  44,34,34,22,34,44,46,46,
+  46,46,46,46,47,47,47,47,
+  47,46,43,46,43,46,58,56,
+  56,58,47,47,47,42,42,42,
+  40,44,44,22,44,46,46,46,
+  46,46,46,46,46,40,40,40,
+  44,44,44,44,44,44,58,58,
+  58,58,47,47,47,40,42,40,
+  40,47,40,22,40,46,46,46,
+  46,46,46,46,46,44,44,44,
+  38,38,38,38,38,38,38,38,
+  38,38,38,38,38,38,38,38,
+  40,44,44,22,44,46,46,46,
+  46,46,46,46,46,39,38,38,
+  38,38,38,0,0,38,0,0,
+  0,0,0,0,0,0,0,38,
+  12,38,38,38,38,33,33,33,
+  14,14,33,33,33,39,38,38,
+  38,38,38,0,0,38,0,0,
+  0,0,0,0,0,0,0,38,
+  38,38,38,38,38,38,38,38,
+  38,38,38,38,38,38,38,38,
+  38,38,38,0,0,38,0,0,
+  0,0,0,0,0,0,0,38,
+  38,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,66,66,38,
+  38,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,38,
+  38,5,5,5,5,5,5,5,
+  5,5,5,5,5,5,5,5,
+  5,5,5,5,5,5,5,0,
+  0,0,2,0,0,0,0,38,
+  38,0,0,0,0,0,0,0,
+  0,68,0,0,68,0,0,0,
+  0,68,0,0,0,68,0,0,
+  0,0,0,0,66,0,0,38,
+  38,66,66,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,38,
+  38,0,0,0,0,66,66,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,38,
+  38,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,38,
+  38,66,66,66,66,66,66,66,
+  66,66,66,66,66,66,66,66,
+  66,66,66,66,66,66,66,66,
+  66,66,66,66,66,66,66,38,
+};
+
 // // The next 32 bytes are copied to CAVERNNAME and specify the cavern name.
 //   DEFM "        The Final Barrier       " // Cavern name
 // // The next 72 bytes are copied to BACKGROUND and contain the attributes and
