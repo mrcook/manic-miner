@@ -25,26 +25,19 @@ CAVERNNAME:
 ; and in Miner Willy meets the Kong Beast and Return of the Alien Kong Beast as
 ; a switch.
 BACKGROUND:
-  DEFS 9                  ; Background tile (also used by the routines at
-                          ; MOVEWILLY, CRUMBLE, LIGHTBEAM, EUGENE, KONGBEAST
-                          ; and WILLYATTR)
+  DEFS 9                  ; Background tile (also used by the routines at MOVEWILLY, CRUMBLE, LIGHTBEAM, EUGENE, KONGBEAST and WILLYATTR)
 FLOOR:
   DEFS 9                  ; Floor tile (also used by the routine at LIGHTBEAM)
 CRUMBLING:
-  DEFS 9                  ; Crumbling floor tile (also used by the routine at
-                          ; MOVEWILLY)
+  DEFS 9                  ; Crumbling floor tile (also used by the routine at MOVEWILLY)
 WALL:
-  DEFS 9                  ; Wall tile (also used by the routines at MOVEWILLY,
-                          ; MOVEWILLY2 and LIGHTBEAM)
+  DEFS 9                  ; Wall tile (also used by the routines at MOVEWILLY, MOVEWILLY2 and LIGHTBEAM)
 CONVEYOR:
-  DEFS 9                  ; Conveyor tile (also used by the routine at
-                          ; MOVEWILLY2)
+  DEFS 9                  ; Conveyor tile (also used by the routine at MOVEWILLY2)
 NASTY1:
-  DEFS 9                  ; Nasty tile 1 (also used by the routines at
-                          ; MOVEWILLY and WILLYATTR)
+  DEFS 9                  ; Nasty tile 1 (also used by the routines at MOVEWILLY and WILLYATTR)
 NASTY2:
-  DEFS 9                  ; Nasty tile 2 (also used by the routines at
-                          ; MOVEWILLY and WILLYATTR)
+  DEFS 9                  ; Nasty tile 2 (also used by the routines at MOVEWILLY and WILLYATTR)
 EXTRA:
   DEFS 9                  ; Extra tile (also used by the routine at CHKSWITCH)
 
@@ -118,11 +111,9 @@ JUMPING:
 ;
 ; The conveyor definition is copied here by the routine at STARTGAME.
 CONVDIR:
-  DEFB 0                  ; Direction (0=left, 1=right; used by the routines at
-                          ; MOVEWILLY2 and MVCONVEYOR)
+  DEFB 0                  ; Direction (0=left, 1=right; used by the routines at MOVEWILLY2 and MVCONVEYOR)
 CONVLOC:
-  DEFW 0                  ; Address of the conveyor's location in the screen
-                          ; buffer at 28672 (used by the routine at MVCONVEYOR)
+  DEFW 0                  ; Address of the conveyor's location in the screen buffer at 28672 (used by the routine at MVCONVEYOR)
 CONVLEN:
   DEFB 0                  ; Length (used by the routine at MVCONVEYOR)
 
@@ -167,16 +158,13 @@ ITEMS:
 ;
 ; The portal definition is copied here by the routine at STARTGAME.
 PORTAL:
-  DEFB 0                  ; Attribute byte (used by the routines at DRAWITEMS
-                          ; and CHKPORTAL)
+  DEFB 0                  ; Attribute byte (used by the routines at DRAWITEMS and CHKPORTAL)
 PORTALG:
   DEFS 32                 ; Graphic data (used by the routine at CHKPORTAL)
 PORTALLOC1:
-  DEFW 0                  ; Address of the portal's location in the attribute
-                          ; buffer at 23552 (used by the routine at CHKPORTAL)
+  DEFW 0                  ; Address of the portal's location in the attribute buffer at 23552 (used by the routine at CHKPORTAL)
 PORTALLOC2:
-  DEFW 0                  ; Address of the portal's location in the screen
-                          ; buffer at 24576 (used by the routine at CHKPORTAL)
+  DEFW 0                  ; Address of the portal's location in the screen buffer at 24576 (used by the routine at CHKPORTAL)
 
 ; Item graphic
 ;
@@ -287,8 +275,7 @@ VGUARDS:
   DEFS 7                  ; Vertical guardian 2
   DEFS 7                  ; Vertical guardian 3
   DEFS 7                  ; Vertical guardian 4
-  DEFB 0                  ; Terminator (set to 255 in caverns that have four
-                          ; vertical guardians)
+  DEFB 0                  ; Terminator (set to 255 in caverns that have four vertical guardians)
   DEFS 6                  ; Spare
 
 ; Guardian graphic data
@@ -460,8 +447,7 @@ SBUFADDRS:
 ; The game has just loaded
 BEGIN:
   DI                      ; Disable interrupts
-  LD SP,40190             ; Place the stack somewhere safe (near the end of the
-                          ; source code remnants at SOURCE)
+  LD SP,40190             ; Place the stack somewhere safe (near the end of the source code remnants at SOURCE)
   JP START                ; Display the title screen and play the theme tune
 
 ; Current cavern number
@@ -481,32 +467,20 @@ SHEET:
 ;
 ; One of the first four entries is used when Willy is not moving.
 LRMOVEMENT:
-  DEFB 0                  ; V=0 (facing right, no movement) + no movement: V'=0
-                          ; (no change)
-  DEFB 1                  ; V=1 (facing left, no movement) + no movement: V'=1
-                          ; (no change)
-  DEFB 0                  ; V=2 (facing right, moving) + no movement: V'=0
-                          ; (facing right, no movement) (i.e. stop)
-  DEFB 1                  ; V=3 (facing left, moving) + no movement: V'=1
-                          ; (facing left, no movement) (i.e. stop)
+  DEFB 0                  ; V=0 (facing right, no movement) + no movement: V'=0 (no change)
+  DEFB 1                  ; V=1 (facing left, no movement) + no movement: V'=1 (no change)
+  DEFB 0                  ; V=2 (facing right, moving) + no movement: V'=0 (facing right, no movement) (i.e. stop)
+  DEFB 1                  ; V=3 (facing left, moving) + no movement: V'=1 (facing left, no movement) (i.e. stop)
 ; One of the next four entries is used when Willy is moving left.
-  DEFB 1                  ; V=0 (facing right, no movement) + move left: V'=1
-                          ; (facing left, no movement) (i.e. turn around)
-  DEFB 3                  ; V=1 (facing left, no movement) + move left: V'=3
-                          ; (facing left, moving)
-  DEFB 1                  ; V=2 (facing right, moving) + move left: V'=1
-                          ; (facing left, no movement) (i.e. turn around)
-  DEFB 3                  ; V=3 (facing left, moving) + move left: V'=3 (no
-                          ; change)
+  DEFB 1                  ; V=0 (facing right, no movement) + move left: V'=1 (facing left, no movement) (i.e. turn around)
+  DEFB 3                  ; V=1 (facing left, no movement) + move left: V'=3 (facing left, moving)
+  DEFB 1                  ; V=2 (facing right, moving) + move left: V'=1 (facing left, no movement) (i.e. turn around)
+  DEFB 3                  ; V=3 (facing left, moving) + move left: V'=3 (no change)
 ; One of the next four entries is used when Willy is moving right.
-  DEFB 2                  ; V=0 (facing right, no movement) + move right: V'=2
-                          ; (facing right, moving)
-  DEFB 0                  ; V=1 (facing left, no movement) + move right: V'=0
-                          ; (facing right, no movement) (i.e. turn around)
-  DEFB 2                  ; V=2 (facing right, moving) + move right: V'=2 (no
-                          ; change)
-  DEFB 0                  ; V=3 (facing left, moving) + move right: V'=0
-                          ; (facing right, no movement) (i.e. turn around)
+  DEFB 2                  ; V=0 (facing right, no movement) + move right: V'=2 (facing right, moving)
+  DEFB 0                  ; V=1 (facing left, no movement) + move right: V'=0 (facing right, no movement) (i.e. turn around)
+  DEFB 2                  ; V=2 (facing right, moving) + move right: V'=2 (no change)
+  DEFB 0                  ; V=3 (facing left, moving) + move right: V'=0 (facing right, no movement) (i.e. turn around)
 ; One of the final four entries is used when Willy is being pulled both left
 ; and right; each entry leaves the flags at DMFLAGS unchanged (so Willy carries
 ; on moving in the direction he's already moving, or remains stationary).
@@ -535,8 +509,7 @@ HGHSCOR:
 ; Initialised by the routine at STARTGAME, and used by the routines at LOOP,
 ; ENDGAM, NXSHEET and INCSCORE.
 SCORE:
-  DEFM "0000"             ; Overflow digits (these may be updated, but are
-                          ; never printed)
+  DEFM "0000"             ; Overflow digits (these may be updated, but are never printed)
 SCORBUF:
   DEFM "000000"
 
@@ -567,8 +540,7 @@ NOMEN:
 
 ; Screen flash counter
 ;
-; Initialised by the routine at START, and used by the routines at LOOP and
-; INCSCORE.
+; Initialised by the routine at START, and used by the routines at LOOP and INCSCORE.
 FLASH:
   DEFB 0
 
@@ -589,8 +561,7 @@ DEMO:
 
 ; In-game music note index
 ;
-; Initialised by the routine at START, and used and updated by the routine at
-; LOOP.
+; Initialised by the routine at START, and used and updated by the routine at LOOP.
 NOTEINDEX:
   DEFB 0
 
@@ -755,8 +726,7 @@ START:
   LD (SHEET),A            ; Initialise the current cavern number at SHEET
   LD (KEMP),A             ; Initialise the Kempston joystick indicator at KEMP
   LD (DEMO),A             ; Initialise the game mode indicator at DEMO
-  LD (NOTEINDEX),A        ; Initialise the in-game music note index at
-                          ; NOTEINDEX
+  LD (NOTEINDEX),A        ; Initialise the in-game music note index at NOTEINDEX
   LD (FLASH),A            ; Initialise the screen flash counter at FLASH
   LD A,2                  ; Initialise the number of lives remaining at NOMEN
   LD (NOMEN),A
@@ -799,11 +769,9 @@ START_0:
 START_1:
   LD IY,THEMETUNE         ; Point IY at the theme tune data at THEMETUNE
   CALL PLAYTUNE           ; Play the theme tune
-  JP NZ,STARTGAME         ; Start the game if ENTER or the fire button was
-                          ; pressed
+  JP NZ,STARTGAME         ; Start the game if ENTER or the fire button was pressed
   XOR A                   ; Initialise the game status buffer variable at
-  LD (EUGHGT),A           ; EUGHGT; this will be used as an index for the
-                          ; message scrolled across the screen
+  LD (EUGHGT),A           ; EUGHGT; this will be used as an index for the message scrolled across the screen
 START_2:
   LD A,(EUGHGT)           ; Pick up the message index from EUGHGT
   LD IX,MESSINTRO         ; Point IX at the corresponding location in the
@@ -833,11 +801,9 @@ START_3:
   JR NZ,STARTGAME         ; If so, start the game
   LD A,(EUGHGT)           ; Pick up the message index from EUGHGT
   INC A                   ; Increment it
-  CP 224                  ; Set the zero flag if we've reached the end of the
-                          ; message
+  CP 224                  ; Set the zero flag if we've reached the end of the message
   LD (EUGHGT),A           ; Store the new message index at EUGHGT
-  JR NZ,START_2           ; Jump back unless we've finished scrolling the
-                          ; message across the screen
+  JR NZ,START_2           ; Jump back unless we've finished scrolling the message across the screen
   LD A,64                 ; Initialise the game mode indicator at DEMO to 64:
   LD (DEMO),A             ; demo mode
 ; This routine continues into the one at STARTGAME.
@@ -867,8 +833,7 @@ NEWSHT:
   LD DE,CAVERNNAME        ; Copy the rest of the cavern definition into the
   LD BC,512               ; game status buffer at 32768
   LDIR
-  CALL DRAWSHEET          ; Draw the current cavern to the screen buffer at
-                          ; 28672
+  CALL DRAWSHEET          ; Draw the current cavern to the screen buffer at 28672
   LD HL,20480             ; Clear the bottom third of the display file
   LD DE,20481
   LD BC,2047
@@ -882,35 +847,28 @@ NEWSHT:
   LD C,3
   LD DE,20512
   CALL PMESS
-  LD A,82                 ; Initialise A to 82; this is the MSB of the display
-                          ; file address at which to start drawing the bar that
-                          ; represents the air supply
+  LD A,82                 ; Initialise A to 82; this is the MSB of the display file address at which to start drawing the bar that represents the air supply
 STARTGAME_0:
   LD H,A                  ; Prepare HL and DE for drawing a row of pixels in
   LD D,A                  ; the air bar
   LD L,36
   LD E,37
   LD B,A                  ; Save the display file address MSB in B briefly
-  LD A,(AIR)              ; Pick up the value of the initial air supply from
-                          ; AIR
+  LD A,(AIR)              ; Pick up the value of the initial air supply from AIR
   SUB 36                  ; Now C determines the length of the air bar (in cell
   LD C,A                  ; widths)
   LD A,B                  ; Restore the display file address MSB to A
-  LD B,0                  ; Now BC determines the length of the air bar (in
-                          ; cell widths)
+  LD B,0                  ; Now BC determines the length of the air bar (in cell widths)
   LD (HL),255             ; Draw a single row of pixels across C cells
   LDIR
-  INC A                   ; Increment the display file address MSB in A (moving
-                          ; down to the next row of pixels)
-  CP 86                   ; Have we drawn all four rows of pixels in the air
-                          ; bar yet?
+  INC A                   ; Increment the display file address MSB in A (moving down to the next row of pixels)
+  CP 86                   ; Have we drawn all four rows of pixels in the air bar yet?
   JR NZ,STARTGAME_0       ; If not, jump back to draw the next one
   LD IX,MESSHSSC          ; Print 'High Score 000000   Score 000000' (see
   LD DE,20576             ; MESSHSSC) at (19,0)
   LD C,32
   CALL PMESS
-  LD A,(BORDER)           ; Pick up the border colour for the current cavern
-                          ; from BORDER
+  LD A,(BORDER)           ; Pick up the border colour for the current cavern from BORDER
   LD C,254                ; Set the border colour
   OUT (C),A
   LD A,(DEMO)             ; Pick up the game mode indicator from DEMO
@@ -928,20 +886,16 @@ STARTGAME_0:
 ; at the bottom of the screen.
 LOOP:
   LD A,(NOMEN)            ; Pick up the number of lives remaining from NOMEN
-  LD HL,20640             ; Set HL to the display file address at which to draw
-                          ; the first Willy sprite
+  LD HL,20640             ; Set HL to the display file address at which to draw the first Willy sprite
   OR A                    ; Are there any lives remaining?
   JR Z,LOOP_1             ; Jump if not
   LD B,A                  ; Initialise B to the number of lives remaining
 ; The following loop draws the remaining lives at the bottom of the screen.
 LOOP_0:
-  LD C,0                  ; C=0; this tells the sprite-drawing routine at
-                          ; DRWFIX to overwrite any existing graphics
+  LD C,0                  ; C=0; this tells the sprite-drawing routine at DRWFIX to overwrite any existing graphics
   PUSH HL                 ; Save HL and BC briefly
   PUSH BC
-  LD A,(NOTEINDEX)        ; Pick up the in-game music note index from
-                          ; NOTEINDEX; this will determine the animation frame
-                          ; for the Willy sprites
+  LD A,(NOTEINDEX)        ; Pick up the in-game music note index from NOTEINDEX; this will determine the animation frame for the Willy sprites
   RLCA                    ; Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96
   RLCA                    ; (frame 3)
   RLCA
@@ -961,8 +915,7 @@ LOOP_1:
   JR NZ,LOOP_2            ; Jump if not
   LD DE,BOOT              ; Point DE at the graphic data for the boot (at BOOT)
   LD C,0                  ; C=0 (overwrite mode)
-  CALL DRWFIX             ; Draw the boot at the bottom of the screen next to
-                          ; the remaining lives
+  CALL DRWFIX             ; Draw the boot at the bottom of the screen next to the remaining lives
 ; Next, prepare the screen and attribute buffers for drawing to the screen.
 LOOP_2:
   LD HL,24064             ; Copy the contents of the attribute buffer at 24064
@@ -979,13 +932,10 @@ LOOP_2:
   CALL Z,MOVEWILLY        ; If not, move Willy
   LD A,(DEMO)             ; Pick up the game mode indicator from DEMO
   OR A                    ; Are we in demo mode?
-  CALL Z,WILLYATTRS       ; If not, check and set the attribute bytes for
-                          ; Willy's sprite in the buffer at 23552, and draw
-                          ; Willy to the screen buffer at 24576
+  CALL Z,WILLYATTRS       ; If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
   CALL DRAWHG             ; Draw the horizontal guardians in the current cavern
   CALL MVCONVEYOR         ; Move the conveyor in the current cavern
-  CALL DRAWITEMS          ; Draw the items in the current cavern and collect
-                          ; any that Willy is touching
+  CALL DRAWITEMS          ; Draw the items in the current cavern and collect any that Willy is touching
   LD A,(SHEET)            ; Pick up the number of the current cavern from SHEET
   CP 4                    ; Are we in Eugene's Lair?
   CALL Z,EUGENE           ; If so, move and draw Eugene
@@ -1006,8 +956,7 @@ LOOP_2:
   CALL Z,LIGHTBEAM        ; If so, move and draw the light beam
 ; This entry point is used by the routine at SKYLABS.
 LOOP_3:
-  CALL CHKPORTAL          ; Draw the portal, or move to the next cavern if
-                          ; Willy has entered it
+  CALL CHKPORTAL          ; Draw the portal, or move to the next cavern if Willy has entered it
 ; This entry point is used by the routine at KILLWILLY.
 LOOP_4:
   LD HL,24576             ; Copy the contents of the screen buffer at 24576 to
@@ -1067,8 +1016,7 @@ LOOP_6:
 ; Here we check whether Willy has had a fatal accident.
 LOOP_7:
   LD A,(AIRBORNE)         ; Pick up the airborne status indicator from AIRBORNE
-  CP 255                  ; Has Willy landed after falling from too great a
-                          ; height, or collided with a nasty or a guardian?
+  CP 255                  ; Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
   JP Z,MANDEAD            ; Jump if so
 ; Now read the keys H, J, K, L and ENTER (which toggle the in-game music).
   LD B,191                ; Prepare B for reading keys H-J-K-L-ENTER
@@ -1077,8 +1025,7 @@ LOOP_7:
   AND 31                  ; Are any of these keys being pressed?
   CP 31
   JR Z,LOOP_8             ; Jump if not
-  BIT 0,(HL)              ; Were any of these keys being pressed the last time
-                          ; we checked?
+  BIT 0,(HL)              ; Were any of these keys being pressed the last time we checked?
   JR NZ,LOOP_9            ; Jump if so
   LD A,(HL)               ; Set bit 0 (the keypress flag) and flip bit 1 (the
   XOR 3                   ; in-game music flag) at MUSICFLAGS
@@ -1099,11 +1046,9 @@ LOOP_9:
   LD D,0
   LD HL,GAMETUNE
   ADD HL,DE
-  LD A,(BORDER)           ; Pick up the border colour for the current cavern
-                          ; from BORDER
+  LD A,(BORDER)           ; Pick up the border colour for the current cavern from BORDER
   LD E,(HL)               ; Initialise the pitch delay counter in E
-  LD BC,3                 ; Initialise the duration delay counters in B (0) and
-                          ; C (3)
+  LD BC,3                 ; Initialise the duration delay counters in B (0) and C (3)
 TM51:
   OUT (254),A             ; Produce a note of the in-game music
 SEE37708:
@@ -1121,8 +1066,7 @@ NONOTE4:
   LD A,(DEMO)             ; Pick up the game mode indicator from DEMO
   OR A                    ; Are we in demo mode?
   JR Z,NODEM1             ; Jump if not
-  DEC A                   ; We're in demo mode; is it time to show the next
-                          ; cavern?
+  DEC A                   ; We're in demo mode; is it time to show the next cavern?
   JP Z,MANDEAD            ; Jump if so
   LD (DEMO),A             ; Update the game mode indicator at DEMO
   LD BC,254               ; Read every row of keys on the keyboard
@@ -1134,8 +1078,7 @@ NONOTE4:
   OR A                    ; Is there a joystick connected?
   JR Z,NODEM1             ; Jump if not
   IN A,(31)               ; Collect input from the joystick
-  OR A                    ; Is the joystick being moved or the fire button
-                          ; being pressed?
+  OR A                    ; Is the joystick being moved or the fire button being pressed?
   JP NZ,START             ; If so, return to the title screen
 ; Here we check the teleport keys.
 NODEM1:
@@ -1167,13 +1110,11 @@ CKCHEAT:
   LD BC,63486             ; Read keys 1-2-3-4-5
   IN A,(C)
   AND 31                  ; Keep only bits 0-4
-  CP (IX+0)               ; Does this match the first byte of the entry in the
-                          ; 6031769 table?
+  CP (IX+0)               ; Does this match the first byte of the entry in the 6031769 table?
   JR Z,CKNXCHT            ; Jump if so
   CP 31                   ; Are any of the keys 1-2-3-4-5 being pressed?
   JP Z,LOOP               ; If not, jump back to the start of the main loop
-  CP (IX-2)               ; Does the keyboard reading match the first byte of
-                          ; the previous entry in the 6031769 table?
+  CP (IX-2)               ; Does the keyboard reading match the first byte of the previous entry in the 6031769 table?
   JP Z,LOOP               ; If so, jump back to the start of the main loop
   XOR A                   ; Reset the 6031769 key counter at CHEAT to 0 (an
   LD (CHEAT),A            ; incorrect key is being pressed)
@@ -1182,13 +1123,11 @@ CKNXCHT:
   LD B,239                ; Read keys 6-7-8-9-0
   IN A,(C)
   AND 31                  ; Keep only bits 0-4
-  CP (IX+1)               ; Does this match the second byte of the entry in the
-                          ; 6031769 table?
+  CP (IX+1)               ; Does this match the second byte of the entry in the 6031769 table?
   JR Z,INCCHT             ; If so, jump to increment the 6031769 key counter
   CP 31                   ; Are any of the keys 6-7-8-9-0 being pressed?
   JP Z,LOOP               ; If not, jump back to the start of the main loop
-  CP (IX-1)               ; Does the keyboard reading match the second byte of
-                          ; the previous entry in the 6031769 table?
+  CP (IX-1)               ; Does the keyboard reading match the second byte of the previous entry in the 6031769 table?
   JP Z,LOOP               ; If so, jump back to the start of the main loop
   XOR A                   ; Reset the 6031769 key counter at CHEAT to 0 (an
   LD (CHEAT),A            ; incorrect key is being pressed)
@@ -1213,8 +1152,7 @@ LPDEAD1:
   LD BC,511
   LD (HL),A
   LDIR
-  LD E,A                  ; Save the attribute byte (64-71) in E for later
-                          ; retrieval
+  LD E,A                  ; Save the attribute byte (64-71) in E for later retrieval
   CPL                     ; D=63-8*(E AND 7); this value determines the pitch
   AND 7                   ; of the short note that will be played
   RLCA
@@ -1237,12 +1175,9 @@ TM22:
   DEC C
   JR NZ,TM21
   LD A,E                  ; Restore the attribute byte (originally 71) to A
-  DEC A                   ; Decrement it (effectively decrementing the INK
-                          ; colour)
+  DEC A                   ; Decrement it (effectively decrementing the INK colour)
   CP 63                   ; Have we used attribute value 64 (INK 0) yet?
-  JR NZ,LPDEAD1           ; If not, jump back to update the INK colour in the
-                          ; top two thirds of the screen and make another sound
-                          ; effect
+  JR NZ,LPDEAD1           ; If not, jump back to update the INK colour in the top two thirds of the screen and make another sound effect
 ; Finally, check whether any lives remain.
   LD HL,NOMEN             ; Pick up the number of lives remaining from NOMEN
   LD A,(HL)
@@ -1260,12 +1195,9 @@ ENDGAM:
   LD B,6                  ; There are 6 digits to compare
 LPHGH:
   LD A,(DE)               ; Pick up a digit of the current score
-  CP (HL)                 ; Compare it with the corresponding digit of the high
-                          ; score
-  JP C,FEET               ; Jump if it's less than the corresponding digit of
-                          ; the high score
-  JP NZ,NEWHGH            ; Jump if it's greater than the corresponding digit
-                          ; of the high score
+  CP (HL)                 ; Compare it with the corresponding digit of the high score
+  JP C,FEET               ; Jump if it's less than the corresponding digit of the high score
+  JP NZ,NEWHGH            ; Jump if it's greater than the corresponding digit of the high score
   INC HL                  ; Point HL at the next digit of the high score
   INC DE                  ; Point DE at the next digit of the current score
   DJNZ LPHGH              ; Jump back to compare the next pair of digits
@@ -1282,8 +1214,7 @@ FEET:
   LD (HL),0
   LDIR
   XOR A                   ; Initialise the game status buffer variable at
-  LD (EUGHGT),A           ; EUGHGT; this variable will determine the distance
-                          ; of the boot from the top of the screen
+  LD (EUGHGT),A           ; EUGHGT; this variable will determine the distance of the boot from the top of the screen
   LD DE,WILLYR2           ; Draw Willy at (12,15)
   LD HL,18575
   LD C,0
@@ -1307,17 +1238,12 @@ LOOPFT:
   LD H,A
   LD DE,BOOT              ; Draw the boot (see BOOT) at this location, without
   LD C,0                  ; erasing the boot at the previous location; this
-  CALL DRWFIX             ; leaves the portion of the boot sprite that's above
-                          ; the ankle in place, and makes the boot appear as if
-                          ; it's at the end of a long, extending trouser leg
+  CALL DRWFIX             ; leaves the portion of the boot sprite that's above the ankle in place, and makes the boot appear as if it's at the end of a long, extending trouser leg
   LD A,(EUGHGT)           ; Pick up the distance variable from EUGHGT
   CPL                     ; A=255-A
-  LD E,A                  ; Store this value (63-255) in E; it determines the
-                          ; (rising) pitch of the sound effect that will be
-                          ; made
+  LD E,A                  ; Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
   XOR A                   ; A=0 (black border)
-  LD BC,64                ; C=64; this value determines the duration of the
-                          ; sound effect
+  LD BC,64                ; C=64; this value determines the duration of the sound effect
 TM111:
   OUT (254),A             ; Produce a short note whose pitch is determined by E
   XOR 24
@@ -1331,8 +1257,7 @@ TM112:
   LD BC,511
   LD A,(EUGHGT)           ; Pick up the distance variable from EUGHGT
   AND 12                  ; Keep only bits 2 and 3
-  RLCA                    ; Shift bits 2 and 3 into bits 3 and 4; these bits
-                          ; determine the PAPER colour: 0, 1, 2 or 3
+  RLCA                    ; Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3
   OR 71                   ; Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
   LD (HL),A               ; Copy this attribute value into the top two-thirds
   LDIR                    ; of the screen
@@ -1351,8 +1276,7 @@ TM112:
   LD DE,16594
   CALL PMESS
   LD BC,0                 ; Prepare the delay counters for the following loop;
-  LD D,6                  ; the counter in C will also determine the INK
-                          ; colours to use for the "Game Over" message
+  LD D,6                  ; the counter in C will also determine the INK colours to use for the "Game Over" message
 ; The following loop makes the "Game Over" message glisten for about 1.57s.
 TM91:
   DJNZ TM91               ; Delay for about a millisecond
@@ -1404,8 +1328,7 @@ DECAIR:
   LD (CLOCK),A
   CP 252                  ; Was it just decreased from zero?
   JR NZ,DECAIR_0          ; Jump if not
-  LD A,(AIR)              ; Pick up the value of the remaining air supply from
-                          ; AIR
+  LD A,(AIR)              ; Pick up the value of the remaining air supply from AIR
   CP 36                   ; Has the air supply run out?
   RET Z                   ; Return (with the zero flag set) if so
   DEC A                   ; Decrement the air supply at AIR
@@ -1417,8 +1340,7 @@ DECAIR_0:
   RLCA                    ; end of the air bar
   RLCA
   LD E,0                  ; Initialise E to 0 (all bits reset)
-  OR A                    ; Do we need to draw any pixels in the cell at the
-                          ; right end of the air bar?
+  OR A                    ; Do we need to draw any pixels in the cell at the right end of the air bar?
   JR Z,DECAIR_2           ; Jump if not
   LD B,A                  ; Copy the number of pixels to draw (1-7) to B
 DECAIR_1:
@@ -1426,36 +1348,27 @@ DECAIR_1:
   SET 7,E
   DJNZ DECAIR_1
 DECAIR_2:
-  LD A,(AIR)              ; Pick up the value of the remaining air supply from
-                          ; AIR
+  LD A,(AIR)              ; Pick up the value of the remaining air supply from AIR
   LD L,A                  ; Set HL to the display file address at which to draw
-  LD H,82                 ; the top row of pixels in the cell at the right end
-                          ; of the air bar
+  LD H,82                 ; the top row of pixels in the cell at the right end of the air bar
   LD B,4                  ; There are four rows of pixels to draw
 DECAIR_3:
   LD (HL),E               ; Draw the four rows of pixels at the right end of
   INC H                   ; the air bar
   DJNZ DECAIR_3
   XOR A                   ; Reset the zero flag to indicate that there is still
-  INC A                   ; some air remaining; these instructions are
-                          ; redundant, since the zero flag is already reset at
-                          ; this point
+  INC A                   ; some air remaining; these instructions are redundant, since the zero flag is already reset at this point
   RET
 
 ; Draw the current cavern to the screen buffer at 28672
 ;
 ; Used by the routine at STARTGAME.
 DRAWSHEET:
-  LD IX,24064             ; Point IX at the first byte of the attribute buffer
-                          ; at 24064
+  LD IX,24064             ; Point IX at the first byte of the attribute buffer at 24064
   LD A,112                ; Set the operand of the 'LD D,n' instruction at
   LD (35484),A            ; SBMSB (below) to 112
-  CALL DRAWSHEET_0        ; Draw the tiles for the top half of the cavern to
-                          ; the screen buffer at 28672
-  LD IX,24320             ; Point IX at the 256th byte of the attribute buffer
-                          ; at 24064 in preparation for drawing the bottom half
-                          ; of the cavern; this instruction is redundant, since
-                          ; IX already holds 24320
+  CALL DRAWSHEET_0        ; Draw the tiles for the top half of the cavern to the screen buffer at 28672
+  LD IX,24320             ; Point IX at the 256th byte of the attribute buffer at 24064 in preparation for drawing the bottom half of the cavern; this instruction is redundant, since IX already holds 24320
   LD A,120                ; Set the operand of the 'LD D,n' instruction at
   LD (35484),A            ; SBMSB (below) to 120
 DRAWSHEET_0:
@@ -1464,27 +1377,21 @@ DRAWSHEET_0:
 ; half of the cavern) to the screen buffer at 28672.
 DRAWSHEET_1:
   LD E,C                  ; E holds the LSB of the screen buffer address
-  LD A,(IX+0)             ; Pick up an attribute byte from the buffer at 24064;
-                          ; this identifies the type of tile to draw
+  LD A,(IX+0)             ; Pick up an attribute byte from the buffer at 24064; this identifies the type of tile to draw
   LD HL,BACKGROUND        ; Move HL through the attribute bytes and graphic
   LD BC,72                ; data of the background, floor, crumbling floor,
-  CPIR                    ; wall, conveyor and nasty tiles starting at
-                          ; BACKGROUND until we find a byte that matches the
-                          ; attribute byte of the tile to be drawn
+  CPIR                    ; wall, conveyor and nasty tiles starting at BACKGROUND until we find a byte that matches the attribute byte of the tile to be drawn
   LD C,E                  ; Restore the value of the tile counter in C
   LD B,8                  ; There are eight bytes in the tile
 SBMSB:
-  LD D,0                  ; This instruction is set to either 'LD D,112' or 'LD
-                          ; D,120' above; now DE holds the appropriate address
-                          ; in the screen buffer at 28672
+  LD D,0                  ; This instruction is set to either 'LD D,112' or 'LD D,120' above; now DE holds the appropriate address in the screen buffer at 28672
 DRAWSHEET_2:
   LD A,(HL)               ; Copy the tile graphic data to the screen buffer at
   LD (DE),A               ; 28672
   INC HL
   INC D
   DJNZ DRAWSHEET_2
-  INC IX                  ; Move IX along to the next byte in the attribute
-                          ; buffer
+  INC IX                  ; Move IX along to the next byte in the attribute buffer
   INC C                   ; Have we drawn 256 tiles yet?
   JP NZ,DRAWSHEET_1       ; If not, jump back to draw the next one
 ; The empty cavern has been drawn to the screen buffer at 28672. If we're in
@@ -1507,30 +1414,23 @@ MOVEWILLY:
   CP 1                    ; Is Willy jumping?
   JR NZ,MOVEWILLY_3       ; Jump if not
 ; Willy is currently jumping.
-  LD A,(JUMPING)          ; Pick up the jumping animation counter (0-17) from
-                          ; JUMPING
+  LD A,(JUMPING)          ; Pick up the jumping animation counter (0-17) from JUMPING
   RES 0,A                 ; Now -8<=A<=8 (and A is even)
   SUB 8
   LD HL,PIXEL_Y           ; Adjust Willy's pixel y-coordinate at PIXEL_Y
   ADD A,(HL)              ; depending on where Willy is in the jump
   LD (HL),A
-  CALL MOVEWILLY_7        ; Adjust Willy's attribute buffer location at
-                          ; LOCATION depending on his pixel y-coordinate
-  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the
-                          ; current cavern from WALL
-  CP (HL)                 ; Is the top-left cell of Willy's sprite overlapping
-                          ; a wall tile?
+  CALL MOVEWILLY_7        ; Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate
+  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the current cavern from WALL
+  CP (HL)                 ; Is the top-left cell of Willy's sprite overlapping a wall tile?
   JP Z,MOVEWILLY_10       ; Jump if so
-  INC HL                  ; Point HL at the top-right cell occupied by Willy's
-                          ; sprite
-  CP (HL)                 ; Is the top-right cell of Willy's sprite overlapping
-                          ; a wall tile?
+  INC HL                  ; Point HL at the top-right cell occupied by Willy's sprite
+  CP (HL)                 ; Is the top-right cell of Willy's sprite overlapping a wall tile?
   JP Z,MOVEWILLY_10       ; Jump if so
   LD A,(JUMPING)          ; Increment the jumping animation counter at JUMPING
   INC A
   LD (JUMPING),A
-  SUB 8                   ; A=J-8, where J (1-18) is the new value of the
-                          ; jumping animation counter
+  SUB 8                   ; A=J-8, where J (1-18) is the new value of the jumping animation counter
   JP P,MOVEWILLY_0        ; Jump if J>=8
   NEG                     ; A=8-J (1<=J<=7, 1<=A<=7)
 MOVEWILLY_0:
@@ -1539,10 +1439,8 @@ MOVEWILLY_0:
   RLCA                    ; of the jumping sound effect (rising as Willy rises,
   RLCA                    ; falling as Willy falls)
   LD D,A
-  LD C,32                 ; C=32; this value determines the duration of the
-                          ; jumping sound effect
-  LD A,(BORDER)           ; Pick up the border colour for the current cavern
-                          ; from BORDER
+  LD C,32                 ; C=32; this value determines the duration of the jumping sound effect
+  LD A,(BORDER)           ; Pick up the border colour for the current cavern from BORDER
 MOVEWILLY_1:
   OUT (254),A             ; Make a jumping sound effect
   XOR 24
@@ -1551,8 +1449,7 @@ MOVEWILLY_2:
   DJNZ MOVEWILLY_2
   DEC C
   JR NZ,MOVEWILLY_1
-  LD A,(JUMPING)          ; Pick up the jumping animation counter (1-18) from
-                          ; JUMPING
+  LD A,(JUMPING)          ; Pick up the jumping animation counter (1-18) from JUMPING
   CP 18                   ; Has Willy reached the end of the jump?
   JP Z,MOVEWILLY_8        ; Jump if so
   CP 16                   ; Is the jumping animation counter now 16?
@@ -1568,49 +1465,32 @@ MOVEWILLY_3:
   LD A,(PIXEL_Y)          ; Pick up Willy's pixel y-coordinate from PIXEL_Y
   AND 15                  ; Does Willy's sprite occupy six cells at the moment?
   JR NZ,MOVEWILLY_4       ; Jump if so
-  LD HL,(LOCATION)        ; Pick up Willy's attribute buffer coordinates from
-                          ; LOCATION
+  LD HL,(LOCATION)        ; Pick up Willy's attribute buffer coordinates from LOCATION
   LD DE,64                ; Point HL at the left-hand cell below Willy's sprite
   ADD HL,DE
-  LD A,(CRUMBLING)        ; Pick up the attribute byte of the crumbling floor
-                          ; tile for the current cavern from CRUMBLING
-  CP (HL)                 ; Does the left-hand cell below Willy's sprite
-                          ; contain a crumbling floor tile?
+  LD A,(CRUMBLING)        ; Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
+  CP (HL)                 ; Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
   CALL Z,CRUMBLE          ; If so, make it crumble
-  LD A,(NASTY1)           ; Pick up the attribute byte of the first nasty tile
-                          ; for the current cavern from NASTY1
-  CP (HL)                 ; Does the left-hand cell below Willy's sprite
-                          ; contain a nasty tile?
+  LD A,(NASTY1)           ; Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
+  CP (HL)                 ; Does the left-hand cell below Willy's sprite contain a nasty tile?
   JR Z,MOVEWILLY_4        ; Jump if so
-  LD A,(NASTY2)           ; Pick up the attribute byte of the second nasty tile
-                          ; for the current cavern from NASTY2
-  CP (HL)                 ; Does the left-hand cell below Willy's sprite
-                          ; contain a nasty tile?
+  LD A,(NASTY2)           ; Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
+  CP (HL)                 ; Does the left-hand cell below Willy's sprite contain a nasty tile?
   JR Z,MOVEWILLY_4        ; Jump if so
-  INC HL                  ; Point HL at the right-hand cell below Willy's
-                          ; sprite
-  LD A,(CRUMBLING)        ; Pick up the attribute byte of the crumbling floor
-                          ; tile for the current cavern from CRUMBLING
-  CP (HL)                 ; Does the right-hand cell below Willy's sprite
-                          ; contain a crumbling floor tile?
+  INC HL                  ; Point HL at the right-hand cell below Willy's sprite
+  LD A,(CRUMBLING)        ; Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
+  CP (HL)                 ; Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
   CALL Z,CRUMBLE          ; If so, make it crumble
-  LD A,(NASTY1)           ; Pick up the attribute byte of the first nasty tile
-                          ; for the current cavern from NASTY1
-  CP (HL)                 ; Does the right-hand cell below Willy's sprite
-                          ; contain a nasty tile?
+  LD A,(NASTY1)           ; Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
+  CP (HL)                 ; Does the right-hand cell below Willy's sprite contain a nasty tile?
   JR Z,MOVEWILLY_4        ; Jump if so
-  LD A,(NASTY2)           ; Pick up the attribute byte of the second nasty tile
-                          ; for the current cavern from NASTY2
-  CP (HL)                 ; Does the right-hand cell below Willy's sprite
-                          ; contain a nasty tile?
+  LD A,(NASTY2)           ; Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
+  CP (HL)                 ; Does the right-hand cell below Willy's sprite contain a nasty tile?
   JR Z,MOVEWILLY_4        ; Jump if so
-  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile
-                          ; for the current cavern from BACKGROUND
-  CP (HL)                 ; Set the zero flag if the right-hand cell below
-                          ; Willy's sprite is empty
+  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+  CP (HL)                 ; Set the zero flag if the right-hand cell below Willy's sprite is empty
   DEC HL                  ; Point HL at the left-hand cell below Willy's sprite
-  JP NZ,MOVEWILLY2        ; Jump if the right-hand cell below Willy's sprite is
-                          ; not empty
+  JP NZ,MOVEWILLY2        ; Jump if the right-hand cell below Willy's sprite is not empty
   CP (HL)                 ; Is the left-hand cell below Willy's sprite empty?
   JP NZ,MOVEWILLY2        ; Jump if not
 MOVEWILLY_4:
@@ -1630,10 +1510,8 @@ MOVEWILLY_4:
   RLCA
   RLCA
   LD D,A
-  LD C,32                 ; C=32; this value determines the duration of the
-                          ; falling sound effect
-  LD A,(BORDER)           ; Pick up the border colour for the current cavern
-                          ; from BORDER
+  LD C,32                 ; C=32; this value determines the duration of the falling sound effect
+  LD A,(BORDER)           ; Pick up the border colour for the current cavern from BORDER
 MOVEWILLY_5:
   OUT (254),A             ; Make a falling sound effect
   XOR 24
@@ -1649,22 +1527,19 @@ MOVEWILLY_7:
   AND 240                 ; L=16*Y, where Y is Willy's screen y-coordinate
   LD L,A                  ; (0-14)
   XOR A                   ; Clear A and the carry flag
-  RL L                    ; Now L=32*(Y-8*INT(Y/8)), and the carry flag is set
-                          ; if Willy is in the lower half of the cavern (Y>=8)
+  RL L                    ; Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8)
   ADC A,92                ; H=92 or 93 (MSB of the address of Willy's location
   LD H,A                  ; in the attribute buffer)
   LD A,(LOCATION)         ; Pick up Willy's screen x-coordinate (1-29) from
   AND 31                  ; bits 0-4 at LOCATION
   OR L                    ; Now L holds the LSB of Willy's attribute buffer
   LD L,A                  ; address
-  LD (LOCATION),HL        ; Store Willy's updated attribute buffer location at
-                          ; LOCATION
+  LD (LOCATION),HL        ; Store Willy's updated attribute buffer location at LOCATION
   RET
 ; Willy has just finished a jump.
 MOVEWILLY_8:
   LD A,6                  ; Set the airborne status indicator at AIRBORNE to 6:
-  LD (AIRBORNE),A         ; Willy will continue to fall unless he's landed on a
-                          ; wall or floor block
+  LD (AIRBORNE),A         ; Willy will continue to fall unless he's landed on a wall or floor block
   RET
 ; Willy has just started falling.
 MOVEWILLY_9:
@@ -1677,8 +1552,7 @@ MOVEWILLY_10:
   ADD A,16                ; that the top row of cells of his sprite is just
   AND 240                 ; below the wall tile
   LD (PIXEL_Y),A
-  CALL MOVEWILLY_7        ; Adjust Willy's attribute buffer location at
-                          ; LOCATION to account for this new pixel y-coordinate
+  CALL MOVEWILLY_7        ; Adjust Willy's attribute buffer location at LOCATION to account for this new pixel y-coordinate
   LD A,2                  ; Set the airborne status indicator at AIRBORNE to 2:
   LD (AIRBORNE),A         ; Willy has started falling
   LD HL,DMFLAGS           ; Reset bit 1 at DMFLAGS: Willy is not moving left or
@@ -1716,12 +1590,10 @@ CRUMBLE_0:
   RET NZ                  ; Return if not
 ; The bottom row of pixels in the crumbling floor tile is clear. Time to put a
 ; background tile in its place.
-  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile
-                          ; for the current cavern from BACKGROUND
+  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   INC H                   ; Set HL to the address of the crumbling floor tile's
   INC H                   ; location in the attribute buffer at 24064
-  LD (HL),A               ; Set the attribute at this location to that of the
-                          ; background tile
+  LD (HL),A               ; Set the attribute at this location to that of the background tile
   DEC H                   ; Set HL back to the address of the crumbling floor
   DEC H                   ; tile's location in the attribute buffer at 23552
   RET
@@ -1734,27 +1606,19 @@ CRUMBLE_0:
 ; HL Attribute buffer address of the left-hand cell below Willy's sprite
 MOVEWILLY2:
   LD A,(AIRBORNE)         ; Pick up the airborne status indicator from AIRBORNE
-  CP 12                   ; Has Willy just landed after falling from too great
-                          ; a height?
+  CP 12                   ; Has Willy just landed after falling from too great a height?
   JP NC,KILLWILLY_0       ; If so, kill him
-  LD E,255                ; Initialise E to 255 (all bits set); it will be used
-                          ; to hold keyboard and joystick readings
+  LD E,255                ; Initialise E to 255 (all bits set); it will be used to hold keyboard and joystick readings
   XOR A                   ; Reset the airborne status indicator at AIRBORNE
   LD (AIRBORNE),A         ; (Willy has landed safely)
-  LD A,(CONVEYOR)         ; Pick up the attribute byte of the conveyor tile for
-                          ; the current cavern from CONVEYOR
-  CP (HL)                 ; Does the attribute byte of the left-hand cell below
-                          ; Willy's sprite match that of the conveyor tile?
+  LD A,(CONVEYOR)         ; Pick up the attribute byte of the conveyor tile for the current cavern from CONVEYOR
+  CP (HL)                 ; Does the attribute byte of the left-hand cell below Willy's sprite match that of the conveyor tile?
   JR Z,MOVEWILLY2_0       ; Jump if so
-  INC HL                  ; Point HL at the right-hand cell below Willy's
-                          ; sprite
-  CP (HL)                 ; Does the attribute byte of the right-hand cell
-                          ; below Willy's sprite match that of the conveyor
-                          ; tile?
+  INC HL                  ; Point HL at the right-hand cell below Willy's sprite
+  CP (HL)                 ; Does the attribute byte of the right-hand cell below Willy's sprite match that of the conveyor tile?
   JR NZ,MOVEWILLY2_1      ; Jump if not
 MOVEWILLY2_0:
-  LD A,(CONVDIR)          ; Pick up the direction byte of the conveyor
-                          ; definition from CONVDIR (0=left, 1=right)
+  LD A,(CONVDIR)          ; Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
   SUB 3                   ; Now E=253 (bit 1 reset) if the conveyor is moving
   LD E,A                  ; left, or 254 (bit 0 reset) if it's moving right
 MOVEWILLY2_1:
@@ -1762,8 +1626,7 @@ MOVEWILLY2_1:
   IN A,(C)                ; right) into bits 0-4 of A
   AND 31                  ; Set bit 5 and reset bits 6 and 7
   OR 32
-  AND E                   ; Reset bit 0 if the conveyor is moving right, or bit
-                          ; 1 if it's moving left
+  AND E                   ; Reset bit 0 if the conveyor is moving right, or bit 1 if it's moving left
   LD E,A                  ; Save the result in E
   LD BC,64510             ; Read keys Q-W-E-R-T (left, right, left, right,
   IN A,(C)                ; left) into bits 0-4 of A
@@ -1780,8 +1643,7 @@ MOVEWILLY2_1:
   LD E,A
   LD B,239                ; Read keys 0-9-8-7-6 ('8' is right) into bits 0-4 of
   IN A,(C)                ; A
-  OR 251                  ; Set bits 0, 1 and 3-7; this ignores every key
-                          ; except '8' (right)
+  OR 251                  ; Set bits 0, 1 and 3-7; this ignores every key except '8' (right)
   AND E                   ; Merge this reading of the '8' key into bit 2 of E
   LD E,A
   LD A,(KEMP)             ; Collect the Kempston joystick indicator from KEMP
@@ -1811,16 +1673,14 @@ MOVEWILLY2_3:
   JR Z,MOVEWILLY2_4       ; Jump if not
   SET 3,C                 ; Set bit 3 of C: Willy is moving right
 MOVEWILLY2_4:
-  LD A,(DMFLAGS)          ; Pick up Willy's direction and movement flags from
-                          ; DMFLAGS
+  LD A,(DMFLAGS)          ; Pick up Willy's direction and movement flags from DMFLAGS
   ADD A,C                 ; Point HL at the entry in the left-right movement
   LD C,A                  ; table at LRMOVEMENT that corresponds to the
   LD B,0                  ; direction Willy is facing, and the direction in
   LD HL,LRMOVEMENT        ; which he is being moved or trying to move
   ADD HL,BC
   LD A,(HL)               ; Update Willy's direction and movement flags at
-  LD (DMFLAGS),A          ; DMFLAGS with the entry from the left-right movement
-                          ; table
+  LD (DMFLAGS),A          ; DMFLAGS with the entry from the left-right movement table
 ; That is left-right movement taken care of. Now check the jump keys.
   LD BC,32510             ; Read keys SHIFT-Z-X-C-V and B-N-M-SS-SPACE
   IN A,(C)
@@ -1847,19 +1707,16 @@ MOVEWILLY2_5:
   LD (AIRBORNE),A         ; Willy is jumping
 ; This entry point is used by the routine at MOVEWILLY.
 MOVEWILLY2_6:
-  LD A,(DMFLAGS)          ; Pick up Willy's direction and movement flags from
-                          ; DMFLAGS
+  LD A,(DMFLAGS)          ; Pick up Willy's direction and movement flags from DMFLAGS
   AND 2                   ; Is Willy moving?
   RET Z                   ; Return if not
-  LD A,(DMFLAGS)          ; Pick up Willy's direction and movement flags from
-                          ; DMFLAGS
+  LD A,(DMFLAGS)          ; Pick up Willy's direction and movement flags from DMFLAGS
   AND 1                   ; Is Willy facing right?
   JP Z,MOVEWILLY2_9       ; Jump if so
 ; Willy is moving left.
   LD A,(FRAME)            ; Pick up Willy's animation frame from FRAME
   OR A                    ; Is it 0?
-  JR Z,MOVEWILLY2_7       ; If so, jump to move Willy's sprite left across a
-                          ; cell boundary
+  JR Z,MOVEWILLY2_7       ; If so, jump to move Willy's sprite left across a cell boundary
   DEC A                   ; Decrement Willy's animation frame at FRAME
   LD (FRAME),A
   RET
@@ -1867,38 +1724,29 @@ MOVEWILLY2_6:
 ; follow, (x,y) refers to the coordinates of the top-left cell currently
 ; occupied by Willy's sprite.
 MOVEWILLY2_7:
-  LD HL,(LOCATION)        ; Collect Willy's attribute buffer coordinates from
-                          ; LOCATION
+  LD HL,(LOCATION)        ; Collect Willy's attribute buffer coordinates from LOCATION
   DEC HL                  ; Point HL at the cell at (x-1,y+1)
   LD DE,32
   ADD HL,DE
-  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the
-                          ; current cavern from WALL
+  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the current cavern from WALL
   CP (HL)                 ; Is there a wall tile in the cell pointed to by HL?
-  RET Z                   ; Return if so without moving Willy (his path is
-                          ; blocked)
+  RET Z                   ; Return if so without moving Willy (his path is blocked)
   LD A,(PIXEL_Y)          ; Pick up Willy's pixel y-coordinate from PIXEL_Y
-  AND 15                  ; Does Willy's sprite currently occupy only two rows
-                          ; of cells?
+  AND 15                  ; Does Willy's sprite currently occupy only two rows of cells?
   JR Z,MOVEWILLY2_8       ; Jump if so
-  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the
-                          ; current cavern from WALL
+  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the current cavern from WALL
   ADD HL,DE               ; Point HL at the cell at (x-1,y+2)
   CP (HL)                 ; Is there a wall tile in the cell pointed to by HL?
-  RET Z                   ; Return if so without moving Willy (his path is
-                          ; blocked)
+  RET Z                   ; Return if so without moving Willy (his path is blocked)
   OR A                    ; Clear the carry flag for subtraction
   SBC HL,DE               ; Point HL at the cell at (x-1,y+1)
 MOVEWILLY2_8:
-  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the
-                          ; current cavern from WALL
+  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the current cavern from WALL
   OR A                    ; Clear the carry flag for subtraction
   SBC HL,DE               ; Point HL at the cell at (x-1,y)
   CP (HL)                 ; Is there a wall tile in the cell pointed to by HL?
-  RET Z                   ; Return if so without moving Willy (his path is
-                          ; blocked)
-  LD (LOCATION),HL        ; Save Willy's new attribute buffer coordinates (in
-                          ; HL) at LOCATION
+  RET Z                   ; Return if so without moving Willy (his path is blocked)
+  LD (LOCATION),HL        ; Save Willy's new attribute buffer coordinates (in HL) at LOCATION
   LD A,3                  ; Change Willy's animation frame at FRAME from 0 to 3
   LD (FRAME),A
   RET
@@ -1906,8 +1754,7 @@ MOVEWILLY2_8:
 MOVEWILLY2_9:
   LD A,(FRAME)            ; Pick up Willy's animation frame from FRAME
   CP 3                    ; Is it 3?
-  JR Z,MOVEWILLY2_10      ; If so, jump to move Willy's sprite right across a
-                          ; cell boundary
+  JR Z,MOVEWILLY2_10      ; If so, jump to move Willy's sprite right across a cell boundary
   INC A                   ; Increment Willy's animation frame at FRAME
   LD (FRAME),A
   RET
@@ -1915,40 +1762,31 @@ MOVEWILLY2_9:
 ; follow, (x,y) refers to the coordinates of the top-left cell currently
 ; occupied by Willy's sprite.
 MOVEWILLY2_10:
-  LD HL,(LOCATION)        ; Collect Willy's attribute buffer coordinates from
-                          ; LOCATION
+  LD HL,(LOCATION)        ; Collect Willy's attribute buffer coordinates from LOCATION
   INC HL                  ; Point HL at the cell at (x+2,y)
   INC HL
   LD DE,32                ; Prepare DE for addition
-  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the
-                          ; current cavern from WALL
+  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the current cavern from WALL
   ADD HL,DE               ; Point HL at the cell at (x+2,y+1)
   CP (HL)                 ; Is there a wall tile in the cell pointed to by HL?
-  RET Z                   ; Return if so without moving Willy (his path is
-                          ; blocked)
+  RET Z                   ; Return if so without moving Willy (his path is blocked)
   LD A,(PIXEL_Y)          ; Pick up Willy's pixel y-coordinate from PIXEL_Y
-  AND 15                  ; Does Willy's sprite currently occupy only two rows
-                          ; of cells?
+  AND 15                  ; Does Willy's sprite currently occupy only two rows of cells?
   JR Z,MOVEWILLY2_11      ; Jump if so
-  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the
-                          ; current cavern from WALL
+  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the current cavern from WALL
   ADD HL,DE               ; Point HL at the cell at (x+2,y+2)
   CP (HL)                 ; Is there a wall tile in the cell pointed to by HL?
-  RET Z                   ; Return if so without moving Willy (his path is
-                          ; blocked)
+  RET Z                   ; Return if so without moving Willy (his path is blocked)
   OR A                    ; Clear the carry flag for subtraction
   SBC HL,DE               ; Point HL at the cell at (x+2,y+1)
 MOVEWILLY2_11:
-  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the
-                          ; current cavern from WALL
+  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the current cavern from WALL
   OR A                    ; Clear the carry flag for subtraction
   SBC HL,DE               ; Point HL at the cell at (x+2,y)
   CP (HL)                 ; Is there a wall tile in the cell pointed to by HL?
-  RET Z                   ; Return if so without moving Willy (his path is
-                          ; blocked)
+  RET Z                   ; Return if so without moving Willy (his path is blocked)
   DEC HL                  ; Point HL at the cell at (x+1,y)
-  LD (LOCATION),HL        ; Save Willy's new attribute buffer coordinates (in
-                          ; HL) at LOCATION
+  LD (LOCATION),HL        ; Save Willy's new attribute buffer coordinates (in HL) at LOCATION
   XOR A                   ; Change Willy's animation frame at FRAME from 3 to 0
   LD (FRAME),A
   RET
@@ -1976,10 +1814,8 @@ KILLWILLY_1:
 ;
 ; Used by the routine at LOOP.
 MOVEHG:
-  LD IY,HGUARDS           ; Point IY at the first byte of the first horizontal
-                          ; guardian definition at HGUARDS
-  LD DE,7                 ; Prepare DE for addition (there are 7 bytes in a
-                          ; guardian definition)
+  LD IY,HGUARDS           ; Point IY at the first byte of the first horizontal guardian definition at HGUARDS
+  LD DE,7                 ; Prepare DE for addition (there are 7 bytes in a guardian definition)
 ; The guardian-moving loop begins here.
 MOVEHG_0:
   LD A,(IY+0)             ; Pick up the first byte of the guardian definition
@@ -1992,100 +1828,72 @@ MOVEHG_0:
   RRCA                    ; the main loop) to bit 7 and clear all the other
   RRCA                    ; bits
   RRCA
-  AND (IY+0)              ; Combine this bit with bit 7 of the first byte of
-                          ; the guardian definition, which specifies the
-                          ; guardian's animation speed: 0=normal, 1=slow
-  JR NZ,MOVEHG_6          ; Jump to consider the next guardian if this one is
-                          ; not due to be moved on this pass
+  AND (IY+0)              ; Combine this bit with bit 7 of the first byte of the guardian definition, which specifies the guardian's animation speed: 0=normal, 1=slow
+  JR NZ,MOVEHG_6          ; Jump to consider the next guardian if this one is not due to be moved on this pass
 ; The guardian will be moved on this pass.
   LD A,(IY+4)             ; Pick up the current animation frame (0-7)
-  CP 3                    ; Is it 3 (the terminal frame for a guardian moving
-                          ; right)?
-  JR Z,MOVEHG_2           ; Jump if so to move the guardian right across a cell
-                          ; boundary or turn it round
-  CP 4                    ; Is the current animation frame 4 (the terminal
-                          ; frame for a guardian moving left)?
-  JR Z,MOVEHG_4           ; Jump if so to move the guardian left across a cell
-                          ; boundary or turn it round
+  CP 3                    ; Is it 3 (the terminal frame for a guardian moving right)?
+  JR Z,MOVEHG_2           ; Jump if so to move the guardian right across a cell boundary or turn it round
+  CP 4                    ; Is the current animation frame 4 (the terminal frame for a guardian moving left)?
+  JR Z,MOVEHG_4           ; Jump if so to move the guardian left across a cell boundary or turn it round
   JR NC,MOVEHG_1          ; Jump if the animation frame is 5, 6 or 7
-  INC (IY+4)              ; Increment the animation frame (this guardian is
-                          ; moving right)
+  INC (IY+4)              ; Increment the animation frame (this guardian is moving right)
   JR MOVEHG_6             ; Jump forward to consider the next guardian
 MOVEHG_1:
-  DEC (IY+4)              ; Decrement the animation frame (this guardian is
-                          ; moving left)
+  DEC (IY+4)              ; Decrement the animation frame (this guardian is moving left)
   JR MOVEHG_6             ; Jump forward to consider the next guardian
 MOVEHG_2:
-  LD A,(IY+1)             ; Pick up the LSB of the address of the guardian's
-                          ; location in the attribute buffer at 23552
-  CP (IY+6)               ; Has the guardian reached the rightmost point in its
-                          ; path?
+  LD A,(IY+1)             ; Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
+  CP (IY+6)               ; Has the guardian reached the rightmost point in its path?
   JR NZ,MOVEHG_3          ; Jump if not
-  LD (IY+4),7             ; Set the animation frame to 7 (turning the guardian
-                          ; round to face left)
+  LD (IY+4),7             ; Set the animation frame to 7 (turning the guardian round to face left)
   JR MOVEHG_6             ; Jump forward to consider the next guardian
 MOVEHG_3:
-  LD (IY+4),0             ; Set the animation frame to 0 (the initial frame for
-                          ; a guardian moving right)
-  INC (IY+1)              ; Increment the guardian's x-coordinate (moving it
-                          ; right across a cell boundary)
+  LD (IY+4),0             ; Set the animation frame to 0 (the initial frame for a guardian moving right)
+  INC (IY+1)              ; Increment the guardian's x-coordinate (moving it right across a cell boundary)
   JR MOVEHG_6             ; Jump forward to consider the next guardian
 MOVEHG_4:
-  LD A,(IY+1)             ; Pick up the LSB of the address of the guardian's
-                          ; location in the attribute buffer at 23552
-  CP (IY+5)               ; Has the guardian reached the leftmost point in its
-                          ; path?
+  LD A,(IY+1)             ; Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
+  CP (IY+5)               ; Has the guardian reached the leftmost point in its path?
   JR NZ,MOVEHG_5          ; Jump if not
-  LD (IY+4),0             ; Set the animation frame to 0 (turning the guardian
-                          ; round to face right)
+  LD (IY+4),0             ; Set the animation frame to 0 (turning the guardian round to face right)
   JR MOVEHG_6             ; Jump forward to consider the next guardian
 MOVEHG_5:
-  LD (IY+4),7             ; Set the animation frame to 7 (the initial frame for
-                          ; a guardian moving left)
-  DEC (IY+1)              ; Decrement the guardian's x-coordinate (moving it
-                          ; left across a cell boundary)
+  LD (IY+4),7             ; Set the animation frame to 7 (the initial frame for a guardian moving left)
+  DEC (IY+1)              ; Decrement the guardian's x-coordinate (moving it left across a cell boundary)
 ; The current guardian definition has been dealt with. Time for the next one.
 MOVEHG_6:
-  ADD IY,DE               ; Point IY at the first byte of the next horizontal
-                          ; guardian definition
+  ADD IY,DE               ; Point IY at the first byte of the next horizontal guardian definition
   JR MOVEHG_0             ; Jump back to deal with the next horizontal guardian
 
 ; Move and draw the light beam in Solar Power Generator
 ;
 ; Used by the routine at LOOP.
 LIGHTBEAM:
-  LD HL,23575             ; Point HL at the cell at (0,23) in the attribute
-                          ; buffer at 23552 (the source of the light beam)
-  LD DE,32                ; Prepare DE for addition (the beam travels
-                          ; vertically downwards to start with)
+  LD HL,23575             ; Point HL at the cell at (0,23) in the attribute buffer at 23552 (the source of the light beam)
+  LD DE,32                ; Prepare DE for addition (the beam travels vertically downwards to start with)
 ; The beam-drawing loop begins here.
 LIGHTBEAM_0:
-  LD A,(FLOOR)            ; Pick up the attribute byte of the floor tile for
-                          ; the cavern from FLOOR
+  LD A,(FLOOR)            ; Pick up the attribute byte of the floor tile for the cavern from FLOOR
   CP (HL)                 ; Does HL point at a floor tile?
   RET Z                   ; Return if so (the light beam stops here)
-  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the
-                          ; cavern from WALL
+  LD A,(WALL)             ; Pick up the attribute byte of the wall tile for the cavern from WALL
   CP (HL)                 ; Does HL point at a wall tile?
   RET Z                   ; Return if so (the light beam stops here)
   LD A,39                 ; A=39 (INK 7: PAPER 4)
   CP (HL)                 ; Does HL point at a tile with this attribute value?
   JR NZ,LIGHTBEAM_1       ; Jump if not (the light beam is not touching Willy)
-  EXX                     ; Switch to the shadow registers briefly (to preserve
-                          ; DE and HL)
+  EXX                     ; Switch to the shadow registers briefly (to preserve DE and HL)
   CALL DECAIR             ; Decrease the air supply by four units
   CALL DECAIR
   CALL DECAIR
   CALL DECAIR
-  EXX                     ; Switch back to the normal registers (restoring DE
-                          ; and HL)
+  EXX                     ; Switch back to the normal registers (restoring DE and HL)
   JR LIGHTBEAM_2          ; Jump forward to draw the light beam over Willy
 LIGHTBEAM_1:
-  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile
-                          ; for the cavern from BACKGROUND
+  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile for the cavern from BACKGROUND
   CP (HL)                 ; Does HL point at a background tile?
-  JR Z,LIGHTBEAM_2        ; Jump if so (the light beam will not be reflected at
-                          ; this point)
+  JR Z,LIGHTBEAM_2        ; Jump if so (the light beam will not be reflected at this point)
   LD A,E                  ; Toggle the value in DE between 32 and -1 (and
   XOR 223                 ; therefore the direction of the light beam between
   LD E,A                  ; vertically downwards and horizontally to the left):
@@ -2093,19 +1901,15 @@ LIGHTBEAM_1:
   CPL
   LD D,A
 LIGHTBEAM_2:
-  LD (HL),119             ; Draw a portion of the light beam with attribute
-                          ; value 119 (INK 7: PAPER 6: BRIGHT 1)
-  ADD HL,DE               ; Point HL at the cell where the next portion of the
-                          ; light beam will be drawn
-  JR LIGHTBEAM_0          ; Jump back to draw the next portion of the light
-                          ; beam
+  LD (HL),119             ; Draw a portion of the light beam with attribute value 119 (INK 7: PAPER 6: BRIGHT 1)
+  ADD HL,DE               ; Point HL at the cell where the next portion of the light beam will be drawn
+  JR LIGHTBEAM_0          ; Jump back to draw the next portion of the light beam
 
 ; Draw the horizontal guardians in the current cavern
 ;
 ; Used by the routine at LOOP.
 DRAWHG:
-  LD IY,HGUARDS           ; Point IY at the first byte of the first horizontal
-                          ; guardian definition at HGUARDS
+  LD IY,HGUARDS           ; Point IY at the first byte of the first horizontal guardian definition at HGUARDS
 ; The guardian-drawing loop begins here.
 DRAWHG_0:
   LD A,(IY+0)             ; Pick up the first byte of the guardian definition
@@ -2116,8 +1920,7 @@ DRAWHG_0:
   LD DE,31                ; Prepare DE for addition
   LD L,(IY+1)             ; Point HL at the address of the guardian's location
   LD H,(IY+2)             ; in the attribute buffer at 23552
-  AND 127                 ; Reset bit 7 (which specifies the animation speed)
-                          ; of the attribute byte, ensuring no FLASH
+  AND 127                 ; Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
   LD (HL),A               ; Set the attribute bytes for the guardian in the
   INC HL                  ; buffer at 23552
   LD (HL),A
@@ -2125,8 +1928,7 @@ DRAWHG_0:
   LD (HL),A
   INC HL
   LD (HL),A
-  LD C,1                  ; Prepare C for the call to the drawing routine at
-                          ; DRWFIX later on
+  LD C,1                  ; Prepare C for the call to the drawing routine at DRWFIX later on
   LD A,(IY+4)             ; Pick up the animation frame (0-7)
   RRCA                    ; Multiply it by 32
   RRCA
@@ -2139,11 +1941,9 @@ DRAWHG_0:
   JR Z,DRAWHG_1           ; Jump if so
   CP 15                   ; Are we in The Sixteenth Cavern?
   JR Z,DRAWHG_1           ; Jump if so
-  SET 7,E                 ; Add 128 to E (the horizontal guardians in this
-                          ; cavern use frames 4-7 only)
+  SET 7,E                 ; Add 128 to E (the horizontal guardians in this cavern use frames 4-7 only)
 DRAWHG_1:
-  LD D,129                ; Point DE at the graphic data for the appropriate
-                          ; guardian sprite (at GGDATA+E)
+  LD D,129                ; Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E)
   LD L,(IY+1)             ; Point HL at the address of the guardian's location
   LD H,(IY+3)             ; in the screen buffer at 24576
   CALL DRWFIX             ; Draw the guardian to the screen buffer at 24576
@@ -2159,8 +1959,7 @@ DRAWHG_2:
 ; Used by the routine at LOOP. First we move Eugene up or down, or change his
 ; direction.
 EUGENE:
-  LD A,(ITEMATTR)         ; Pick up the attribute of the last item drawn from
-                          ; ITEMATTR
+  LD A,(ITEMATTR)         ; Pick up the attribute of the last item drawn from ITEMATTR
   OR A                    ; Have all the items been collected?
   JR Z,EUGENE_0           ; Jump if so
   LD A,(EUGDIR)           ; Pick up Eugene's direction from EUGDIR
@@ -2209,29 +2008,23 @@ EUGENE_2:
   LD A,0
   ADC A,92
   LD H,A
-  LD A,(ITEMATTR)         ; Pick up the attribute of the last item drawn from
-                          ; ITEMATTR
-  OR A                    ; Set the zero flag if all the items have been
-                          ; collected
+  LD A,(ITEMATTR)         ; Pick up the attribute of the last item drawn from ITEMATTR
+  OR A                    ; Set the zero flag if all the items have been collected
   LD A,7                  ; Assume we will draw Eugene with white INK
   JR NZ,EUGENE_3          ; Jump if there are items remaining to be collected
   LD A,(CLOCK)            ; Pick up the value of the game clock at CLOCK
   RRCA                    ; Move bits 2-4 into bits 0-2 and clear the other
   RRCA                    ; bits; this value (which decreases by one on each
-  AND 7                   ; pass through the main loop) will be Eugene's INK
-                          ; colour
+  AND 7                   ; pass through the main loop) will be Eugene's INK colour
 ; This entry point is used by the routines at SKYLABS (to set the attributes
 ; for a Skylab), VGUARDIANS (to set the attributes for a vertical guardian) and
 ; KONGBEAST (to set the attributes for the Kong Beast).
 EUGENE_3:
-  LD (HL),A               ; Save the INK colour in the attribute buffer
-                          ; temporarily
-  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile
-                          ; for the current cavern from BACKGROUND
+  LD (HL),A               ; Save the INK colour in the attribute buffer temporarily
+  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   AND 248                 ; Combine its PAPER colour with the chosen INK colour
   OR (HL)
-  LD (HL),A               ; Set the attribute byte for the top-left cell of the
-                          ; sprite in the attribute buffer at 23552
+  LD (HL),A               ; Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552
   LD DE,31                ; Prepare DE for addition
   INC HL                  ; Set the attribute byte for the top-right cell of
   LD (HL),A               ; the sprite in the attribute buffer at 23552
@@ -2249,8 +2042,7 @@ EUGENE_3:
 ;
 ; Used by the routine at LOOP.
 SKYLABS:
-  LD IY,VGUARDS           ; Point IY at the first byte of the first vertical
-                          ; guardian definition at VGUARDS
+  LD IY,VGUARDS           ; Point IY at the first byte of the first vertical guardian definition at VGUARDS
 ; The Skylab-moving loop begins here.
 SKYLABS_0:
   LD A,(IY+0)             ; Pick up the first byte of the guardian definition
@@ -2279,8 +2071,7 @@ SKYLABS_1:
 SKYLABS_2:
   LD E,(IY+2)             ; Pick up the Skylab's pixel y-coordinate in E
   RLC E                   ; Point DE at the entry in the screen buffer address
-  LD D,131                ; lookup table at SBUFADDRS that corresponds to the
-                          ; Skylab's pixel y-coordinate
+  LD D,131                ; lookup table at SBUFADDRS that corresponds to the Skylab's pixel y-coordinate
   LD A,(DE)               ; Point HL at the address of the Skylab's location in
   ADD A,(IY+3)            ; the screen buffer at 24576
   LD L,A
@@ -2319,23 +2110,19 @@ SKYLABS_2:
 ;
 ; Used by the routine at LOOP.
 VGUARDIANS:
-  LD IY,VGUARDS           ; Point IY at the first byte of the first vertical
-                          ; guardian definition at VGUARDS
+  LD IY,VGUARDS           ; Point IY at the first byte of the first vertical guardian definition at VGUARDS
 ; The guardian-moving loop begins here.
 VGUARDIANS_0:
   LD A,(IY+0)             ; Pick up the first byte of the guardian definition
   CP 255                  ; Have we dealt with all the guardians yet?
   RET Z                   ; Return if so
   INC (IY+1)              ; Increment the guardian's animation frame
-  RES 2,(IY+1)            ; Reset the animation frame to 0 if it overflowed to
-                          ; 4
+  RES 2,(IY+1)            ; Reset the animation frame to 0 if it overflowed to 4
   LD A,(IY+2)             ; Pick up the guardian's pixel y-coordinate
   ADD A,(IY+4)            ; Add the current y-coordinate increment
-  CP (IY+5)               ; Has the guardian reached the highest point of its
-                          ; path (minimum y-coordinate)?
+  CP (IY+5)               ; Has the guardian reached the highest point of its path (minimum y-coordinate)?
   JR C,VGUARDIANS_1       ; If so, jump to change its direction of movement
-  CP (IY+6)               ; Has the guardian reached the lowest point of its
-                          ; path (maximum y-coordinate)?
+  CP (IY+6)               ; Has the guardian reached the lowest point of its path (maximum y-coordinate)?
   JR NC,VGUARDIANS_1      ; If so, jump to change its direction of movement
   LD (IY+2),A             ; Update the guardian's pixel y-coordinate
   JR VGUARDIANS_2
@@ -2389,10 +2176,8 @@ VGUARDIANS_2:
 ; Used by the routine at LOOP.
 DRAWITEMS:
   XOR A                   ; Initialise the attribute of the last item drawn at
-  LD (ITEMATTR),A         ; ITEMATTR to 0 (in case there are no items left to
-                          ; draw)
-  LD IY,ITEMS             ; Point IY at the first byte of the first item
-                          ; definition at ITEMS
+  LD (ITEMATTR),A         ; ITEMATTR to 0 (in case there are no items left to draw)
+  LD IY,ITEMS             ; Point IY at the first byte of the first item definition at ITEMS
 ; The item-drawing loop begins here.
 DRAWITEMS_0:
   LD A,(IY+0)             ; Pick up the first byte of the item definition
@@ -2402,16 +2187,14 @@ DRAWITEMS_0:
   JR Z,DRAWITEMS_2        ; If so, skip it and consider the next one
   LD E,(IY+1)             ; Point DE at the address of the item's location in
   LD D,(IY+2)             ; the attribute buffer at 23552
-  LD A,(DE)               ; Pick up the current attribute byte at the item's
-                          ; location
+  LD A,(DE)               ; Pick up the current attribute byte at the item's location
   AND 7                   ; Is the INK white (which happens if Willy is
   CP 7                    ; touching the item)?
   JR NZ,DRAWITEMS_1       ; Jump if not
 ; Willy is touching this item, so add it to his collection.
   LD HL,33836             ; Add 100 to the score
   CALL INCSCORE_0
-  LD (IY+0),0             ; Set the item's attribute byte to 0 so that it will
-                          ; be skipped the next time
+  LD (IY+0),0             ; Set the item's attribute byte to 0 so that it will be skipped the next time
   JR DRAWITEMS_2          ; Jump forward to consider the next item
 ; This item has not been collected yet.
 DRAWITEMS_1:
@@ -2421,16 +2204,12 @@ DRAWITEMS_1:
   LD B,A                  ; Store this value in B
   LD A,(IY+0)             ; Pick up the item's current attribute byte again
   AND 3                   ; Keep only bits 0 and 1 and add the value in B; this
-  ADD A,B                 ; maintains the BRIGHT and PAPER bits, and cycles the
-                          ; INK colour through 3, 4, 5 and 6
+  ADD A,B                 ; maintains the BRIGHT and PAPER bits, and cycles the INK colour through 3, 4, 5 and 6
   LD (IY+0),A             ; Store the new attribute byte
-  LD (DE),A               ; Update the attribute byte at the item's location in
-                          ; the buffer at 23552
+  LD (DE),A               ; Update the attribute byte at the item's location in the buffer at 23552
   LD (ITEMATTR),A         ; Store the new attribute byte at ITEMATTR as well
-  LD D,(IY+3)             ; Point DE at the address of the item's location in
-                          ; the screen buffer at 24576
-  LD HL,ITEM              ; Point HL at the item graphic for the current cavern
-                          ; (at ITEM)
+  LD D,(IY+3)             ; Point DE at the address of the item's location in the screen buffer at 24576
+  LD HL,ITEM              ; Point HL at the item graphic for the current cavern (at ITEM)
   LD B,8                  ; There are eight pixel rows to copy
   CALL PRINTCHAR_0        ; Draw the item to the screen buffer at 24576
 ; The current item definition has been dealt with. Time for the next one.
@@ -2443,8 +2222,7 @@ DRAWITEMS_2:
   JR DRAWITEMS_0          ; Jump back to deal with the next item
 ; All the items have been dealt with. Check whether there were any left.
 DRAWITEMS_3:
-  LD A,(ITEMATTR)         ; Pick up the attribute of the last item drawn at
-                          ; ITEMATTR
+  LD A,(ITEMATTR)         ; Pick up the attribute of the last item drawn at ITEMATTR
   OR A                    ; Were any items drawn?
   RET NZ                  ; Return if so (some remain to be collected)
   LD HL,PORTAL            ; Ensure that the portal is flashing by setting bit 7
@@ -2456,14 +2234,11 @@ DRAWITEMS_3:
 ; Used by the routine at LOOP. First check whether Willy has entered the
 ; portal.
 CHKPORTAL:
-  LD HL,(PORTALLOC1)      ; Pick up the address of the portal's location in the
-                          ; attribute buffer at 23552 from PORTALLOC1
-  LD A,(LOCATION)         ; Pick up the LSB of the address of Willy's location
-                          ; in the attribute buffer at 23552 from LOCATION
+  LD HL,(PORTALLOC1)      ; Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
+  LD A,(LOCATION)         ; Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
   CP L                    ; Does it match that of the portal?
   JR NZ,CHKPORTAL_0       ; Jump if not
-  LD A,(32877)            ; Pick up the MSB of the address of Willy's location
-                          ; in the attribute buffer at 23552 from 32877
+  LD A,(32877)            ; Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
   CP H                    ; Does it match that of the portal?
   JR NZ,CHKPORTAL_0       ; Jump if not
   LD A,(PORTAL)           ; Pick up the portal's attribute byte from PORTAL
@@ -2482,10 +2257,8 @@ CHKPORTAL_0:
   LD (HL),A
   INC HL
   LD (HL),A
-  LD DE,PORTALG           ; Point DE at the graphic data for the portal at
-                          ; PORTALG
-  LD HL,(PORTALLOC2)      ; Pick up the address of the portal's location in the
-                          ; screen buffer at 24576 from PORTALLOC2
+  LD DE,PORTALG           ; Point DE at the graphic data for the portal at PORTALG
+  LD HL,(PORTALLOC2)      ; Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2
   LD C,0                  ; C=0: overwrite mode
 ; This routine continues into the one at DRWFIX.
 
@@ -2513,8 +2286,7 @@ DRWFIX_0:
   LD A,(DE)               ; Pick up a sprite graphic byte
   JR Z,DRWFIX_1           ; Jump if we're in overwrite mode
   AND (HL)                ; Return with the zero flag reset if any of the set
-  RET NZ                  ; bits in the sprite graphic byte collide with a set
-                          ; bit in the background (e.g. in Willy's sprite)
+  RET NZ                  ; bits in the sprite graphic byte collide with a set bit in the background (e.g. in Willy's sprite)
   LD A,(DE)               ; Pick up the sprite graphic byte again
   OR (HL)                 ; Blend it with the background byte
 DRWFIX_1:
@@ -2525,8 +2297,7 @@ DRWFIX_1:
   LD A,(DE)               ; Pick up a sprite graphic byte
   JR Z,DRWFIX_2           ; Jump if we're in overwrite mode
   AND (HL)                ; Return with the zero flag reset if any of the set
-  RET NZ                  ; bits in the sprite graphic byte collide with a set
-                          ; bit in the background (e.g. in Willy's sprite)
+  RET NZ                  ; bits in the sprite graphic byte collide with a set bit in the background (e.g. in Willy's sprite)
   LD A,(DE)               ; Pick up the sprite graphic byte again
   OR (HL)                 ; Blend it with the background byte
 DRWFIX_2:
@@ -2549,8 +2320,7 @@ DRWFIX_2:
   ADD A,8                 ; from the top or middle third of the screen to the
   LD H,A                  ; next one down
 DRWFIX_3:
-  DJNZ DRWFIX_0           ; Jump back until all 16 rows of pixels have been
-                          ; drawn
+  DJNZ DRWFIX_0           ; Jump back until all 16 rows of pixels have been drawn
   XOR A                   ; Set the zero flag (to indicate no collision)
   RET
 
@@ -2637,8 +2407,7 @@ NXSHEET_5:
   DEC C
   JR NZ,NXSHEET_5
   DEC A                   ; Decrement the attribute value in A
-  JR NZ,NXSHEET_4         ; Jump back until we've gone through all attribute
-                          ; values from 63 down to 1
+  JR NZ,NXSHEET_4         ; Jump back until we've gone through all attribute values from 63 down to 1
   LD A,(DEMO)             ; Pick up the game mode indicator from DEMO
   OR A                    ; Are we in demo mode?
   JP NZ,NEWSHT            ; If so, demo the next cavern
@@ -2646,16 +2415,14 @@ NXSHEET_5:
 ; runs out.
 NXSHEET_6:
   CALL DECAIR             ; Decrease the air remaining in the current cavern
-  JP Z,NEWSHT             ; Move to the next cavern if the air supply is now
-                          ; gone
+  JP Z,NEWSHT             ; Move to the next cavern if the air supply is now gone
   LD HL,33838             ; Add 1 to the score
   CALL INCSCORE_0
   LD IX,SCORBUF           ; Print the new score at (19,26)
   LD C,6
   LD DE,20602
   CALL PMESS
-  LD C,4                  ; C=4; this value determines the duration of the
-                          ; sound effect
+  LD C,4                  ; C=4; this value determines the duration of the sound effect
   LD A,(AIR)              ; Pick up the remaining air supply (S) from AIR
   CPL                     ; D=2*(63-S); this value determines the pitch of the
   AND 63                  ; sound effect (which decreases with the amount of
@@ -2705,8 +2472,7 @@ INCSCORE_0:
 ;
 ; Used by the routine at LOOP.
 MVCONVEYOR:
-  LD HL,(CONVLOC)         ; Pick up the address of the conveyor's location in
-                          ; the screen buffer at 28672 from CONVLOC
+  LD HL,(CONVLOC)         ; Pick up the address of the conveyor's location in the screen buffer at 28672 from CONVLOC
   LD E,L                  ; Copy this address to DE
   LD D,H
   LD A,(CONVLEN)          ; Pick up the length of the conveyor from CONVLEN
@@ -2740,8 +2506,7 @@ MVCONVEYOR_1:
   LD C,(HL)               ; Copy this pixel row to C
   RLC C                   ; Rotate it left twice
   RLC C
-  JR MVCONVEYOR_0         ; Jump back to update the first and third pixel rows
-                          ; of every conveyor tile
+  JR MVCONVEYOR_0         ; Jump back to update the first and third pixel rows of every conveyor tile
 
 ; Move and draw the Kong Beast in the current cavern
 ;
@@ -2752,18 +2517,15 @@ KONGBEAST:
   LD A,(EUGDIR)           ; Pick up the Kong Beast's status from EUGDIR
   CP 2                    ; Is the Kong Beast already dead?
   RET Z                   ; Return if so
-  LD A,(29958)            ; Pick up the sixth pixel row of the left-hand switch
-                          ; from the screen buffer at 28672
+  LD A,(29958)            ; Pick up the sixth pixel row of the left-hand switch from the screen buffer at 28672
   CP 16                   ; Has the switch been flipped?
   JP Z,KONGBEAST_8        ; Jump if not
 ; The left-hand switch has been flipped. Deal with opening up the wall if that
 ; is still in progress.
-  LD A,(24433)            ; Pick up the attribute byte of the tile at (11,17)
-                          ; in the buffer at 24064
+  LD A,(24433)            ; Pick up the attribute byte of the tile at (11,17) in the buffer at 24064
   OR A                    ; Has the wall there been removed yet?
   JR Z,KONGBEAST_2        ; Jump if so
-  LD HL,32625             ; Point HL at the bottom row of pixels of the wall
-                          ; tile at (11,17) in the screen buffer at 28672
+  LD HL,32625             ; Point HL at the bottom row of pixels of the wall tile at (11,17) in the screen buffer at 28672
 KONGBEAST_0:
   LD A,(HL)               ; Pick up a pixel row
   OR A                    ; Is it blank yet?
@@ -2772,18 +2534,14 @@ KONGBEAST_0:
   LD A,H                  ; Have we checked all 8 pixel rows yet?
   CP 119
   JR NZ,KONGBEAST_0       ; If not, jump back to check the next one
-  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile
-                          ; for the current cavern from BACKGROUND
+  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   LD (24433),A            ; Change the attributes at (11,17) and (12,17) in the
-  LD (24465),A            ; buffer at 24064 to match the background tile (the
-                          ; wall there is now gone)
+  LD (24465),A            ; buffer at 24064 to match the background tile (the wall there is now gone)
   LD A,114                ; Update the seventh byte of the guardian definition
-  LD (32971),A            ; at HGUARD2 so that the guardian moves through the
-                          ; opening in the wall
+  LD (32971),A            ; at HGUARD2 so that the guardian moves through the opening in the wall
   JR KONGBEAST_2
 KONGBEAST_1:
-  LD (HL),0               ; Clear a pixel row of the wall tile at (11,17) in
-                          ; the screen buffer at 28672
+  LD (HL),0               ; Clear a pixel row of the wall tile at (11,17) in the screen buffer at 28672
   LD L,145                ; Point HL at the opposite pixel row of the wall tile
   LD A,H                  ; one cell down at (12,17)
   XOR 7
@@ -2798,11 +2556,9 @@ KONGBEAST_2:
   LD (EUGHGT),A           ; EUGHGT to 0
   INC A                   ; Update the Kong Beast's status at EUGDIR to 1: he
   LD (EUGDIR),A           ; is falling
-  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile
-                          ; for the current cavern from BACKGROUND
+  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   LD (24143),A            ; Change the attributes of the floor beneath the Kong
-  LD (24144),A            ; Beast in the buffer at 24064 to match that of the
-                          ; background tile
+  LD (24144),A            ; Beast in the buffer at 24064 to match that of the background tile
   LD HL,28751             ; Point HL at (2,15) in the screen buffer at 28672
   LD B,8                  ; Clear the cells at (2,15) and (2,16), removing the
 KONGBEAST_3:
@@ -2817,18 +2573,14 @@ KONGBEAST_4:
   OR A                    ; Is the Kong Beast still on the ledge?
   JR Z,KONGBEAST_8        ; Jump if so
 ; The Kong Beast is falling.
-  LD A,(EUGHGT)           ; Pick up the Kong Beast's pixel y-coordinate from
-                          ; EUGHGT
+  LD A,(EUGHGT)           ; Pick up the Kong Beast's pixel y-coordinate from EUGHGT
   CP 100                  ; Has he fallen into the portal yet?
   JR Z,KONGBEAST_7        ; Jump if so
   ADD A,4                 ; Add 4 to the Kong Beast's pixel y-coordinate at
   LD (EUGHGT),A           ; EUGHGT (moving him downwards)
-  LD C,A                  ; Copy the pixel y-coordinate to C; this value
-                          ; determines the pitch of the sound effect
-  LD D,16                 ; D=16; this value determines the duration of the
-                          ; sound effect
-  LD A,(BORDER)           ; Pick up the border colour for the current cavern
-                          ; from BORDER
+  LD C,A                  ; Copy the pixel y-coordinate to C; this value determines the pitch of the sound effect
+  LD D,16                 ; D=16; this value determines the duration of the sound effect
+  LD A,(BORDER)           ; Pick up the border colour for the current cavern from BORDER
 KONGBEAST_5:
   OUT (254),A             ; Make a falling sound effect
   XOR 24
@@ -2837,8 +2589,7 @@ KONGBEAST_6:
   DJNZ KONGBEAST_6
   DEC D
   JR NZ,KONGBEAST_5
-  LD A,C                  ; Copy the Kong Beast's pixel y-coordinate back into
-                          ; A
+  LD A,C                  ; Copy the Kong Beast's pixel y-coordinate back into A
   RLCA                    ; Point DE at the entry in the screen buffer address
   LD E,A                  ; lookup table at SBUFADDRS that corresponds to the
   LD D,131                ; Kong Beast's pixel y-coordinate
@@ -2857,8 +2608,7 @@ KONGBEAST_6:
   CALL DRWFIX
   LD HL,33836             ; Add 100 to the score
   CALL INCSCORE_0
-  LD A,(EUGHGT)           ; Pick up the Kong Beast's pixel y-coordinate from
-                          ; EUGHGT
+  LD A,(EUGHGT)           ; Pick up the Kong Beast's pixel y-coordinate from EUGHGT
   AND 120                 ; Point HL at the address of the Kong Beast's
   LD L,A                  ; location in the attribute buffer at 23552
   LD H,23
@@ -2879,8 +2629,7 @@ KONGBEAST_8:
   LD A,(CLOCK)            ; Pick up the value of the game clock at CLOCK
   AND 32                  ; Use bit 5 of this value (which is toggled once
   LD E,A                  ; every eight passes through the main loop) to point
-  LD D,129                ; DE at the graphic data for the appropriate Kong
-                          ; Beast sprite
+  LD D,129                ; DE at the graphic data for the appropriate Kong Beast sprite
   LD HL,24591             ; Draw the Kong Beast at (0,15) in the screen buffer
   LD C,1                  ; at 24576
   CALL DRWFIX
@@ -2899,21 +2648,16 @@ KONGBEAST_8:
 ;
 ; HL Address of the switch's location in the attribute buffer at 23552
 CHKSWITCH:
-  LD A,(LOCATION)         ; Pick up the LSB of the address of Willy's location
-                          ; in the attribute buffer at 23552 from LOCATION
+  LD A,(LOCATION)         ; Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
   INC A                   ; Is it equal to or one less than the LSB of the
   AND 254                 ; address of the switch's location?
   CP L
   RET NZ                  ; Return (with the zero flag reset) if not
-  LD A,(32877)            ; Pick up the MSB of the address of Willy's location
-                          ; in the attribute buffer at 23552 from 32877
-  CP H                    ; Does it match the MSB of the address of the
-                          ; switch's location?
+  LD A,(32877)            ; Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
+  CP H                    ; Does it match the MSB of the address of the switch's location?
   RET NZ                  ; Return (with the zero flag reset) if not
-  LD A,(32869)            ; Pick up the sixth byte of the graphic data for the
-                          ; switch tile from 32869
-  LD H,117                ; Point HL at the sixth row of pixels of the switch
-                          ; tile in the screen buffer at 28672
+  LD A,(32869)            ; Pick up the sixth byte of the graphic data for the switch tile from 32869
+  LD H,117                ; Point HL at the sixth row of pixels of the switch tile in the screen buffer at 28672
   CP (HL)                 ; Has the switch already been flipped?
   RET NZ                  ; Return (with the zero flag reset) if so
 ; Willy is flipping the switch.
@@ -2930,30 +2674,22 @@ CHKSWITCH:
 ;
 ; Used by the routine at LOOP.
 WILLYATTRS:
-  LD HL,(LOCATION)        ; Pick up the address of Willy's location in the
-                          ; attribute buffer at 23552 from LOCATION
+  LD HL,(LOCATION)        ; Pick up the address of Willy's location in the attribute buffer at 23552 from LOCATION
   LD DE,31                ; Prepare DE for addition
-  LD C,15                 ; Set C=15 for the top two rows of cells (to make the
-                          ; routine at WILLYATTR force white INK)
-  CALL WILLYATTR          ; Check and set the attribute byte for the top-left
-                          ; cell
+  LD C,15                 ; Set C=15 for the top two rows of cells (to make the routine at WILLYATTR force white INK)
+  CALL WILLYATTR          ; Check and set the attribute byte for the top-left cell
   INC HL                  ; Move HL to the next cell to the right
-  CALL WILLYATTR          ; Check and set the attribute byte for the top-right
-                          ; cell
+  CALL WILLYATTR          ; Check and set the attribute byte for the top-right cell
   ADD HL,DE               ; Move HL down a row and back one cell to the left
-  CALL WILLYATTR          ; Check and set the attribute byte for the mid-left
-                          ; cell
+  CALL WILLYATTR          ; Check and set the attribute byte for the mid-left cell
   INC HL                  ; Move HL to the next cell to the right
-  CALL WILLYATTR          ; Check and set the attribute byte for the mid-right
-                          ; cell
+  CALL WILLYATTR          ; Check and set the attribute byte for the mid-right cell
   LD A,(PIXEL_Y)          ; Pick up Willy's pixel y-coordinate from PIXEL_Y
   LD C,A                  ; Copy it to C
   ADD HL,DE               ; Move HL down a row and back one cell to the left
-  CALL WILLYATTR          ; Check and set the attribute byte for the
-                          ; bottom-left cell
+  CALL WILLYATTR          ; Check and set the attribute byte for the bottom-left cell
   INC HL                  ; Move HL to the next cell to the right
-  CALL WILLYATTR          ; Check and set the attribute byte for the
-                          ; bottom-right cell
+  CALL WILLYATTR          ; Check and set the attribute byte for the bottom-right cell
   JR DRAWWILLY            ; Draw Willy to the screen buffer at 24576
 
 ; Check and set the attribute byte for a cell occupied by Willy's sprite
@@ -2963,28 +2699,20 @@ WILLYATTRS:
 ; C 15 or Willy's pixel y-coordinate
 ; HL Address of the cell in the attribute buffer at 23552
 WILLYATTR:
-  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile
-                          ; for the current cavern from BACKGROUND
+  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   CP (HL)                 ; Does this cell contain a background tile?
   JR NZ,WILLYATTR_0       ; Jump if not
   LD A,C                  ; Set the zero flag if we are going to retain the INK
-  AND 15                  ; colour in this cell; this happens only if the cell
-                          ; is in the bottom row and Willy's sprite is confined
-                          ; to the top two rows
-  JR Z,WILLYATTR_0        ; Jump if we are going to retain the current INK
-                          ; colour in this cell
-  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile
-                          ; for the current cavern from BACKGROUND
+  AND 15                  ; colour in this cell; this happens only if the cell is in the bottom row and Willy's sprite is confined to the top two rows
+  JR Z,WILLYATTR_0        ; Jump if we are going to retain the current INK colour in this cell
+  LD A,(BACKGROUND)       ; Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   OR 7                    ; Set bits 0-2, making the INK white
-  LD (HL),A               ; Set the attribute byte for this cell in the buffer
-                          ; at 23552
+  LD (HL),A               ; Set the attribute byte for this cell in the buffer at 23552
 WILLYATTR_0:
-  LD A,(NASTY1)           ; Pick up the attribute byte of the first nasty tile
-                          ; for the current cavern from NASTY1
+  LD A,(NASTY1)           ; Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
   CP (HL)                 ; Has Willy hit a nasty of the first kind?
   JP Z,KILLWILLY          ; Kill Willy if so
-  LD A,(NASTY2)           ; Pick up the attribute byte of the second nasty tile
-                          ; for the current cavern from NASTY2
+  LD A,(NASTY2)           ; Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
   CP (HL)                 ; Has Willy hit a nasty of the second kind?
   JP Z,KILLWILLY          ; Kill Willy if so
   RET
@@ -2995,10 +2723,8 @@ WILLYATTR_0:
 DRAWWILLY:
   LD A,(PIXEL_Y)          ; Pick up Willy's pixel y-coordinate from PIXEL_Y
   LD IXh,131              ; Point IX at the entry in the screen buffer address
-  LD IXl,A                ; lookup table at SBUFADDRS that corresponds to
-                          ; Willy's y-coordinate
-  LD A,(DMFLAGS)          ; Pick up Willy's direction and movement flags from
-                          ; DMFLAGS
+  LD IXl,A                ; lookup table at SBUFADDRS that corresponds to Willy's y-coordinate
+  LD A,(DMFLAGS)          ; Pick up Willy's direction and movement flags from DMFLAGS
   AND 1                   ; Now E=0 if Willy is facing right, or 128 if he's
   RRCA                    ; facing left
   LD E,A
@@ -3030,8 +2756,7 @@ DRAWWILLY_0:
   INC IX                  ; Point IX at the next entry in the screen buffer
   INC IX                  ; address lookup table at SBUFADDRS
   INC DE                  ; Point DE at the next sprite graphic byte
-  DJNZ DRAWWILLY_0        ; Jump back until all 16 rows of pixels have been
-                          ; drawn
+  DJNZ DRAWWILLY_0        ; Jump back until all 16 rows of pixels have been drawn
   RET
 
 ; Print a message
@@ -3084,27 +2809,20 @@ PRINTCHAR_0:
 ;
 ; IY THEMETUNE (tune data)
 PLAYTUNE:
-  LD A,(IY+0)             ; Pick up the next byte of tune data from the table
-                          ; at THEMETUNE
+  LD A,(IY+0)             ; Pick up the next byte of tune data from the table at THEMETUNE
   CP 255                  ; Has the tune finished?
   RET Z                   ; Return (with the zero flag set) if so
-  LD C,A                  ; Copy the first byte of data for this note (which
-                          ; determines the duration) to C
-  LD B,0                  ; Initialise B, which will be used as a delay counter
-                          ; in the note-producing loop
+  LD C,A                  ; Copy the first byte of data for this note (which determines the duration) to C
+  LD B,0                  ; Initialise B, which will be used as a delay counter in the note-producing loop
   XOR A                   ; Set A=0 (for no apparent reasaon)
   LD D,(IY+1)             ; Pick up the second byte of data for this note
   LD A,D                  ; Copy it to A
-  CALL PIANOKEY           ; Calculate the attribute file address for the
-                          ; corresponding piano key
-  LD (HL),80              ; Set the attribute byte for the piano key to 80 (INK
-                          ; 0: PAPER 2: BRIGHT 1)
+  CALL PIANOKEY           ; Calculate the attribute file address for the corresponding piano key
+  LD (HL),80              ; Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1)
   LD E,(IY+2)             ; Pick up the third byte of data for this note
   LD A,E                  ; Copy it to A
-  CALL PIANOKEY           ; Calculate the attribute file address for the
-                          ; corresponding piano key
-  LD (HL),40              ; Set the attribute byte for the piano key to 40 (INK
-                          ; 0: PAPER 5: BRIGHT 0)
+  CALL PIANOKEY           ; Calculate the attribute file address for the corresponding piano key
+  LD (HL),40              ; Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0)
 PLAYTUNE_0:
   OUT (254),A             ; Produce a sound based on the frequency parameters
   DEC D                   ; in the second and third bytes of data for this note
@@ -3120,19 +2838,14 @@ PLAYTUNE_2:
   DJNZ PLAYTUNE_0
   DEC C
   JR NZ,PLAYTUNE_0
-  CALL CHECKENTER         ; Check whether ENTER or the fire button is being
-                          ; pressed
+  CALL CHECKENTER         ; Check whether ENTER or the fire button is being pressed
   RET NZ                  ; Return (with the zero flag reset) if it is
   LD A,(IY+1)             ; Pick up the second byte of data for this note
-  CALL PIANOKEY           ; Calculate the attribute file address for the
-                          ; corresponding piano key
-  LD (HL),56              ; Set the attribute byte for the piano key back to 56
-                          ; (INK 0: PAPER 7: BRIGHT 0)
+  CALL PIANOKEY           ; Calculate the attribute file address for the corresponding piano key
+  LD (HL),56              ; Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
   LD A,(IY+2)             ; Pick up the third byte of data for this note
-  CALL PIANOKEY           ; Calculate the attribute file address for the
-                          ; corresponding piano key
-  LD (HL),56              ; Set the attribute byte for the piano key back to 56
-                          ; (INK 0: PAPER 7: BRIGHT 0)
+  CALL PIANOKEY           ; Calculate the attribute file address for the corresponding piano key
+  LD (HL),56              ; Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
   INC IY                  ; Move IY along to the data for the next note in the
   INC IY                  ; tune
   INC IY
@@ -4161,11 +3874,9 @@ CAVERN0:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2)
-                          ; (see LOCATION)
+  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -4360,11 +4071,9 @@ CAVERN1:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2)
-                          ; (see LOCATION)
+  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -4564,11 +4273,9 @@ CAVERN2:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2)
-                          ; (see LOCATION)
+  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -4774,11 +4481,9 @@ CAVERN3:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 1                  ; Direction and movement flags: facing left (see
-                          ; DMFLAGS)
+  DEFB 1                  ; Direction and movement flags: facing left (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23997              ; Location in the attribute buffer at 23552: (13,29)
-                          ; (see LOCATION)
+  DEFW 23997              ; Location in the attribute buffer at 23552: (13,29) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -4973,11 +4678,9 @@ CAVERN4:
 ; initial location and appearance in the cavern.
   DEFB 48                 ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23649              ; Location in the attribute buffer at 23552: (3,1)
-                          ; (see LOCATION)
+  DEFW 23649              ; Location in the attribute buffer at 23552: (3,1) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -5175,11 +4878,9 @@ CAVERN5:
 ; initial location and appearance in the cavern.
   DEFB 48                 ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 3                  ; Animation frame (see FRAME)
-  DEFB 1                  ; Direction and movement flags: facing left (see
-                          ; DMFLAGS)
+  DEFB 1                  ; Direction and movement flags: facing left (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23663              ; Location in the attribute buffer at 23552: (3,15)
-                          ; (see LOCATION)
+  DEFW 23663              ; Location in the attribute buffer at 23552: (3,15) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -5384,11 +5085,9 @@ CAVERN6:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2)
-                          ; (see LOCATION)
+  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -5588,11 +5287,9 @@ CAVERN7:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2)
-                          ; (see LOCATION)
+  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -5791,11 +5488,9 @@ CAVERN8:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23969              ; Location in the attribute buffer at 23552: (13,1)
-                          ; (see LOCATION)
+  DEFW 23969              ; Location in the attribute buffer at 23552: (13,1) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -6003,11 +5698,9 @@ CAVERN9:
 ; initial location and appearance in the cavern.
   DEFB 64                 ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23681              ; Location in the attribute buffer at 23552: (4,1)
-                          ; (see LOCATION)
+  DEFW 23681              ; Location in the attribute buffer at 23552: (4,1) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the (unused) conveyor.
@@ -6212,11 +5905,9 @@ CAVERN10:
 ; initial location and appearance in the cavern.
   DEFB 16                 ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23587              ; Location in the attribute buffer at 23552: (1,3)
-                          ; (see LOCATION)
+  DEFW 23587              ; Location in the attribute buffer at 23552: (1,3) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -6441,11 +6132,9 @@ CAVERN11:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2)
-                          ; (see LOCATION)
+  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -6647,11 +6336,9 @@ CAVERN12:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23997              ; Location in the attribute buffer at 23552: (13,29)
-                          ; (see LOCATION)
+  DEFW 23997              ; Location in the attribute buffer at 23552: (13,29) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -6862,11 +6549,9 @@ CAVERN13:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23997              ; Location in the attribute buffer at 23552: (13,29)
-                          ; (see LOCATION)
+  DEFW 23997              ; Location in the attribute buffer at 23552: (13,29) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -7081,11 +6766,9 @@ CAVERN14:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2)
-                          ; (see LOCATION)
+  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -7294,11 +6977,9 @@ CAVERN15:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2)
-                          ; (see LOCATION)
+  DEFW 23970              ; Location in the attribute buffer at 23552: (13,2) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -7503,11 +7184,9 @@ CAVERN16:
 ; initial location and appearance in the cavern.
   DEFB 48                 ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 3                  ; Animation frame (see FRAME)
-  DEFB 1                  ; Direction and movement flags: facing left (see
-                          ; DMFLAGS)
+  DEFB 1                  ; Direction and movement flags: facing left (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23649              ; Location in the attribute buffer at 23552: (3,1)
-                          ; (see LOCATION)
+  DEFW 23649              ; Location in the attribute buffer at 23552: (3,1) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -7727,11 +7406,9 @@ CAVERN17:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 3                  ; Animation frame (see FRAME)
-  DEFB 1                  ; Direction and movement flags: facing left (see
-                          ; DMFLAGS)
+  DEFB 1                  ; Direction and movement flags: facing left (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23997              ; Location in the attribute buffer at 23552: (13,29)
-                          ; (see LOCATION)
+  DEFW 23997              ; Location in the attribute buffer at 23552: (13,29) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the (unused) conveyor.
@@ -7949,11 +7626,9 @@ CAVERN18:
 ; initial location and appearance in the cavern.
   DEFB 160                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 0                  ; Direction and movement flags: facing right (see
-                          ; DMFLAGS)
+  DEFB 0                  ; Direction and movement flags: facing right (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23886              ; Location in the attribute buffer at 23552: (10,14)
-                          ; (see LOCATION)
+  DEFW 23886              ; Location in the attribute buffer at 23552: (10,14) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
@@ -8170,11 +7845,9 @@ CAVERN19:
 ; initial location and appearance in the cavern.
   DEFB 208                ; Pixel y-coordinate * 2 (see PIXEL_Y)
   DEFB 0                  ; Animation frame (see FRAME)
-  DEFB 1                  ; Direction and movement flags: facing left (see
-                          ; DMFLAGS)
+  DEFB 1                  ; Direction and movement flags: facing left (see DMFLAGS)
   DEFB 0                  ; Airborne status indicator (see AIRBORNE)
-  DEFW 23995              ; Location in the attribute buffer at 23552: (13,27)
-                          ; (see LOCATION)
+  DEFW 23995              ; Location in the attribute buffer at 23552: (13,27) (see LOCATION)
   DEFB 0                  ; Jumping animation counter (see JUMPING)
 ; The next four bytes are copied to CONVDIR and specify the direction, location
 ; and length of the conveyor.
