@@ -30,12 +30,17 @@
 // The emulator may tap into these for IO.
 uint8_t MEM[1024 * 64] = {};
 
+uint8_t regA;
 uint8_t regB;
 uint8_t regC;
 uint8_t regD;
 uint8_t regE;
 uint8_t regH;
 uint8_t regL;
+
+uint16_t regBC;
+uint16_t regDE;
+uint16_t regHL;
 
 void LDIR() { /* function to refresh the screen. */ }
 
@@ -537,6 +542,12 @@ char SCORBUF[] = "000000";
 // Used by the routine at STARTGAME.
 char MESSHSSC[] = "High Score 000000   Score 000000";
 
+// ----------------------------
+//  IMPORTANT: custom scoring
+int current_score;
+int highscore;
+// ----------------------------
+
 // 'Game'
 //
 // Used by the routine at ENDGAM.
@@ -924,72 +935,115 @@ START:
 STARTGAME:
   // IMPORTANT: Probably better to have custom SCORE/SCORBUF/HGHSCOR updating and printing. -MRC-
   // Initialise the score at SCORE
-  LD HL,SCORE
-  LD DE,33830
-  LD BC,9
-  LD (HL),48
-  LDIR
+  // LD HL,SCORE
+  // LD DE,33830
+  // LD BC,9
+  // LD (HL),48
+  // LDIR
+  current_score = 0;
+  print_score(current_score);
 
 // This entry point is used by the routines at LOOP (when teleporting into a
 // cavern or reinitialising the current cavern after Willy has lost a life) and
 // NXSHEET.
 NEWSHT:
-  LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-  SLA A                   // Point HL at the first byte of the cavern definition
-  SLA A
-  ADD A,176
-  LD H,A
-  LD L,0
-  LD DE,24064             // Copy the cavern's attribute bytes into the buffer
-  LD BC,512               // at 24064
-  LDIR
-  LD DE,CAVERNNAME        // Copy the rest of the cavern definition into the
-  LD BC,512               // game status buffer at 32768
-  LDIR
-  CALL DRAWSHEET          // Draw the current cavern to the screen buffer at 28672
-  LD HL,20480             // Clear the bottom third of the display file
-  LD DE,20481
-  LD BC,2047
-  LD (HL),0
-  LDIR
-  LD IX,CAVERNNAME        // Print the cavern name (see CAVERNNAME) at (16,0)
-  LD C,32
-  LD DE,20480
-  CALL PMESS
-  LD IX,MESSAIR           // Print 'AIR' (see MESSAIR) at (17,0)
-  LD C,3
-  LD DE,20512
-  CALL PMESS
-  LD A,82                 // Initialise A to 82; this is the MSB of the display file address at which to start drawing the bar that represents the air supply
-STARTGAME_0:
-  LD H,A                  // Prepare HL and DE for drawing a row of pixels in
-  LD D,A                  // the air bar
-  LD L,36
-  LD E,37
-  LD B,A                  // Save the display file address MSB in B briefly
-  LD A,(AIR)              // Pick up the value of the initial air supply from AIR
-  SUB 36                  // Now C determines the length of the air bar (in cell
-  LD C,A                  // widths)
-  LD A,B                  // Restore the display file address MSB to A
-  LD B,0                  // Now BC determines the length of the air bar (in cell widths)
-  LD (HL),255             // Draw a single row of pixels across C cells
-  LDIR
-  INC A                   // Increment the display file address MSB in A (moving down to the next row of pixels)
-  CP 86                   // Have we drawn all four rows of pixels in the air bar yet?
-  JR NZ,STARTGAME_0       // If not, jump back to draw the next one
-  LD IX,MESSHSSC          // Print 'High Score 000000   Score 000000' (see
-  LD DE,20576             // MESSHSSC) at (19,0)
-  LD C,32
-  CALL PMESS
-  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-  LD C,254                // Set the border colour
-  OUT (C),A
-  LD A,(DEMO)             // Pick up the game mode indicator from DEMO
-  OR A                    // Are we in demo mode?
-  JR Z,LOOP               // If not, enter the main loop now
-  LD A,64                 // Reset the game mode indicator at DEMO to 64 (we're
-  LD (DEMO),A             // in demo mode)
+  // IMPORTANT: only using the first cavern, CAVERN0, while porting -MRC-
+  // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+  // SLA A                   // Point HL at the first byte of the cavern definition
+  // SLA A
+  // ADD A,176
+  // LD H,A
+  // LD L,0
+  // LD DE,24064             // Copy the cavern's attribute bytes into the buffer
+  // LD BC,512               // at 24064
+  // LDIR
+  for (int i = 0; i < 512; i++) {
+    MEM[24064 + i] = CAVERN0[i];
+  }
+
+  // IMPORTANT: initialize_cavern0() doesn't currently copy data to: game status buffer at 32768 -MRC-
+  // LD DE,CAVERNNAME        // Copy the rest of the cavern definition into the
+  // LD BC,512               // game status buffer at 32768
+  // LDIR
+  initialize_cavern0();
+
+  // Draw the current cavern to the screen buffer at 28672
+  // CALL DRAWSHEET
+  DRAWSHEET();
+
+  // LD HL,20480             // Clear the bottom third of the display file
+  // LD DE,20481
+  // LD BC,2047
+  // LD (HL),0
+  // LDIR
+  for (int i = 0; i < 2048; i++) {
+    MEM[20481 + i] = 0;
+  }
+
+  // Print the cavern name (see CAVERNNAME) at (16,0)
+  // LD IX,CAVERNNAME
+  // LD C,32
+  // LD DE,20480
+  // CALL PMESS
+  PMESS(&CAVERNNAME, 20480, 32);
+
+  // Print 'AIR' (see MESSAIR) at (17,0)
+  // LD IX,MESSAIR
+  // LD C,3
+  // LD DE,20512
+  // CALL PMESS
+  PMESS(&MESSAIR, 20512, 3);
+
+  // Initialise A to 82; this is the MSB of the display file address at which to start drawing the bar that represents the air supply
+  // LD A,82
+  // STARTGAME_0:
+  for (uint8_t a = 82; a < 86; a++;) {
+    // LD H,A                  // Prepare HL and DE for drawing a row of pixels in
+    // LD D,A                  // the air bar
+    // LD L,36
+    // LD E,37
+    uint16_t addr = build_address(a, 37);
+
+    // LD B,A                  // Save the display file address MSB in B briefly
+    // LD A,(AIR)              // Pick up the value of the initial air supply from AIR
+    // SUB 36                  // Now C determines the length of the air bar (in cell
+    // LD C,A                  // widths)
+    // LD A,B                  // Restore the display file address MSB to A
+    // LD B,0                  // Now BC determines the length of the air bar (in cell widths)
+    // LD (HL),255             // Draw a single row of pixels across C cells
+    // LDIR
+    for (uint16_t i = 0; i < AIR - 36; i++) {
+      MEM[addr + i] = 255
+    }
+
+    // INC A                   // Increment the display file address MSB in A (moving down to the next row of pixels)
+    // CP 86                   // Have we drawn all four rows of pixels in the air bar yet?
+    // JR NZ,STARTGAME_0       // If not, jump back to draw the next one
+  }
+
+  // Print 'High Score 000000   Score 000000' (see MESSHSSC) at (19,0)
+  // LD IX,MESSHSSC
+  // LD DE,20576
+  // LD C,32
+  // CALL PMESS
+  PMESS(&MESSHSSC, 20576, 32);
+
+  // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
+  // LD C,254                // Set the border colour
+  // OUT (C),A
+  MEM[254] = BORDER;
+
+  // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
+  // OR A                    // Are we in demo mode?
+  // JR Z,LOOP               // If not, enter the main loop now
+  if (DEMO == 0) {
+    // Reset the game mode indicator at DEMO to 64 (we're in demo mode)
+    // LD A,64
+    // LD (DEMO),A
+    DEMO = 64;
+  }
 // This routine continues into the main loop at LOOP.
+
 
 // Main loop
 //
@@ -3000,6 +3054,14 @@ CHECKENTER_0:
   RET
 
 } // NOTE: end of main() function!
+
+
+void print_score(int current_score) {
+  sprintf(SCORE, "%6d", current_score);
+  // MEM[33830]  // position for score to be printed.
+}
+
+
 
 
 // IMPORTANT: commenting our all remnants -MRC-
