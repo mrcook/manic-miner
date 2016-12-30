@@ -774,10 +774,11 @@ START:
     MEM[16384 + i] = TITLESCR1[i];
   }
 
-  LD HL,18493             // Draw Willy at (9,29)
-  LD DE,WILLYR2
-  LD C,0
-  CALL DRWFIX
+  // LD HL,18493             // Draw Willy at (9,29)
+  // LD DE,WILLYR2
+  // LD C,0
+  // CALL DRWFIX
+  DRWFIX(&WILLYR2, 18493, 0);
 
   // LD HL,CAVERN19          // Copy the attribute bytes from CAVERN19 to the top
   // LD DE,22528             // third of the attribute file
@@ -795,23 +796,23 @@ START:
     MEM[22528 + 256 + i] = LOWERATTRS[i];
   }
 
-// Now check whether there is a joystick connected.
-//   LD BC,31                // B=0, C=31 (joystick port)
-//   DI                      // Disable interrupts (which are already disabled)
-//   XOR A                   // A=0
-// START_0:
-//   IN E,(C)                // Combine 256 readings of the joystick port in A; if
-//   OR E                    // no joystick is connected, some of these readings
-//   DJNZ START_0            // will have bit 5 set
-//   AND 32                  // Is a joystick connected (bit 5 reset)?
-//   JR NZ,START_1           // Jump if not
-//   LD A,1                  // Set the Kempston joystick indicator at KEMP to 1
-//   LD (KEMP),A
+  // Now check whether there is a joystick connected.
+  //   LD BC,31                // B=0, C=31 (joystick port)
+  //   DI                      // Disable interrupts (which are already disabled)
+  //   XOR A                   // A=0
+  // START_0:
+  //   IN E,(C)                // Combine 256 readings of the joystick port in A; if
+  //   OR E                    // no joystick is connected, some of these readings
+  //   DJNZ START_0            // will have bit 5 set
+  //   AND 32                  // Is a joystick connected (bit 5 reset)?
+  //   JR NZ,START_1           // Jump if not
+  //   LD A,1                  // Set the Kempston joystick indicator at KEMP to 1
+  //   LD (KEMP),A
   KEMP = 0; // IMPORTANT: no joystick support just yet! -MRC-
 
-// And finally, play the theme tune and check for keypresses.
+  // And finally, play the theme tune and check for keypresses.
 
-// START_1: // label only used in the KEMP detection routine above.
+  // START_1: // label only used in the KEMP detection routine above.
   LD IY,THEMETUNE         // Point IY at the theme tune data at THEMETUNE
   CALL PLAYTUNE           // Play the theme tune
   JP NZ,STARTGAME         // Start the game if ENTER or the fire button was pressed
@@ -822,23 +823,38 @@ START:
   // LD (EUGHGT),A
   EUGHGT = 0;
 
-  for (;;) {
-    LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-    LD IX,MESSINTRO         // Point IX at the corresponding location in the
-    LD IXl,A                // message at MESSINTRO
-    LD DE,20576             // Print 32 characters of the message at (19,0)
-    LD C,32
-    CALL PMESS
-    LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-    AND 6                   // Keep only bits 1 and 2, and move them into bits 6
-    RRCA                    // and 7, so that A holds 0, 64, 128 or 192; this
-    RRCA                    // value determines the animation frame to use for
-    RRCA                    // Willy
-    LD E,A                  // Point DE at the graphic data for Willy's sprite
-    LD D,130                // (MANDAT+A)
-    LD HL,18493             // Draw Willy at (9,29)
-    LD C,0
-    CALL DRWFIX
+  for (EUGHGT = 0; EUGHGT < 224; EUGHGT++) {
+    // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
+
+    // Point IX at the corresponding location in the message at MESSINTRO
+    // Print 32 characters of the message at (19,0)
+    // LD IX,MESSINTRO
+    // LD IXl,A
+    // LD DE,20576
+    // LD C,32
+    // CALL PMESS
+    PMESS(&MESSINTRO[EUGHGT], 20576, 32);
+
+    // Pick up the message index from EUGHGT
+    // Keep only bits 1 and 2, and move them into bits 6 and 7, so that A holds 0, 64, 128 or 192;
+    // this value determines the animation frame to use for Willy
+    // LD A,(EUGHGT)
+    // AND 6
+    // RRCA
+    // RRCA
+    // RRCA
+    uint8_t a = (EUGHGT & 6) >> 3;
+
+    // Point DE at the graphic data for Willy's sprite (MANDAT+A)
+    // LD E,A
+    // LD D,130
+    int *mandat_sprite_ptr = &MANDAT[a];
+
+    // Draw Willy at (9,29)
+    // LD HL,18493
+    // LD C,0
+    // CALL DRWFIX
+    DRWFIX(mandat_sprite_ptr, 18493, 0);
 
     // Pause for about 0.1s
     //   LD BC,100
@@ -846,7 +862,7 @@ START:
     //   DJNZ START_3
     //   DEC C
     //   JR NZ,START_3
-    millisleep(1);
+    millisleep(100);
 
     LD BC,49150             // Read keys H-J-K-L-ENTER
     IN A,(C)
@@ -854,11 +870,11 @@ START:
     CP 1                    // Is ENTER being pressed?
     JR NZ,STARTGAME         // If so, start the game
 
-    LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-    INC A                   // Increment it
-    CP 224                  // Set the zero flag if we've reached the end of the message
-    LD (EUGHGT),A           // Store the new message index at EUGHGT
-    JR NZ,START_2           // Jump back unless we've finished scrolling the message across the screen
+    // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
+    // INC A                   // Increment it
+    // CP 224                  // Set the zero flag if we've reached the end of the message
+    // LD (EUGHGT),A           // Store the new message index at EUGHGT
+    // JR NZ,START_2           // Jump back unless we've finished scrolling the message across the screen
   }
 
   // Initialise the game mode indicator at DEMO to 64: demo mode
