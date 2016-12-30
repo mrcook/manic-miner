@@ -15,3 +15,14 @@ void millisleep(int milliseconds) {
         usleep(milliseconds * 1000);
     #endif
 }
+
+// Split a uint16_t memory address into its MSB and LSB values
+void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
+    *lsb = addr & 0xFF;
+    *msb = addr >> 8;
+}
+
+// Build a uint16_t memory address from the MSB and LSB values
+uint16_t build_address(uint8_t msb, uint8_t lsb) {
+    return (msb << 8) | lsb;
+}
