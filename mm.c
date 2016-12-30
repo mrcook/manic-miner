@@ -3050,10 +3050,14 @@ WILLYATTR_0:
   JP Z,KILLWILLY          // Kill Willy if so
   RET
 
+} // NOTE: end of main() function!
+
+
+
 // Draw Willy to the screen buffer at 24576
 //
 // Used by the routine at WILLYATTRS.
-DRAWWILLY:
+void DRAWWILLY() {
   LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   LD IXh,131              // Point IX at the entry in the screen buffer address
   LD IXl,A                // lookup table at SBUFADDRS that corresponds to Willy's y-coordinate
@@ -3091,6 +3095,9 @@ DRAWWILLY_0:
   INC DE                  // Point DE at the next sprite graphic byte
   DJNZ DRAWWILLY_0        // Jump back until all 16 rows of pixels have been drawn
   RET
+}
+
+
 
 // Print a message
 //
@@ -3099,7 +3106,7 @@ DRAWWILLY_0:
 // IX Address of the message
 // C Length of the message
 // DE Display file address
-PMESS:
+void PMESS() {
   LD A,(IX+0)             // Collect a character from the message
   CALL PRINTCHAR          // Print it
   INC IX                  // Point IX at the next character in the message
@@ -3110,6 +3117,9 @@ PMESS:
   DEC C                   // Have we printed the entire message yet?
   JR NZ,PMESS             // If not, jump back to print the next character
   RET
+}
+
+
 
 // Print a single character
 //
@@ -3117,7 +3127,7 @@ PMESS:
 //
 // A ASCII code of the character
 // DE Display file address
-PRINTCHAR:
+void PRINTCHAR() {
   LD H,7                  // Point HL at the bitmap for the character (in the
   LD L,A                  // ROM)
   SET 7,L
@@ -3134,6 +3144,9 @@ PRINTCHAR_0:
   INC D
   DJNZ PRINTCHAR_0
   RET
+}
+
+
 
 // Play the theme tune (The Blue Danube)
 //
@@ -3141,7 +3154,7 @@ PRINTCHAR_0:
 // the fire button is pressed while the tune is being played.
 //
 // IY THEMETUNE (tune data)
-PLAYTUNE:
+void PLAYTUNE() {
   LD A,(IY+0)             // Pick up the next byte of tune data from the table at THEMETUNE
   CP 255                  // Has the tune finished?
   RET Z                   // Return (with the zero flag set) if so
@@ -3183,6 +3196,8 @@ PLAYTUNE_2:
   INC IY                  // tune
   INC IY
   JR PLAYTUNE             // Jump back to play the next note
+}
+
 
 // Calculate the attribute file address for a piano key
 //
@@ -3190,7 +3205,7 @@ PLAYTUNE_2:
 // HL.
 //
 // A Frequency parameter from the tune data table at THEMETUNE
-PIANOKEY:
+void PIANOKEY() {
   SUB 8                   // Compute the piano key index (K) based on the
   RRCA                    // frequency parameter (F), and store it in bits 0-4
   RRCA                    // of A: K=31-INT((F-8)/8)
@@ -3200,12 +3215,14 @@ PIANOKEY:
   LD L,A                  // Set HL to the attribute file address for the piano
   LD H,89                 // key
   RET
+}
+
 
 // Check whether ENTER or the fire button is being pressed
 //
 // Used by the routine at PLAYTUNE. Returns with the zero flag reset if ENTER or
 // the fire button on the joystick is being pressed.
-CHECKENTER:
+void CHECKENTER() {
   LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
   OR A                    // Is the joystick connected?
   JR Z,CHECKENTER_0       // Jump if not
@@ -3218,8 +3235,7 @@ CHECKENTER_0:
   AND 1                   // Keep only bit 0 of the result (ENTER)
   CP 1                    // Reset the zero flag if ENTER is being pressed
   RET
-
-} // NOTE: end of main() function!
+}
 
 
 void print_score(int current_score) {
