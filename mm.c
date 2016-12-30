@@ -9,13 +9,35 @@
 
 // ---------------------------SPECCY EMULATOR--------------------------------
 
-// Screeen memory starts at: 16384 (6144)
-// Attributes mem starts at: 22528 ( 768)
+// Memory Layout
+//   | ROM | Screen File | Attributes  | Printer Buf | System vars | MD, CHANS, PROGS, etc.
+//   ^     ^             ^             ^             ^             ^
+//   0   16384         22528         23296         23552         23734
+//             (6144)         (768)         (256)         (182)
+//
+// Keyboard
+// IN 65278 reads the half row CAPS SHIFT to V
+// IN 65022 reads the half row A to G
+// IN 64510 reads the half row Q to T
+// IN 63486 reads the half row 1 to 5
+// IN 61438 reads the half row O to 6
+// IN 57342 reads the half row P to 7
+// IN 49150 reads the half row ENTER to H
+// IN 32766 reads the half row SPACE to B
 
-// Initialize a 48K block of memory, for general use
+// Initialize a 64K block of memory, for general use
 // Holds memory for Screen, Attributes, input, sound, etc.
-// The emulator will tap into these for IO.
-uint8_t MEM[1024 * 48] = {};
+// The emulator may tap into these for IO.
+uint8_t MEM[1024 * 64] = {};
+
+uint8_t regB;
+uint8_t regC;
+uint8_t regD;
+uint8_t regE;
+uint8_t regH;
+uint8_t regL;
+
+void LDIR() { /* function to refresh the screen. */ }
 
 // ==========================================================================
 
@@ -796,6 +818,11 @@ START:
     MEM[22528 + 256 + i] = LOWERATTRS[i];
   }
 
+
+  // IMPORTANT: we need a custom LDIR to refresh the screen -MRC-
+  // probably not the best place to call this, but it'll do for now.
+  LDIR();
+
   // Now check whether there is a joystick connected.
   //   LD BC,31                // B=0, C=31 (joystick port)
   //   DI                      // Disable interrupts (which are already disabled)
@@ -813,9 +840,13 @@ START:
   // And finally, play the theme tune and check for keypresses.
 
   // START_1: // label only used in the KEMP detection routine above.
-  LD IY,THEMETUNE         // Point IY at the theme tune data at THEMETUNE
-  CALL PLAYTUNE           // Play the theme tune
-  JP NZ,STARTGAME         // Start the game if ENTER or the fire button was pressed
+  // LD IY,THEMETUNE         // Point IY at the theme tune data at THEMETUNE
+  // CALL PLAYTUNE           // Play the theme tune
+  // JP NZ,STARTGAME         // Start the game if ENTER or the fire button was pressed
+  // IMPORTANT: there is only one THEMETUNE, so PLAYTUNE can just access it directly -MRC-
+  if ( PLAYTUNE() ) {
+    goto STARTGAME;
+  }
 
   // Initialise the game status buffer variable at EUGHGT;
   // this will be used as an index for the message scrolled across the screen
@@ -864,11 +895,14 @@ START:
     //   JR NZ,START_3
     millisleep(100);
 
-    LD BC,49150             // Read keys H-J-K-L-ENTER
-    IN A,(C)
-    AND 1                   // Keep only bit 0 of the result (ENTER)
-    CP 1                    // Is ENTER being pressed?
-    JR NZ,STARTGAME         // If so, start the game
+    // LD BC,49150             // Read keys H-J-K-L-ENTER
+    // IN A,(C)
+    // AND 1                   // Keep only bit 0 of the result (ENTER)
+    // CP 1                    // Is ENTER being pressed?
+    // JR NZ,STARTGAME         // If so, start the game
+    if ((MEM[49150] & 0xFF) & 1 == 1) {
+      goto STARTGAME;
+    }
 
     // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
     // INC A                   // Increment it
@@ -888,11 +922,14 @@ START:
 //
 // Used by the routine at START.
 STARTGAME:
-  LD HL,SCORE             // Initialise the score at SCORE
+  // IMPORTANT: Probably better to have custom SCORE/SCORBUF/HGHSCOR updating and printing. -MRC-
+  // Initialise the score at SCORE
+  LD HL,SCORE
   LD DE,33830
   LD BC,9
   LD (HL),48
   LDIR
+
 // This entry point is used by the routines at LOOP (when teleporting into a
 // cavern or reinitialising the current cavern after Willy has lost a life) and
 // NXSHEET.
