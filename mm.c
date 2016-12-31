@@ -1301,14 +1301,14 @@ bool MOVEWILLY() {
         // DEC HL                  // Point HL at the left-hand cell below Willy's sprite
         // JP NZ,MOVEWILLY2        // Jump if the right-hand cell below Willy's sprite is not empty
         if (MEM[addr] == BACKGROUND) {
-          MOVEWILLY2();
+          MOVEWILLY2(addr);
           return;
         }
         addr--;
         // CP (HL)                 // Is the left-hand cell below Willy's sprite empty?
         // JP NZ,MOVEWILLY2        // Jump if not
         if (MEM[addr] == BACKGROUND) {
-          MOVEWILLY2();
+          MOVEWILLY2(addr);
           return;
         }
       }
@@ -1491,196 +1491,324 @@ void CRUMBLE(uint16_t addr) {
 // joystick, and moves Willy left or right if necessary.
 //
 // HL Attribute buffer address of the left-hand cell below Willy's sprite
-MOVEWILLY2:
-  LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
-  CP 12                   // Has Willy just landed after falling from too great a height?
-  JP NC,KILLWILLY_0       // If so, kill him
-  LD E,255                // Initialise E to 255 (all bits set); it will be used to hold keyboard and joystick readings
-  XOR A                   // Reset the airborne status indicator at AIRBORNE
-  LD (AIRBORNE),A         // (Willy has landed safely)
-  LD A,(CONVEYOR)         // Pick up the attribute byte of the conveyor tile for the current cavern from CONVEYOR
-  CP (HL)                 // Does the attribute byte of the left-hand cell below Willy's sprite match that of the conveyor tile?
-  JR Z,MOVEWILLY2_0       // Jump if so
-  INC HL                  // Point HL at the right-hand cell below Willy's sprite
-  CP (HL)                 // Does the attribute byte of the right-hand cell below Willy's sprite match that of the conveyor tile?
-  JR NZ,MOVEWILLY2_1      // Jump if not
-MOVEWILLY2_0:
-  LD A,(CONVDIR)          // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
-  SUB 3                   // Now E=253 (bit 1 reset) if the conveyor is moving
-  LD E,A                  // left, or 254 (bit 0 reset) if it's moving right
-MOVEWILLY2_1:
-  LD BC,57342             // Read keys P-O-I-U-Y (right, left, right, left,
-  IN A,(C)                // right) into bits 0-4 of A
-  AND 31                  // Set bit 5 and reset bits 6 and 7
-  OR 32
-  AND E                   // Reset bit 0 if the conveyor is moving right, or bit 1 if it's moving left
-  LD E,A                  // Save the result in E
-  LD BC,64510             // Read keys Q-W-E-R-T (left, right, left, right,
-  IN A,(C)                // left) into bits 0-4 of A
-  AND 31                  // Keep only bits 0-4, shift them into bits 1-5, and
-  RLC A                   // set bit 0
-  OR 1
-  AND E                   // Merge this keyboard reading into bits 1-5 of E
-  LD E,A
-  LD B,247                // Read keys 1-2-3-4-5 ('5' is left) into bits 0-4 of
-  IN A,(C)                // A
-  RRCA                    // Rotate the result right and set bits 0-2 and 4-7;
-  OR 247                  // this ignores every key except '5' (left)
-  AND E                   // Merge this reading of the '5' key into bit 3 of E
-  LD E,A
-  LD B,239                // Read keys 0-9-8-7-6 ('8' is right) into bits 0-4 of
-  IN A,(C)                // A
-  OR 251                  // Set bits 0, 1 and 3-7; this ignores every key except '8' (right)
-  AND E                   // Merge this reading of the '8' key into bit 2 of E
-  LD E,A
-  LD A,(KEMP)             // Collect the Kempston joystick indicator from KEMP
-  OR A                    // Is the joystick connected?
-  JR Z,MOVEWILLY2_2       // Jump if not
-  LD BC,31                // Collect input from the joystick
-  IN A,(C)
-  AND 3                   // Keep only bits 0 (right) and 1 (left) and flip them
-  CPL
-  AND E                   // Merge this reading of the joystick right and left
-  LD E,A                  // buttons into bits 0 and 1 of E
-// At this point, bits 0-5 in E indicate the direction in which Willy is being
-// moved or trying to move. If bit 0, 2 or 4 is reset, Willy is being moved or
-// trying to move right; if bit 1, 3 or 5 is reset, Willy is being moved or
-// trying to move left.
-MOVEWILLY2_2:
-  LD C,0                  // Initialise C to 0 (no movement)
-  LD A,E                  // Copy the movement bits into A
-  AND 42                  // Keep only bits 1, 3 and 5 (the 'left' bits)
-  CP 42                   // Are any of these bits reset?
-  JR Z,MOVEWILLY2_3       // Jump if not
-  LD C,4                  // Set bit 2 of C: Willy is moving left
-MOVEWILLY2_3:
-  LD A,E                  // Copy the movement bits into A
-  AND 21                  // Keep only bits 0, 2 and 4 (the 'right' bits)
-  CP 21                   // Are any of these bits reset?
-  JR Z,MOVEWILLY2_4       // Jump if not
-  SET 3,C                 // Set bit 3 of C: Willy is moving right
-MOVEWILLY2_4:
-  LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
-  ADD A,C                 // Point HL at the entry in the left-right movement
-  LD C,A                  // table at LRMOVEMENT that corresponds to the
-  LD B,0                  // direction Willy is facing, and the direction in
-  LD HL,LRMOVEMENT        // which he is being moved or trying to move
-  ADD HL,BC
-  LD A,(HL)               // Update Willy's direction and movement flags at
-  LD (DMFLAGS),A          // DMFLAGS with the entry from the left-right movement table
-// That is left-right movement taken care of. Now check the jump keys.
-  LD BC,32510             // Read keys SHIFT-Z-X-C-V and B-N-M-SS-SPACE
-  IN A,(C)
-  AND 31                  // Are any of these keys being pressed?
-  CP 31
-  JR NZ,MOVEWILLY2_5      // Jump if so
-  LD B,239                // Read keys 0-9-8-7-6 into bits 0-4 of A
-  IN A,(C)
-  AND 9                   // Keep only bits 0 (the '0' key) and 3 (the '7' key)
-  CP 9                    // Is '0' or '7' being pressed?
-  JR NZ,MOVEWILLY2_5      // Jump if so
-  LD A,(KEMP)             // Collect the Kempston joystick indicator from KEMP
-  OR A                    // Is the joystick connected?
-  JR Z,MOVEWILLY2_6       // Jump if not
-  LD BC,31                // Collect input from the joystick
-  IN A,(C)
-  BIT 4,A                 // Is the fire button being pressed?
-  JR Z,MOVEWILLY2_6       // Jump if not
+bool MOVEWILLY2(uint16_t addr) {
+  // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
+  // CP 12                   // Has Willy just landed after falling from too great a height?
+  // JP NC,KILLWILLY_0       // If so, kill him
+  if (AIRBORNE == 12) {
+    KILLWILLY_0();
+    return true; // FIXME: willy is dead, return to LOOP_4!
+  }
 
-// A jump key or the fire button is being pressed. Time to make Willy jump.
-MOVEWILLY2_5:
-  XOR A                   // Initialise the jumping animation counter at JUMPING
-  LD (JUMPING),A
-  INC A                   // Set the airborne status indicator at AIRBORNE to 1:
-  LD (AIRBORNE),A         // Willy is jumping
+  // LD E,255                // Initialise E to 255 (all bits set); it will be used to hold keyboard and joystick readings
+  uint8_t input = 255;
+
+  // XOR A                   // Reset the airborne status indicator at AIRBORNE
+  // LD (AIRBORNE),A         // (Willy has landed safely)
+  AIRBORNE = 0;
+
+  // LD A,(CONVEYOR)         // Pick up the attribute byte of the conveyor tile for the current cavern from CONVEYOR
+  // CP (HL)                 // Does the attribute byte of the left-hand cell below Willy's sprite match that of the conveyor tile?
+  // JR Z,MOVEWILLY2_0       // Jump if so
+  // INC HL                  // Point HL at the right-hand cell below Willy's sprite
+  // CP (HL)                 // Does the attribute byte of the right-hand cell below Willy's sprite match that of the conveyor tile?
+  // JR NZ,MOVEWILLY2_1      // Jump if not
+  if (MEM[addr] == CONVEYOR || MEM[addr+1] == CONVEYOR) {
+    // MOVEWILLY2_0:
+    // LD A,(CONVDIR)          // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
+    // SUB 3                   // Now E=253 (bit 1 reset) if the conveyor is moving
+    // LD E,A                  // left, or 254 (bit 0 reset) if it's moving right
+    input = CONVDIR - 3;
+  }
+
+  // MOVEWILLY2_1:
+  // LD BC,57342             // Read keys P-O-I-U-Y (right, left, right, left,
+  // IN A,(C)                // right) into bits 0-4 of A
+  // AND 31                  // Set bit 5 and reset bits 6 and 7
+  // OR 32
+  // AND E                   // Reset bit 0 if the conveyor is moving right, or bit 1 if it's moving left
+  // LD E,A                  // Save the result in E
+  input = (((MEM[57342] & 31) | 32) & input);
+
+  // LD BC,64510             // Read keys Q-W-E-R-T (left, right, left, right,
+  // IN A,(C)                // left) into bits 0-4 of A
+  // AND 31                  // Keep only bits 0-4, shift them into bits 1-5, and
+  // RLC A                   // set bit 0
+  // OR 1
+  // AND E                   // Merge this keyboard reading into bits 1-5 of E
+  // LD E,A
+  input = (((MEM[64510] << 1) | 1) & input);
+
+  // LD B,247                // Read keys 1-2-3-4-5 ('5' is left) into bits 0-4 of
+  // IN A,(C)                // A
+  // RRCA                    // Rotate the result right and set bits 0-2 and 4-7;
+  // OR 247                  // this ignores every key except '5' (left)
+  // AND E                   // Merge this reading of the '5' key into bit 3 of E
+  // LD E,A
+  input = (((MEM[63486] >> 1) | 247) & input);
+
+  // LD B,239                // Read keys 0-9-8-7-6 ('8' is right) into bits 0-4 of
+  // IN A,(C)                // A
+  // OR 251                  // Set bits 0, 1 and 3-7; this ignores every key except '8' (right)
+  // AND E                   // Merge this reading of the '8' key into bit 2 of E
+  // LD E,A
+  input = ((MEM[61438] | 251) & input);
+
+  // LD A,(KEMP)             // Collect the Kempston joystick indicator from KEMP
+  // OR A                    // Is the joystick connected?
+  // JR Z,MOVEWILLY2_2       // Jump if not
+  if (KEMP != 0) {
+    /* TODO
+        LD BC,31                // Collect input from the joystick
+        IN A,(C)
+        AND 3                   // Keep only bits 0 (right) and 1 (left) and flip them
+        CPL
+        AND E                   // Merge this reading of the joystick right and left
+        LD E,A                  // buttons into bits 0 and 1 of E
+    */
+  }
+
+  // At this point, bits 0-5 in E indicate the direction in which Willy is being
+  // moved or trying to move. If bit 0, 2 or 4 is reset, Willy is being moved or
+  // trying to move right; if bit 1, 3 or 5 is reset, Willy is being moved or
+  // trying to move left.
+  // MOVEWILLY2_2:
+  // LD C,0                  // Initialise C to 0 (no movement)
+  uint8_t movement = 0;
+  // LD A,E                  // Copy the movement bits into A
+  // AND 42                  // Keep only bits 1, 3 and 5 (the 'left' bits)
+  // CP 42                   // Are any of these bits reset?
+  // JR Z,MOVEWILLY2_3       // Jump if not
+  if ((input & 42) == 42) {
+    // LD C,4                  // Set bit 2 of C: Willy is moving left
+    movement = 4;
+  }
+
+  // MOVEWILLY2_3:
+  // LD A,E                  // Copy the movement bits into A
+  // AND 21                  // Keep only bits 0, 2 and 4 (the 'right' bits)
+  // CP 21                   // Are any of these bits reset?
+  // JR Z,MOVEWILLY2_4       // Jump if not
+  if ((input & 21) == 21) {
+    // SET 3,C                 // Set bit 3 of C: Willy is moving right
+    movement |= 1 << 3;
+  }
+
+  // MOVEWILLY2_4:
+  // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
+  // ADD A,C                 // Point HL at the entry in the left-right movement
+  // LD C,A                  // table at LRMOVEMENT that corresponds to the
+  movement = DMFLAGS + movement;
+  // LD B,0                  // direction Willy is facing, and the direction in
+  // LD HL,LRMOVEMENT        // which he is being moved or trying to move
+  // ADD HL,BC
+  // LD A,(HL)               // Update Willy's direction and movement flags at
+  // LD (DMFLAGS),A          // DMFLAGS with the entry from the left-right movement table
+  DMFLAGS = LRMOVEMENT[movement];
+
+  // That is left-right movement taken care of. Now check the jump keys.
+  // LD BC,32510             // Read keys SHIFT-Z-X-C-V and B-N-M-SS-SPACE
+  // IN A,(C)
+  // AND 31                  // Are any of these keys being pressed?
+  // CP 31
+  // JR NZ,MOVEWILLY2_5      // Jump if so
+  // LD B,239                // Read keys 0-9-8-7-6 into bits 0-4 of A
+  // IN A,(C)
+  // AND 9                   // Keep only bits 0 (the '0' key) and 3 (the '7' key)
+  // CP 9                    // Is '0' or '7' being pressed?
+  // JR NZ,MOVEWILLY2_5      // Jump if so
+  // LD A,(KEMP)             // Collect the Kempston joystick indicator from KEMP
+  // OR A                    // Is the joystick connected?
+  // JR Z,MOVEWILLY2_6       // Jump if not
+  // LD BC,31                // Collect input from the joystick
+  // IN A,(C)
+  // BIT 4,A                 // Is the fire button being pressed?
+  // JR Z,MOVEWILLY2_6       // Jump if not
+  if ((MEM[32510] & 31) != 31) {
+    // NOOP
+    // jump to MOVEWILLY2_5
+  } else if ((MEM[61438] & 9) != 9) {
+    // NOOP
+    // jump to MOVEWILLY2_5
+  } else if (KEMP != 0) {
+    if (((MEM[31] >> 4) & 1) == 0) {
+      MOVEWILLY2_6();
+      return false;
+    }
+  }
+
+  // A jump key or the fire button is being pressed. Time to make Willy jump.
+  // MOVEWILLY2_5:
+  // XOR A                   // Initialise the jumping animation counter at JUMPING
+  // LD (JUMPING),A
+  JUMPING = 0;
+
+  // INC A                   // Set the airborne status indicator at AIRBORNE to 1:
+  // LD (AIRBORNE),A         // Willy is jumping
+  AIRBORNE = 1;
+
+  MOVEWILLY2_6(); // IMPORTANT: implicit function call -MRC-
+  return false; // willy is not dead. -MRC-
+}
 
 // This entry point is used by the routine at MOVEWILLY.
-MOVEWILLY2_6:
-  LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
-  AND 2                   // Is Willy moving?
-  RET Z                   // Return if not
-  LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
-  AND 1                   // Is Willy facing right?
-  JP Z,MOVEWILLY2_9       // Jump if so
-// Willy is moving left.
-  LD A,(FRAME)            // Pick up Willy's animation frame from FRAME
-  OR A                    // Is it 0?
-  JR Z,MOVEWILLY2_7       // If so, jump to move Willy's sprite left across a cell boundary
-  DEC A                   // Decrement Willy's animation frame at FRAME
-  LD (FRAME),A
-  RET
+void MOVEWILLY2_6() {
+  // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
+  // AND 2                   // Is Willy moving?
+  // RET Z                   // Return if not
+  if ((DMFLAGS & 2) == 0) {
+    return;
+  }
+
+  // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
+  // AND 1                   // Is Willy facing right?
+  // JP Z,MOVEWILLY2_9       // Jump if so
+  if (DMFLAGS & 1) {
+    MOVEWILLY2_9();
+    return;
+  }
+
+  // Willy is moving left.
+  // LD A,(FRAME)            // Pick up Willy's animation frame from FRAME
+  // OR A                    // Is it 0?
+  // JR Z,MOVEWILLY2_7       // If so, jump to move Willy's sprite left across a cell boundary
+  if (FRAME | FRAME == 0) {
+    MOVEWILLY2_7();
+    return;
+  }
+
+  // DEC A                   // Decrement Willy's animation frame at FRAME
+  // LD (FRAME),A
+  FRAME--;
+
+  // RET
+}
 
 // Willy's sprite is moving left across a cell boundary. In the comments that
 // follow, (x,y) refers to the coordinates of the top-left cell currently
 // occupied by Willy's sprite.
-MOVEWILLY2_7:
-  LD HL,(LOCATION)        // Collect Willy's attribute buffer coordinates from LOCATION
-  DEC HL                  // Point HL at the cell at (x-1,y+1)
-  LD DE,32
-  ADD HL,DE
-  LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
-  CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
-  RET Z                   // Return if so without moving Willy (his path is blocked)
-  LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
-  AND 15                  // Does Willy's sprite currently occupy only two rows of cells?
-  JR Z,MOVEWILLY2_8       // Jump if so
-  LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
-  ADD HL,DE               // Point HL at the cell at (x-1,y+2)
-  CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
-  RET Z                   // Return if so without moving Willy (his path is blocked)
-  OR A                    // Clear the carry flag for subtraction
-  SBC HL,DE               // Point HL at the cell at (x-1,y+1)
-MOVEWILLY2_8:
-  LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
-  OR A                    // Clear the carry flag for subtraction
-  SBC HL,DE               // Point HL at the cell at (x-1,y)
-  CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
-  RET Z                   // Return if so without moving Willy (his path is blocked)
-  LD (LOCATION),HL        // Save Willy's new attribute buffer coordinates (in HL) at LOCATION
-  LD A,3                  // Change Willy's animation frame at FRAME from 0 to 3
-  LD (FRAME),A
-  RET
+void MOVEWILLY2_7() {
+  // LD HL,(LOCATION)        // Collect Willy's attribute buffer coordinates from LOCATION
+  // DEC HL                  // Point HL at the cell at (x-1,y+1)
+  uint16_t addr = LOCATION - 1;
+  // LD DE,32
+  // ADD HL,DE
+  addr += 32;
+  // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
+  // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
+  // RET Z                   // Return if so without moving Willy (his path is blocked)
+  if (MEM[addr] == WALL) {
+    return;
+  }
+
+  // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
+  // AND 15                  // Does Willy's sprite currently occupy only two rows of cells?
+  // JR Z,MOVEWILLY2_8       // Jump if so
+  if ((PIXEL_Y & 15) == 0) {
+    // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
+    // ADD HL,DE               // Point HL at the cell at (x-1,y+2)
+    // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
+    // RET Z                   // Return if so without moving Willy (his path is blocked)
+    if (MEM[addr + 32] == WALL) {
+      return;
+    }
+    // OR A                    // Clear the carry flag for subtraction
+    // SBC HL,DE               // Point HL at the cell at (x-1,y+1)
+  }
+
+  // MOVEWILLY2_8:
+  // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
+  // OR A                    // Clear the carry flag for subtraction
+  // SBC HL,DE               // Point HL at the cell at (x-1,y)
+  addr -= 32;
+  // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
+  // RET Z                   // Return if so without moving Willy (his path is blocked)
+  if (MEM[addr] == WALL) {
+    return;
+  }
+
+  // LD (LOCATION),HL        // Save Willy's new attribute buffer coordinates (in HL) at LOCATION
+  LOCATION = add;
+
+  // LD A,3                  // Change Willy's animation frame at FRAME from 0 to 3
+  // LD (FRAME),A
+  FRAME = 3;
+
+  // RET
+}
 
 // Willy is moving right.
-MOVEWILLY2_9:
-  LD A,(FRAME)            // Pick up Willy's animation frame from FRAME
-  CP 3                    // Is it 3?
-  JR Z,MOVEWILLY2_10      // If so, jump to move Willy's sprite right across a cell boundary
-  INC A                   // Increment Willy's animation frame at FRAME
-  LD (FRAME),A
-  RET
+void MOVEWILLY2_9() {
+  // LD A,(FRAME)            // Pick up Willy's animation frame from FRAME
+  // CP 3                    // Is it 3?
+  // JR Z,MOVEWILLY2_10      // If so, jump to move Willy's sprite right across a cell boundary
+  if (FRAME == 3) {
+    MOVEWILLY2_10()
+  } else {
+    // INC A                   // Increment Willy's animation frame at FRAME
+    // LD (FRAME),A
+    FRAME++;
+  }
+  // RET
+}
+
 // Willy's sprite is moving right across a cell boundary. In the comments that
 // follow, (x,y) refers to the coordinates of the top-left cell currently
 // occupied by Willy's sprite.
-MOVEWILLY2_10:
-  LD HL,(LOCATION)        // Collect Willy's attribute buffer coordinates from LOCATION
-  INC HL                  // Point HL at the cell at (x+2,y)
-  INC HL
-  LD DE,32                // Prepare DE for addition
-  LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
-  ADD HL,DE               // Point HL at the cell at (x+2,y+1)
-  CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
-  RET Z                   // Return if so without moving Willy (his path is blocked)
-  LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
-  AND 15                  // Does Willy's sprite currently occupy only two rows of cells?
-  JR Z,MOVEWILLY2_11      // Jump if so
-  LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
-  ADD HL,DE               // Point HL at the cell at (x+2,y+2)
-  CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
-  RET Z                   // Return if so without moving Willy (his path is blocked)
-  OR A                    // Clear the carry flag for subtraction
-  SBC HL,DE               // Point HL at the cell at (x+2,y+1)
+void MOVEWILLY2_10() {
+  // LD HL,(LOCATION)        // Collect Willy's attribute buffer coordinates from LOCATION
+  // INC HL                  // Point HL at the cell at (x+2,y)
+  // INC HL
+  uint16_t addr = LOCATION += 2;
+
+  // LD DE,32                // Prepare DE for addition
+  // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
+  // ADD HL,DE               // Point HL at the cell at (x+2,y+1)
+  addr += 32;
+  // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
+  // RET Z                   // Return if so without moving Willy (his path is blocked)
+  if (MEM[addr] == WALL) {
+    return;
+  }
+
+  // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
+  // AND 15                  // Does Willy's sprite currently occupy only two rows of cells?
+  // JR Z,MOVEWILLY2_11      // Jump if so
+  if ((PIXEL_Y & 15) == 0) {
+    // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
+    // ADD HL,DE               // Point HL at the cell at (x+2,y+2)
+    // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
+    // RET Z                   // Return if so without moving Willy (his path is blocked)
+    if (MEM[addr + 32] == WALL) {
+      return;
+    }
+    // OR A                    // Clear the carry flag for subtraction
+    // SBC HL,DE               // Point HL at the cell at (x+2,y+1)
+  }
+
 MOVEWILLY2_11:
-  LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
-  OR A                    // Clear the carry flag for subtraction
-  SBC HL,DE               // Point HL at the cell at (x+2,y)
-  CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
-  RET Z                   // Return if so without moving Willy (his path is blocked)
-  DEC HL                  // Point HL at the cell at (x+1,y)
-  LD (LOCATION),HL        // Save Willy's new attribute buffer coordinates (in HL) at LOCATION
-  XOR A                   // Change Willy's animation frame at FRAME from 3 to 0
-  LD (FRAME),A
-  RET
+  // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
+  // OR A                    // Clear the carry flag for subtraction
+  // SBC HL,DE               // Point HL at the cell at (x+2,y)
+  addr -= 32;
+  // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
+  // RET Z                   // Return if so without moving Willy (his path is blocked)
+  if (MEM[addr] == WALL) {
+    return;
+  }
+
+  // DEC HL                  // Point HL at the cell at (x+1,y)
+  addr--;
+  // LD (LOCATION),HL        // Save Willy's new attribute buffer coordinates (in HL) at LOCATION
+  LOCATION = addr;
+
+  // XOR A                   // Change Willy's animation frame at FRAME from 3 to 0
+  // LD (FRAME),A
+  FRAME = 0;
+
+  // RET
+}
+
 
 // Kill Willy
 //
