@@ -1085,7 +1085,7 @@ bool DECAIR() {
 // Draw the current cavern to the screen buffer at 28672
 //
 // Used by the routine at STARTGAME.
-DRAWSHEET:
+void DRAWSHEET() {
   LD IX,24064             // Point IX at the first byte of the attribute buffer at 24064
   LD A,112                // Set the operand of the 'LD D,n' instruction at
   LD (35484),A            // SBMSB (below) to 112
@@ -1143,110 +1143,202 @@ DRAWSHEET_0:
       MEM[28672 + i] = TITLESCR1[i];
     }
   }
+  // RET
+}
 
-  RET
 
+// IMPORTANT: "probably" need a return to indicate if Willy is dead or not ().
+// MOVEWILLY2 calls KILLWILLY_0, which itself returns to LOOP_4, which is very
+// close to the original CALL MOVEWILLY. -MRC-
 
 // Move Willy (1)
 //
-// Used by the routine at LOOP. This routine deals with Willy if he's jumping or
-// falling.
-MOVEWILLY:
-  LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
-  CP 1                    // Is Willy jumping?
-  JR NZ,MOVEWILLY_3       // Jump if not
-// Willy is currently jumping.
-  LD A,(JUMPING)          // Pick up the jumping animation counter (0-17) from JUMPING
-  RES 0,A                 // Now -8<=A<=8 (and A is even)
-  SUB 8
-  LD HL,PIXEL_Y           // Adjust Willy's pixel y-coordinate at PIXEL_Y
-  ADD A,(HL)              // depending on where Willy is in the jump
-  LD (HL),A
-  CALL MOVEWILLY_7        // Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate
-  LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
-  CP (HL)                 // Is the top-left cell of Willy's sprite overlapping a wall tile?
-  JP Z,MOVEWILLY_10       // Jump if so
-  INC HL                  // Point HL at the top-right cell occupied by Willy's sprite
-  CP (HL)                 // Is the top-right cell of Willy's sprite overlapping a wall tile?
-  JP Z,MOVEWILLY_10       // Jump if so
-  LD A,(JUMPING)          // Increment the jumping animation counter at JUMPING
-  INC A
-  LD (JUMPING),A
-  SUB 8                   // A=J-8, where J (1-18) is the new value of the jumping animation counter
-  JP P,MOVEWILLY_0        // Jump if J>=8
-  NEG                     // A=8-J (1<=J<=7, 1<=A<=7)
-MOVEWILLY_0:
-  INC A                   // A=1+ABS(J-8)
-  RLCA                    // D=8*(1+ABS(J-8)); this value determines the pitch
-  RLCA                    // of the jumping sound effect (rising as Willy rises,
-  RLCA                    // falling as Willy falls)
-  LD D,A
-  LD C,32                 // C=32; this value determines the duration of the jumping sound effect
-  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-MOVEWILLY_1:
-  OUT (254),A             // Make a jumping sound effect
-  XOR 24
-  LD B,D
-MOVEWILLY_2:
-  DJNZ MOVEWILLY_2
-  DEC C
-  JR NZ,MOVEWILLY_1
-  LD A,(JUMPING)          // Pick up the jumping animation counter (1-18) from JUMPING
-  CP 18                   // Has Willy reached the end of the jump?
-  JP Z,MOVEWILLY_8        // Jump if so
-  CP 16                   // Is the jumping animation counter now 16?
-  JR Z,MOVEWILLY_3        // Jump if so
-  CP 13                   // Is the jumping animation counter now 13?
-  JP NZ,MOVEWILLY2_6      // Jump if not
-// If we get here, then Willy is standing on the floor, or he's falling, or his
-// jumping animation counter is 13 (at which point Willy is on his way down and
-// is exactly two cell-heights above where he started the jump) or 16 (at which
-// point Willy is on his way down and is exactly one cell-height above where he
-// started the jump).
-MOVEWILLY_3:
-  LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
-  AND 15                  // Does Willy's sprite occupy six cells at the moment?
-  JR NZ,MOVEWILLY_4       // Jump if so
-  LD HL,(LOCATION)        // Pick up Willy's attribute buffer coordinates from LOCATION
-  LD DE,64                // Point HL at the left-hand cell below Willy's sprite
-  ADD HL,DE
-  LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
-  CP (HL)                 // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
-  CALL Z,CRUMBLE          // If so, make it crumble
-  LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
-  CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
-  JR Z,MOVEWILLY_4        // Jump if so
-  LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
-  CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
-  JR Z,MOVEWILLY_4        // Jump if so
-  INC HL                  // Point HL at the right-hand cell below Willy's sprite
-  LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
-  CP (HL)                 // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
-  CALL Z,CRUMBLE          // If so, make it crumble
-  LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
-  CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
-  JR Z,MOVEWILLY_4        // Jump if so
-  LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
-  CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
-  JR Z,MOVEWILLY_4        // Jump if so
-  LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-  CP (HL)                 // Set the zero flag if the right-hand cell below Willy's sprite is empty
-  DEC HL                  // Point HL at the left-hand cell below Willy's sprite
-  JP NZ,MOVEWILLY2        // Jump if the right-hand cell below Willy's sprite is not empty
-  CP (HL)                 // Is the left-hand cell below Willy's sprite empty?
-  JP NZ,MOVEWILLY2        // Jump if not
-MOVEWILLY_4:
-  LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
-  CP 1                    // Is Willy jumping?
-  JP Z,MOVEWILLY2_6       // Jump if so
-// If we get here, then Willy is either in the process of falling or just about
-// to start falling.
-  LD HL,DMFLAGS           // Reset bit 1 at DMFLAGS: Willy is not moving left or
-  RES 1,(HL)              // right
-  OR A                    // Is Willy already falling?
-  JP Z,MOVEWILLY_9        // Jump if not
-  INC A                   // Increment the airborne status indicator at AIRBORNE
-  LD (AIRBORNE),A
+// Used by the routine at LOOP. This routine deals with Willy if he's jumping or falling.
+bool MOVEWILLY() {
+  // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
+  // CP 1
+  // Is Willy jumping?
+  // JR NZ,MOVEWILLY_3       // Jump if not
+  if (AIRBORNE == 1) {
+    // Willy is currently jumping.
+    // LD A,(JUMPING)          // Pick up the jumping animation counter (0-17) from JUMPING
+    // RES 0,A                 // Now -8<=A<=8 (and A is even)
+    // SUB 8
+    // LD HL,PIXEL_Y           // Adjust Willy's pixel y-coordinate at PIXEL_Y
+    // ADD A,(HL)              // depending on where Willy is in the jump
+    // LD (HL),A
+    PIXEL_Y += (JUMPING & ~(1 << 0)) - 8;
+    // CALL MOVEWILLY_7        // Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate
+    MOVEWILLY_7();
+
+    // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
+    // CP (HL)                 // Is the top-left cell of Willy's sprite overlapping a wall tile?
+    // JP Z,MOVEWILLY_10       // Jump if so
+    // INC HL                  // Point HL at the top-right cell occupied by Willy's sprite
+    // CP (HL)                 // Is the top-right cell of Willy's sprite overlapping a wall tile?
+    // JP Z,MOVEWILLY_10       // Jump if so
+    if (MEM[PIXEL_Y] == WALL || MEM[PIXEL_Y + 1] == WALL) {
+      MOVEWILLY_10();
+      return false;
+    }
+
+    // Increment the jumping animation counter at JUMPING
+    // LD A,(JUMPING)
+    // INC A
+    // LD (JUMPING),A
+    JUMPING++;
+
+    // A=J-8, where J (1-18) is the new value of the jumping animation counter
+    // SUB 8
+    uint8_t anim_counter = JUMPING - 8;
+
+    // JP P,MOVEWILLY_0        // Jump if J>=8
+    if (anim_counter < 8)
+      // NEG                     // A=8-J (1<=J<=7, 1<=A<=7)
+      anim_counter = 8 - anim_counter;
+    }
+
+    // MOVEWILLY_0:
+    // INC A                   // A=1+ABS(J-8)
+    // RLCA                    // D=8*(1+ABS(J-8)); this value determines the pitch
+    // RLCA                    // of the jumping sound effect (rising as Willy rises,
+    // RLCA                    // falling as Willy falls)
+    anim_counter = (anim_counter + 1) << 3;
+
+    LD D,A
+    // LD C,32                 // C=32; this value determines the duration of the jumping sound effect
+
+    // Pick up the border colour for the current cavern from BORDER
+    // LD A,(BORDER)
+    uint8_t border_colour = BORDER;
+
+    // MOVEWILLY_1:
+    for (int i = 32; i > 0; i--) {
+      // OUT (254),A             // Make a jumping sound effect
+      MEM[254] = border_colour;
+      // XOR 24
+      border_colour ^= 24;
+
+      // LD B,D
+      MOVEWILLY_2:
+      DJNZ MOVEWILLY_2
+
+      // DEC C
+      // JR NZ,MOVEWILLY_1
+    }
+
+    // LD A,(JUMPING)          // Pick up the jumping animation counter (1-18) from JUMPING
+    // CP 18                   // Has Willy reached the end of the jump?
+    // JP Z,MOVEWILLY_8        // Jump if so
+    // CP 16                   // Is the jumping animation counter now 16?
+    // JR Z,MOVEWILLY_3        // Jump if so
+    // CP 13                   // Is the jumping animation counter now 13?
+    // JP NZ,MOVEWILLY2_6      // Jump if not
+    switch (JUMPING) {
+    case 18:
+      MOVEWILLY_8();
+      return false;
+    case 16:
+      // jump to MOVEWILLY_3
+      break;
+    case 13:
+      MOVEWILLY2_6();
+      return false;
+    }
+  }
+
+  // If we get here, then Willy is standing on the floor, or he's falling, or his
+  // jumping animation counter is 13 (at which point Willy is on his way down and
+  // is exactly two cell-heights above where he started the jump) or 16 (at which
+  // point Willy is on his way down and is exactly one cell-height above where he
+  // started the jump).
+  // MOVEWILLY_3:
+  // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
+  // AND 15                  // Does Willy's sprite occupy six cells at the moment?
+  // JR NZ,MOVEWILLY_4       // Jump if so
+  if ((PIXEL_Y & 15) == 0) {
+    // LD HL,(LOCATION)        // Pick up Willy's attribute buffer coordinates from LOCATION
+    // LD DE,64                // Point HL at the left-hand cell below Willy's sprite
+    // ADD HL,DE
+    uint16_t addr = LOCATION + 64;
+    // LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
+    // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
+    // CALL Z,CRUMBLE          // If so, make it crumble
+    if (MEM[addr] == CRUMBLING) {
+      CRUMBLE();
+    }
+
+    if (MEM[addr] == NASTY1) {
+      // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
+      // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
+      // JR Z,MOVEWILLY_4        // Jump if so
+    } else if (MEM[addr] == NASTY2) {
+      // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
+      // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
+      // JR Z,MOVEWILLY_4        // Jump if so
+    } else {
+      // INC HL                  // Point HL at the right-hand cell below Willy's sprite
+      addr++;
+
+      // LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
+      // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
+      // CALL Z,CRUMBLE          // If so, make it crumble
+      if (MEM[addr] == CRUMBLING) {
+        CRUMBLE();
+      }
+
+      if (MEM[addr] == NASTY1) {
+        // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
+        // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
+        // JR Z,MOVEWILLY_4        // Jump if so
+      } else if (MEM[addr] == NASTY2) {
+        // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
+        // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
+        // JR Z,MOVEWILLY_4        // Jump if so
+      } else {
+        // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+        // CP (HL)                 // Set the zero flag if the right-hand cell below Willy's sprite is empty
+        // DEC HL                  // Point HL at the left-hand cell below Willy's sprite
+        // JP NZ,MOVEWILLY2        // Jump if the right-hand cell below Willy's sprite is not empty
+        if (MEM[addr] == BACKGROUND) {
+          MOVEWILLY2();
+          return;
+        }
+        addr--;
+        // CP (HL)                 // Is the left-hand cell below Willy's sprite empty?
+        // JP NZ,MOVEWILLY2        // Jump if not
+        if (MEM[addr] == BACKGROUND) {
+          MOVEWILLY2();
+          return;
+        }
+      }
+    }
+  }
+
+  // MOVEWILLY_4:
+  // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
+  // CP 1                    // Is Willy jumping?
+  // JP Z,MOVEWILLY2_6       // Jump if so
+  if (AIRBORNE == 1) {
+    MOVEWILLY2_6();
+    return;
+  }
+
+  // If we get here, then Willy is either in the process of falling or just about to start falling.
+  // LD HL,DMFLAGS           // Reset bit 1 at DMFLAGS: Willy is not moving left or
+  // RES 1,(HL)              // right
+  DMFLAGS &= ~(1 << 1);
+  // OR A                    // Is Willy already falling?
+  // JP Z,MOVEWILLY_9        // Jump if not
+  if (AIRBORNE == 0) {
+    MOVEWILLY_9();
+    return;
+  }
+
+  // INC A                   // Increment the airborne status indicator at AIRBORNE
+  // LD (AIRBORNE),A
+  AIRBORNE++;
+
   RLCA                    // D=16*A; this value determines the pitch of the
   RLCA                    // falling sound effect
   RLCA
@@ -1262,44 +1354,71 @@ MOVEWILLY_6:
   DJNZ MOVEWILLY_6
   DEC C
   JR NZ,MOVEWILLY_5
-  LD A,(PIXEL_Y)          // Add 8 to Willy's pixel y-coordinate at PIXEL_Y;
-  ADD A,8                 // this moves Willy downwards by 4 pixels
-  LD (PIXEL_Y),A
-MOVEWILLY_7:
+
+  // LD A,(PIXEL_Y)          // Add 8 to Willy's pixel y-coordinate at PIXEL_Y;
+  // ADD A,8                 // this moves Willy downwards by 4 pixels
+  // LD (PIXEL_Y),A
+  PIXEL_Y += 8;
+
+  MOVEWILLY_7(); // IMPORTANT: implicit call to this subroutine.
+}
+
+void MOVEWILLY_7(uint8_t a) {
   AND 240                 // L=16*Y, where Y is Willy's screen y-coordinate
   LD L,A                  // (0-14)
   XOR A                   // Clear A and the carry flag
   RL L                    // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8)
   ADC A,92                // H=92 or 93 (MSB of the address of Willy's location
   LD H,A                  // in the attribute buffer)
+
   LD A,(LOCATION)         // Pick up Willy's screen x-coordinate (1-29) from
   AND 31                  // bits 0-4 at LOCATION
   OR L                    // Now L holds the LSB of Willy's attribute buffer
   LD L,A                  // address
   LD (LOCATION),HL        // Store Willy's updated attribute buffer location at LOCATION
-  RET
+
+  // RET
+}
+
 // Willy has just finished a jump.
-MOVEWILLY_8:
-  LD A,6                  // Set the airborne status indicator at AIRBORNE to 6:
-  LD (AIRBORNE),A         // Willy will continue to fall unless he's landed on a wall or floor block
-  RET
+void MOVEWILLY_8() {
+  // LD A,6                  // Set the airborne status indicator at AIRBORNE to 6:
+  // LD (AIRBORNE),A         // Willy will continue to fall unless he's landed on a wall or floor block
+  AIRBORNE = 6;
+  // RET
+}
+
 // Willy has just started falling.
-MOVEWILLY_9:
-  LD A,2                  // Set the airborne status indicator at AIRBORNE to 2
-  LD (AIRBORNE),A
-  RET
+void MOVEWILLY_9() {
+  // LD A,2                  // Set the airborne status indicator at AIRBORNE to 2
+  // LD (AIRBORNE),A
+  AIRBORNE = 2;
+  // RET
+}
+
 // The top-left or top-right cell of Willy's sprite is overlapping a wall tile.
-MOVEWILLY_10:
-  LD A,(PIXEL_Y)          // Adjust Willy's pixel y-coordinate at PIXEL_Y so
-  ADD A,16                // that the top row of cells of his sprite is just
-  AND 240                 // below the wall tile
-  LD (PIXEL_Y),A
-  CALL MOVEWILLY_7        // Adjust Willy's attribute buffer location at LOCATION to account for this new pixel y-coordinate
-  LD A,2                  // Set the airborne status indicator at AIRBORNE to 2:
-  LD (AIRBORNE),A         // Willy has started falling
-  LD HL,DMFLAGS           // Reset bit 1 at DMFLAGS: Willy is not moving left or
-  RES 1,(HL)              // right
-  RET
+void MOVEWILLY_10() {
+  // LD A,(PIXEL_Y)          // Adjust Willy's pixel y-coordinate at PIXEL_Y so
+  // ADD A,16                // that the top row of cells of his sprite is just
+  // AND 240                 // below the wall tile
+  // LD (PIXEL_Y),A
+  PIXEL_Y = ((PIXEL_Y + 16) & 240);
+
+  // CALL MOVEWILLY_7        // Adjust Willy's attribute buffer location at LOCATION to account for this new pixel y-coordinate
+  MOVEWILLY_7();
+
+  // LD A,2                  // Set the airborne status indicator at AIRBORNE to 2:
+  // LD (AIRBORNE),A         // Willy has started falling
+  AIRBORNE = 2;
+
+  // LD HL,DMFLAGS           // Reset bit 1 at DMFLAGS: Willy is not moving left or
+  // RES 1,(HL)              // right
+  DMFLAGS &= ~(1 << 1);
+
+  // RET
+}
+
+
 
 // Animate a crumbling floor tile in the current cavern
 //
@@ -1441,12 +1560,14 @@ MOVEWILLY2_4:
   IN A,(C)
   BIT 4,A                 // Is the fire button being pressed?
   JR Z,MOVEWILLY2_6       // Jump if not
+
 // A jump key or the fire button is being pressed. Time to make Willy jump.
 MOVEWILLY2_5:
   XOR A                   // Initialise the jumping animation counter at JUMPING
   LD (JUMPING),A
   INC A                   // Set the airborne status indicator at AIRBORNE to 1:
   LD (AIRBORNE),A         // Willy is jumping
+
 // This entry point is used by the routine at MOVEWILLY.
 MOVEWILLY2_6:
   LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
@@ -1462,6 +1583,7 @@ MOVEWILLY2_6:
   DEC A                   // Decrement Willy's animation frame at FRAME
   LD (FRAME),A
   RET
+
 // Willy's sprite is moving left across a cell boundary. In the comments that
 // follow, (x,y) refers to the coordinates of the top-left cell currently
 // occupied by Willy's sprite.
@@ -1492,6 +1614,7 @@ MOVEWILLY2_8:
   LD A,3                  // Change Willy's animation frame at FRAME from 0 to 3
   LD (FRAME),A
   RET
+
 // Willy is moving right.
 MOVEWILLY2_9:
   LD A,(FRAME)            // Pick up Willy's animation frame from FRAME
