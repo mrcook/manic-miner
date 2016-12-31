@@ -837,133 +837,179 @@ MANDEAD:
 //
 // Used by the routine at LOOP. First check whether we have a new high score.
 ENDGAM:
-  LD HL,HGHSCOR           // Point HL at the high score at HGHSCOR
-  LD DE,SCORBUF           // Point DE at the current score at SCORBUF
-  LD B,6                  // There are 6 digits to compare
-LPHGH:
-  LD A,(DE)               // Pick up a digit of the current score
-  CP (HL)                 // Compare it with the corresponding digit of the high score
-  JP C,FEET               // Jump if it's less than the corresponding digit of the high score
-  JP NZ,NEWHGH            // Jump if it's greater than the corresponding digit of the high score
-  INC HL                  // Point HL at the next digit of the high score
-  INC DE                  // Point DE at the next digit of the current score
-  DJNZ LPHGH              // Jump back to compare the next pair of digits
-NEWHGH:
-  LD HL,SCORBUF           // Replace the high score with the current score
-  LD DE,HGHSCOR
-  LD BC,6
-  LDIR
+  //   LD HL,HGHSCOR           // Point HL at the high score at HGHSCOR
+  //   LD DE,SCORBUF           // Point DE at the current score at SCORBUF
+  //   LD B,6                  // There are 6 digits to compare
+  // LPHGH:
+  //   LD A,(DE)               // Pick up a digit of the current score
+  //   CP (HL)                 // Compare it with the corresponding digit of the high score
+  //   JP C,FEET               // Jump if it's less than the corresponding digit of the high score
+  //   JP NZ,NEWHGH            // Jump if it's greater than the corresponding digit of the high score
+  //   INC HL                  // Point HL at the next digit of the high score
+  //   INC DE                  // Point DE at the next digit of the current score
+  //   DJNZ LPHGH              // Jump back to compare the next pair of digits
+  // NEWHGH:
+  //   LD HL,SCORBUF           // Replace the high score with the current score
+  //   LD DE,HGHSCOR
+  //   LD BC,6
+  //   LDIR
+  if (current_score > highscore) {
+    highscore = current_score;
+    memcpy(HGHSCOR, SCORBUF, sizeof(SCORBUF));
+  }
+
 // Now prepare the screen for the game over sequence.
 FEET:
-  LD HL,16384             // Clear the top two-thirds of the display file
-  LD DE,16385
-  LD BC,4095
-  LD (HL),0
-  LDIR
-  XOR A                   // Initialise the game status buffer variable at
-  LD (EUGHGT),A           // EUGHGT; this variable will determine the distance of the boot from the top of the screen
-  LD DE,WILLYR2           // Draw Willy at (12,15)
-  LD HL,18575
-  LD C,0
-  CALL DRWFIX
-  LD DE,PLINTH            // Draw the plinth (see PLINTH) underneath Willy at
-  LD HL,18639             // (14,15)
-  LD C,0
-  CALL DRWFIX
-// The following loop draws the boot's descent onto the plinth that supports
-// Willy.
-LOOPFT:
-  LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
-  LD C,A                  // Point BC at the corresponding entry in the screen
-  LD B,131                // buffer address lookup table at SBUFADDRS
-  LD A,(BC)               // Point HL at the corresponding location in the
-  OR 15                   // display file
-  LD L,A
-  INC BC
-  LD A,(BC)
-  SUB 32
-  LD H,A
-  LD DE,BOOT              // Draw the boot (see BOOT) at this location, without
-  LD C,0                  // erasing the boot at the previous location; this
-  CALL DRWFIX             // leaves the portion of the boot sprite that's above the ankle in place, and makes the boot appear as if it's at the end of a long, extending trouser leg
-  LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
-  CPL                     // A=255-A
-  LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
-  XOR A                   // A=0 (black border)
-  LD BC,64                // C=64; this value determines the duration of the sound effect
-TM111:
-  OUT (254),A             // Produce a short note whose pitch is determined by E
-  XOR 24
-  LD B,E
-TM112:
-  DJNZ TM112
-  DEC C
-  JR NZ,TM111
-  LD HL,22528             // Prepare BC, DE and HL for setting the attribute
-  LD DE,22529             // bytes in the top two-thirds of the screen
-  LD BC,511
-  LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
-  AND 12                  // Keep only bits 2 and 3
-  RLCA                    // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3
-  OR 71                   // Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
-  LD (HL),A               // Copy this attribute value into the top two-thirds
-  LDIR                    // of the screen
-  LD A,(EUGHGT)           // Add 4 to the distance variable at EUGHGT; this will
-  ADD A,4                 // move the boot sprite down two pixel rows
-  LD (EUGHGT),A
-  CP 196                  // Has the boot met the plinth yet?
-  JR NZ,LOOPFT            // Jump back if not
-// Now print the "Game Over" message, just to drive the point home.
-  LD IX,MESSG             // Print "Game" (see MESSG) at (6,10)
-  LD C,4
-  LD DE,16586
-  CALL PMESS
-  LD IX,MESSO             // Print "Over" (see MESSO) at (6,18)
-  LD C,4
-  LD DE,16594
-  CALL PMESS
-  LD BC,0                 // Prepare the delay counters for the following loop;
-  LD D,6                  // the counter in C will also determine the INK colours to use for the "Game Over" message
-// The following loop makes the "Game Over" message glisten for about 1.57s.
-TM91:
-  DJNZ TM91               // Delay for about a millisecond
-  LD A,C                  // Change the INK colour of the "G" in "Game" at
-  AND 7                   // (6,10)
-  OR 64
-  LD (22730),A
-  INC A                   // Change the INK colour of the "a" in "Game" at
-  AND 7                   // (6,11)
-  OR 64
-  LD (22731),A
-  INC A                   // Change the INK colour of the "m" in "Game" at
-  AND 7                   // (6,12)
-  OR 64
-  LD (22732),A
-  INC A                   // Change the INK colour of the "e" in "Game" at
-  AND 7                   // (6,13)
-  OR 64
-  LD (22733),A
-  INC A                   // Change the INK colour of the "O" in "Over" at
-  AND 7                   // (6,18)
-  OR 64
-  LD (22738),A
-  INC A                   // Change the INK colour of the "v" in "Over" at
-  AND 7                   // (6,19)
-  OR 64
-  LD (22739),A
-  INC A                   // Change the INK colour of the "e" in "Over" at
-  AND 7                   // (6,20)
-  OR 64
-  LD (22740),A
-  INC A                   // Change the INK colour of the "r" in "Over" at
-  AND 7                   // (6,21)
-  OR 64
-  LD (22741),A
-  DEC C                   // Decrement the counter in C
-  JR NZ,TM91              // Jump back unless it's zero
-  DEC D                   // Decrement the counter in D (initially 6)
-  JR NZ,TM91              // Jump back unless it's zero
-  JP START                // Display the title screen and play the theme tune
+  // Clear the top two-thirds of the display file
+  // LD HL,16384
+  // LD DE,16385
+  // LD BC,4095
+  // LD (HL),0
+  // LDIR
+  for (int i = 0; i <= 4096; i++) {
+    MEM[16384 + i] = 0;
+  }
+
+  // XOR A                   // Initialise the game status buffer variable at
+  // LD (EUGHGT),A           // EUGHGT; this variable will determine the distance of the boot from the top of the screen
+  EUGHGT = 0;
+
+  // LD DE,WILLYR2           // Draw Willy at (12,15)
+  // LD HL,18575
+  // LD C,0
+  // CALL DRWFIX
+  DRWFIX(&WILLYR2, 18575, 0);
+
+  // LD DE,PLINTH            // Draw the plinth (see PLINTH) underneath Willy at
+  // LD HL,18639             // (14,15)
+  // LD C,0
+  // CALL DRWFIX
+  DRWFIX(&PLINTH, 18639, 0);
+
+  // The following loop draws the boot's descent onto the plinth that supports Willy.
+  // LOOPFT:
+  for (EUGHGT = 0; EUGHGT < 196; EUGHGT += 4) {
+    // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
+    // LD C,A                  // Point BC at the corresponding entry in the screen
+    // LD B,131                // buffer address lookup table at SBUFADDRS
+    // LD A,(BC)               // Point HL at the corresponding location in the
+    // OR 15                   // display file
+    // LD L,A
+    // INC BC
+    // LD A,(BC)
+    // SUB 32
+    // LD H,A
+    // LD DE,BOOT              // Draw the boot (see BOOT) at this location, without
+    // LD C,0                  // erasing the boot at the previous location; this
+    // CALL DRWFIX             // leaves the portion of the boot sprite that's above the ankle in place, and makes the boot appear as if it's at the end of a long, extending trouser leg
+    DRWFIX(&BOOT, MEM[SBUFADDRS[EUGHGT]], 0); // FIXME: this IS wrong, fix it! -MRC-
+
+    LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
+    CPL                     // A=255-A
+    LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
+    XOR A                   // A=0 (black border)
+    LD BC,64                // C=64; this value determines the duration of the sound effect
+  TM111:
+    OUT (254),A             // Produce a short note whose pitch is determined by E
+    XOR 24
+    LD B,E
+  TM112:
+    DJNZ TM112
+    DEC C
+    JR NZ,TM111
+
+    // LD HL,22528             // Prepare BC, DE and HL for setting the attribute
+    // LD DE,22529             // bytes in the top two-thirds of the screen
+    // LD BC,511
+    // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
+    // AND 12                  // Keep only bits 2 and 3
+    // RLCA                    // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3
+    // OR 71                   // Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
+    // LD (HL),A               // Copy this attribute value into the top two-thirds
+    // LDIR                    // of the screen
+    for (int i = 0; i <= 512; i++) {
+      MEM[22528 + i] = (((EUGHGT & 12) << 1) | 71);
+    }
+
+    // LD A,(EUGHGT)           // Add 4 to the distance variable at EUGHGT; this will
+    // ADD A,4                 // move the boot sprite down two pixel rows
+    // LD (EUGHGT),A
+    // CP 196                  // Has the boot met the plinth yet?
+    // JR NZ,LOOPFT            // Jump back if not
+  }
+
+  // Now print the "Game Over" message, just to drive the point home.
+
+  // Print "Game" (see MESSG) at (6,10)
+  // LD IX,MESSG
+  // LD C,4
+  // LD DE,16586
+  // CALL PMESS
+  DRWFIX(&MESSG, 16586, 4);
+
+  // Print "Over" (see MESSO) at (6,18)
+  // LD IX,MESSO
+  // LD C,4
+  // LD DE,16594
+  // CALL PMESS
+  DRWFIX(&MESSO, 16594, 4);
+
+  // LD BC,0                 // Prepare the delay counters for the following loop;
+  // LD D,6                  // the counter in C will also determine the INK colours to use for the "Game Over" message
+
+  // The following loop makes the "Game Over" message glisten for about 1.57s.
+  // TM91:
+  for (int d = 6; d > 0; d--) {
+    // Delay for about a millisecond
+    // DJNZ TM91
+    millisleep(1);
+
+    for (int a = 0; a < 8; a++) {
+    // LD A,C                  // Change the INK colour of the "G" in "Game" at
+    // AND 7                   // (6,10)
+    // OR 64
+    // LD (22730),A
+    // INC A                   // Change the INK colour of the "a" in "Game" at
+    // AND 7                   // (6,11)
+    // OR 64
+    // LD (22731),A
+    // INC A                   // Change the INK colour of the "m" in "Game" at
+    // AND 7                   // (6,12)
+    // OR 64
+    // LD (22732),A
+    // INC A                   // Change the INK colour of the "e" in "Game" at
+    // AND 7                   // (6,13)
+    // OR 64
+    // LD (22733),A
+    // INC A                   // Change the INK colour of the "O" in "Over" at
+    // AND 7                   // (6,18)
+    // OR 64
+    // LD (22738),A
+    // INC A                   // Change the INK colour of the "v" in "Over" at
+    // AND 7                   // (6,19)
+    // OR 64
+    // LD (22739),A
+    // INC A                   // Change the INK colour of the "e" in "Over" at
+    // AND 7                   // (6,20)
+    // OR 64
+    // LD (22740),A
+    // INC A                   // Change the INK colour of the "r" in "Over" at
+    // AND 7                   // (6,21)
+    // OR 64
+    // LD (22741),A
+
+    // IMPORTANT: haha, and you think this is correct? -MRC-
+    MEM[22730 + a] = (((d+a) & 7) | 64);
+
+    // DEC C                   // Decrement the counter in C
+    // JR NZ,TM91              // Jump back unless it's zero
+    // DEC D                   // Decrement the counter in D (initially 6)
+    // JR NZ,TM91              // Jump back unless it's zero
+  }
+
+  // Display the title screen and play the theme tune
+  // JP START
+  goto START;
 
 
 // Decrease the air remaining in the current cavern
