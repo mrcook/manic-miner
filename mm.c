@@ -1016,43 +1016,71 @@ FEET:
 //
 // Used by the routines at LOOP, LIGHTBEAM and NXSHEET. Returns with the zero
 // flag set if there is no air remaining.
-DECAIR:
-  LD A,(CLOCK)            // Update the game clock at CLOCK
-  SUB 4
-  LD (CLOCK),A
-  CP 252                  // Was it just decreased from zero?
-  JR NZ,DECAIR_0          // Jump if not
-  LD A,(AIR)              // Pick up the value of the remaining air supply from AIR
-  CP 36                   // Has the air supply run out?
-  RET Z                   // Return (with the zero flag set) if so
-  DEC A                   // Decrement the air supply at AIR
-  LD (AIR),A
-  LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
-DECAIR_0:
-  AND 224                 // A=INT(A/32); this value specifies how many pixels
-  RLCA                    // to draw from left to right in the cell at the right
-  RLCA                    // end of the air bar
-  RLCA
-  LD E,0                  // Initialise E to 0 (all bits reset)
-  OR A                    // Do we need to draw any pixels in the cell at the right end of the air bar?
-  JR Z,DECAIR_2           // Jump if not
-  LD B,A                  // Copy the number of pixels to draw (1-7) to B
-DECAIR_1:
-  RRC E                   // Set this many bits in E (from bit 7 towards bit 0)
-  SET 7,E
-  DJNZ DECAIR_1
-DECAIR_2:
-  LD A,(AIR)              // Pick up the value of the remaining air supply from AIR
-  LD L,A                  // Set HL to the display file address at which to draw
-  LD H,82                 // the top row of pixels in the cell at the right end of the air bar
-  LD B,4                  // There are four rows of pixels to draw
-DECAIR_3:
-  LD (HL),E               // Draw the four rows of pixels at the right end of
-  INC H                   // the air bar
-  DJNZ DECAIR_3
-  XOR A                   // Reset the zero flag to indicate that there is still
-  INC A                   // some air remaining; these instructions are redundant, since the zero flag is already reset at this point
-  RET
+bool DECAIR() {
+  // LD A,(CLOCK)            // Update the game clock at CLOCK
+  // SUB 4
+  // LD (CLOCK),A
+  CLOCK -= 4;
+
+  // CP 252                  // Was it just decreased from zero?
+  // JR NZ,DECAIR_0          // Jump if not
+  if (CLOCK >= 0) {
+    // LD A,(AIR)              // Pick up the value of the remaining air supply from AIR
+    // CP 36
+    // Has the air supply run out?
+    if (AIR == 36) {
+      // RET Z                   // Return (with the zero flag set) if so
+      return true;
+    }
+
+    // DEC A                   // Decrement the air supply at AIR
+    // LD (AIR),A
+    AIR--;
+
+    // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
+  }
+
+  // DECAIR_0:
+  // AND 224                 // A=INT(A/32); this value specifies how many pixels
+  // RLCA                    // to draw from left to right in the cell at the right
+  // RLCA                    // end of the air bar
+  // RLCA
+  uint8_t count = ((CLOCK & 224) << 3)
+  // LD E,0                  // Initialise E to 0 (all bits reset)
+  uint8_t pixels = 0;
+  // OR A                    // Do we need to draw any pixels in the cell at the right end of the air bar?
+  // JR Z,DECAIR_2           // Jump if not
+  if ((count | count) != 0) {
+    // LD B,A                  // Copy the number of pixels to draw (1-7) to B
+    // DECAIR_1:
+    for (int i = count; i > 0; i--) {
+      // RRC E                   // Set this many bits in E (from bit 7 towards bit 0)
+      pixels >> 1;
+      // SET 7,E
+      pixels |= 1 << 7;
+      // DJNZ DECAIR_1
+    }
+  }
+
+  // DECAIR_2:
+  // LD A,(AIR)              // Pick up the value of the remaining air supply from AIR
+  // LD L,A                  // Set HL to the display file address at which to draw
+  // LD H,82                 // the top row of pixels in the cell at the right end of the air bar
+  // LD B,4                  // There are four rows of pixels to draw
+  // DECAIR_3:
+  for (int i = 0; i < 4; i++) {
+    // Draw the four rows of pixels at the right end of the air bar
+    // LD (HL),E
+    MEM[build_address(82 + i, AIR)] = pixels;
+    // INC H
+    // DJNZ DECAIR_3
+  }
+
+  // XOR A                   // Reset the zero flag to indicate that there is still
+  // INC A                   // some air remaining; these instructions are redundant, since the zero flag is already reset at this point
+  // RET
+  return false;
+}
 
 // Draw the current cavern to the screen buffer at 28672
 //
