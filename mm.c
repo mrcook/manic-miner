@@ -1090,42 +1090,62 @@ DRAWSHEET:
   LD A,112                // Set the operand of the 'LD D,n' instruction at
   LD (35484),A            // SBMSB (below) to 112
   CALL DRAWSHEET_0        // Draw the tiles for the top half of the cavern to the screen buffer at 28672
-  LD IX,24320             // Point IX at the 256th byte of the attribute buffer at 24064 in preparation for drawing the bottom half of the cavern; this instruction is redundant, since IX already holds 24320
+
+  // LD IX,24320             // Point IX at the 256th byte of the attribute buffer at 24064 in preparation for drawing the bottom half of the cavern; this instruction is redundant, since IX already holds 24320
   LD A,120                // Set the operand of the 'LD D,n' instruction at
   LD (35484),A            // SBMSB (below) to 120
+// ----------------------------------------------------------------------------------------------
+// FIXME: currently we have all this data in separate arrays, so how do we iterate over all that?
+// ----------------------------------------------------------------------------------------------
 DRAWSHEET_0:
   LD C,0                  // C will count 256 tiles
-// The following loop draws 256 tiles (for either the top half or the bottom
-// half of the cavern) to the screen buffer at 28672.
-DRAWSHEET_1:
-  LD E,C                  // E holds the LSB of the screen buffer address
-  LD A,(IX+0)             // Pick up an attribute byte from the buffer at 24064; this identifies the type of tile to draw
-  LD HL,BACKGROUND        // Move HL through the attribute bytes and graphic
-  LD BC,72                // data of the background, floor, crumbling floor,
-  CPIR                    // wall, conveyor and nasty tiles starting at BACKGROUND until we find a byte that matches the attribute byte of the tile to be drawn
-  LD C,E                  // Restore the value of the tile counter in C
-  LD B,8                  // There are eight bytes in the tile
-SBMSB:
-  LD D,0                  // This instruction is set to either 'LD D,112' or 'LD D,120' above; now DE holds the appropriate address in the screen buffer at 28672
-DRAWSHEET_2:
-  LD A,(HL)               // Copy the tile graphic data to the screen buffer at
-  LD (DE),A               // 28672
-  INC HL
-  INC D
-  DJNZ DRAWSHEET_2
-  INC IX                  // Move IX along to the next byte in the attribute buffer
-  INC C                   // Have we drawn 256 tiles yet?
-  JP NZ,DRAWSHEET_1       // If not, jump back to draw the next one
-// The empty cavern has been drawn to the screen buffer at 28672. If we're in
-// The Final Barrier, however, there is further work to do.
-  LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-  CP 19                   // Is it The Final Barrier?
-  RET NZ                  // Return if not
-  LD HL,TITLESCR1         // Copy the graphic data from TITLESCR1 to the top
-  LD DE,28672             // half of the screen buffer at 28672
-  LD BC,2048
-  LDIR
+
+  // The following loop draws 256 tiles (for either the top half or the bottom
+  // half of the cavern) to the screen buffer at 28672.
+  // DRAWSHEET_1:
+  for (;;) {
+    LD E,C                  // E holds the LSB of the screen buffer address
+    LD A,(IX+0)             // Pick up an attribute byte from the buffer at 24064; this identifies the type of tile to draw
+    LD HL,BACKGROUND        // Move HL through the attribute bytes and graphic
+    LD BC,72                // data of the background, floor, crumbling floor,
+    CPIR                    // wall, conveyor and nasty tiles starting at BACKGROUND until we find a byte that matches the attribute byte of the tile to be drawn
+    LD C,E                  // Restore the value of the tile counter in C
+    LD B,8                  // There are eight bytes in the tile
+  SBMSB:
+    LD D,0                  // This instruction is set to either 'LD D,112' or 'LD D,120' above; now DE holds the appropriate address in the screen buffer at 28672
+
+    // DRAWSHEET_2:
+    for (;;) {
+      LD A,(HL)               // Copy the tile graphic data to the screen buffer at
+      LD (DE),A               // 28672
+      INC HL
+      INC D
+      DJNZ DRAWSHEET_2
+    }
+
+    INC IX                  // Move IX along to the next byte in the attribute buffer
+    INC C                   // Have we drawn 256 tiles yet?
+    JP NZ,DRAWSHEET_1       // If not, jump back to draw the next one
+  }
+
+  // The empty cavern has been drawn to the screen buffer at 28672. If we're in
+  // The Final Barrier, however, there is further work to do.
+
+  // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+  // CP 19                   // Is it The Final Barrier?
+  // RET NZ                  // Return if not
+  // LD HL,TITLESCR1         // Copy the graphic data from TITLESCR1 to the top
+  // LD DE,28672             // half of the screen buffer at 28672
+  // LD BC,2048
+  // LDIR
+  if (SHEET == 19) {
+    for (int i = 0; i <= 2048; i++) {
+      MEM[28672 + i] = TITLESCR1[i];
+    }
+  }
+
   RET
+
 
 // Move Willy (1)
 //
