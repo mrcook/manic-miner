@@ -1265,7 +1265,7 @@ bool MOVEWILLY() {
     // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
     // CALL Z,CRUMBLE          // If so, make it crumble
     if (MEM[addr] == CRUMBLING) {
-      CRUMBLE();
+      CRUMBLE(addr);
     }
 
     if (MEM[addr] == NASTY1) {
@@ -1284,7 +1284,7 @@ bool MOVEWILLY() {
       // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
       // CALL Z,CRUMBLE          // If so, make it crumble
       if (MEM[addr] == CRUMBLING) {
-        CRUMBLE();
+        CRUMBLE(addr);
       }
 
       if (MEM[addr] == NASTY1) {
@@ -1424,40 +1424,66 @@ void MOVEWILLY_10() {
 //
 // Used by the routine at MOVEWILLY.
 //
-// HL Address of the crumbling floor tile's location in the attribute buffer at
-//    23552
-CRUMBLE:
-  LD C,L                  // Point BC at the bottom row of pixels of the
-  LD A,H                  // crumbling floor tile in the screen buffer at 28672
-  ADD A,27
-  OR 7
-  LD B,A
-CRUMBLE_0:
-  DEC B                   // Collect the pixels from the row above in A
-  LD A,(BC)
-  INC B                   // Copy these pixels into the row below it
-  LD (BC),A
-  DEC B                   // Point BC at the next row of pixels up
-  LD A,B                  // Have we dealt with the bottom seven pixel rows of
-  AND 7                   // the crumbling floor tile yet?
-  JR NZ,CRUMBLE_0         // If not, jump back to deal with the next one up
-  XOR A                   // Clear the top row of pixels in the crumbling floor
-  LD (BC),A               // tile
-  LD A,B                  // Point BC at the bottom row of pixels in the
-  ADD A,7                 // crumbling floor tile
-  LD B,A
-  LD A,(BC)               // Pick up the bottom row of pixels in A
-  OR A                    // Is the bottom row clear?
-  RET NZ                  // Return if not
-// The bottom row of pixels in the crumbling floor tile is clear. Time to put a
-// background tile in its place.
-  LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-  INC H                   // Set HL to the address of the crumbling floor tile's
-  INC H                   // location in the attribute buffer at 24064
-  LD (HL),A               // Set the attribute at this location to that of the background tile
-  DEC H                   // Set HL back to the address of the crumbling floor
-  DEC H                   // tile's location in the attribute buffer at 23552
-  RET
+// HL Address of the crumbling floor tile's location in the attribute buffer at 23552
+void CRUMBLE(uint16_t addr) {
+  // LD C,L                  // Point BC at the bottom row of pixels of the
+  // LD A,H                  // crumbling floor tile in the screen buffer at 28672
+
+  uint8_t b;
+  uint8_t c;
+  split_address(addr, &b, &c)
+
+  // ADD A,27
+  // OR 7
+  // LD B,A
+  b = ((b + 27) | 7);
+
+  // CRUMBLE_0:
+  for (;;) {
+    // DEC B                   // Collect the pixels from the row above in A
+    b--;
+    // LD A,(BC)
+    // INC B                   // Copy these pixels into the row below it
+    // LD (BC),A
+    MEM[build_address(b+1, c)] = MEM[build_address(b, c)];
+    // DEC B                   // Point BC at the next row of pixels up
+    // LD A,B                  // Have we dealt with the bottom seven pixel rows of
+    // AND 7                   // the crumbling floor tile yet?
+    // JR NZ,CRUMBLE_0         // If not, jump back to deal with the next one up
+    if (b & 7) {
+      break;
+    }
+  }
+
+  // XOR A                   // Clear the top row of pixels in the crumbling floor
+  // LD (BC),A               // tile
+  MEM[build_address(b, c)] = 0;
+
+  // LD A,B                  // Point BC at the bottom row of pixels in the
+  // ADD A,7                 // crumbling floor tile
+  // LD B,A
+  b += 7;
+
+  // LD A,(BC)               // Pick up the bottom row of pixels in A
+  // OR A                    // Is the bottom row clear?
+  if (MEM[build_address(b, c)] != 0) {
+    // RET NZ                  // Return if not
+    return;
+  }
+
+  // The bottom row of pixels in the crumbling floor tile is clear. Time to put a
+  // // background tile in its place.
+  // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+  // INC H                   // Set HL to the address of the crumbling floor tile's
+  // INC H                   // location in the attribute buffer at 24064
+  // LD (HL),A               // Set the attribute at this location to that of the background tile
+  // DEC H                   // Set HL back to the address of the crumbling floor
+  // DEC H                   // tile's location in the attribute buffer at 23552
+  split_address(addr, &b, &c);
+  MEM[build_address(b+2, c)] = BACKGROUND;
+
+  // RET
+}
 
 // Move Willy (2)
 //
