@@ -1813,21 +1813,37 @@ MOVEWILLY2_11:
 // Kill Willy
 //
 // Used by the routine at WILLYATTR when Willy hits a nasty.
-KILLWILLY:
+bool KILLWILLY() {
   POP HL                  // Drop the return address from the stack
+
+  return KILLWILLY_0();
+}
+
 // This entry point is used by the routines at MOVEWILLY2 (when Willy lands
 // after falling from too great a height), DRAWHG (when Willy collides with a
 // horizontal guardian), EUGENE (when Willy collides with Eugene), VGUARDIANS
 // (when Willy collides with a vertical guardian) and KONGBEAST (when Willy
 // collides with the Kong Beast).
-KILLWILLY_0:
+bool KILLWILLY_0() {
   POP HL                  // Drop the return address from the stack
-// This entry point is used by the routine at SKYLABS when a Skylab falls on
-// Willy.
-KILLWILLY_1:
-  LD A,255                // Set the airborne status indicator at AIRBORNE to
-  LD (AIRBORNE),A         // 255 (meaning Willy has had a fatal accident)
-  JP LOOP_4               // Jump back into the main loop
+
+  return KILLWILLY_1();
+}
+
+// This entry point is used by the routine at SKYLABS when a Skylab falls on Willy.
+bool KILLWILLY_1() {
+  // LD A,255                // Set the airborne status indicator at AIRBORNE to
+  // LD (AIRBORNE),A         // 255 (meaning Willy has had a fatal accident)
+  AIRBORNE = 255;
+
+  // JP LOOP_4               // Jump back into the main loop
+
+  // IMPORTANT: the callers of KILLWILLY will need to handle the `true` return
+  // value - Willy is dead! - all the way back to the main LOOP, so that they
+  // jump to the LOOP_4 label.
+  return true;
+}
+
 
 // Move the horizontal guardians in the current cavern
 //
@@ -2528,7 +2544,7 @@ MVCONVEYOR_1:
   JR MVCONVEYOR_0         // Jump back to update the first and third pixel rows of every conveyor tile
 
 // Move and draw the Kong Beast in the current cavern
-//
+KONGBEAST//
 // Used by the routine at LOOP.
 KONGBEAST:
   LD HL,23558             // Flip the left-hand switch at (0,6) if Willy is
