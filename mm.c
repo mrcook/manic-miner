@@ -2282,70 +2282,121 @@ void EUGENE_3(uint16_t addr, uint8_t ink_color) {
 // Move and draw the Skylabs in Skylab Landing Bay
 //
 // Used by the routine at LOOP.
-SKYLABS:
-  LD IY,VGUARDS           // Point IY at the first byte of the first vertical guardian definition at VGUARDS
-// The Skylab-moving loop begins here.
-SKYLABS_0:
-  LD A,(IY+0)             // Pick up the first byte of the guardian definition
-  CP 255                  // Have we dealt with all the Skylabs yet?
-  JP Z,LOOP_3             // If so, re-enter the main loop
-  LD A,(IY+2)             // Pick up the Skylab's pixel y-coordinate
-  CP (IY+6)               // Has it reached its crash site yet?
-  JR NC,SKYLABS_1         // Jump if so
-  ADD A,(IY+4)            // Increment the Skylab's y-coordinate (moving it
-  LD (IY+2),A             // downwards)
-  JR SKYLABS_2
-// The Skylab has reached its crash site. Start or continue its disintegration.
-SKYLABS_1:
-  INC (IY+1)              // Increment the animation frame
-  LD A,(IY+1)             // Pick up the animation frame
-  CP 8                    // Has the Skylab completely disintegrated yet?
-  JR NZ,SKYLABS_2         // Jump if not
-  LD A,(IY+5)             // Reset the Skylab's pixel y-coordinate
-  LD (IY+2),A
-  LD A,(IY+3)             // Add 8 to the Skylab's x-coordinate (wrapping around
-  ADD A,8                 // at the right side of the screen)
-  AND 31
-  LD (IY+3),A
-  LD (IY+1),0             // Reset the animation frame to 0
-// Now that the Skylab's movement has been dealt with, time to draw it.
-SKYLABS_2:
-  LD E,(IY+2)             // Pick up the Skylab's pixel y-coordinate in E
-  RLC E                   // Point DE at the entry in the screen buffer address
-  LD D,131                // lookup table at SBUFADDRS that corresponds to the Skylab's pixel y-coordinate
-  LD A,(DE)               // Point HL at the address of the Skylab's location in
-  ADD A,(IY+3)            // the screen buffer at 24576
-  LD L,A
-  INC DE
-  LD A,(DE)
-  LD H,A
-  LD A,(IY+1)             // Pick up the animation frame (0-7)
-  RRCA                    // Multiply it by 32
-  RRCA
-  RRCA
-  LD E,A                  // Point DE at the graphic data for the corresponding
-  LD D,129                // Skylab sprite (at GGDATA+A)
-  LD C,1                  // Draw the Skylab to the screen buffer at 24576
-  CALL DRWFIX
-  JP NZ,KILLWILLY_1       // Kill Willy if the Skylab collided with him
-  LD A,(IY+2)             // Point HL at the address of the Skylab's location in
-  AND 64                  // the attribute buffer at 23552
-  RLCA
-  RLCA
-  ADD A,92
-  LD H,A
-  LD A,(IY+2)
-  RLCA
-  RLCA
-  AND 224
-  OR (IY+3)
-  LD L,A
-  LD A,(IY+0)             // Pick up the Skylab's attribute byte
-  CALL EUGENE_3           // Set the attribute bytes for the Skylab
-// The current guardian definition has been dealt with. Time for the next one.
-  LD DE,7                 // Point IY at the first byte of the next vertical
-  ADD IY,DE               // guardian definition
-  JR SKYLABS_0            // Jump back to deal with the next Skylab
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool SKYLABS() {
+  // LD IY,VGUARDS           // Point IY at the first byte of the first vertical guardian definition at VGUARDS
+
+  uint8_t msb;
+  uint8_t lsb;
+  uint16_t addr;
+
+  // The Skylab-moving loop begins here.
+  // SKYLABS_0:
+  for (int i = 0; i < 4; i++) {
+    // LD A,(IY+0)             // Pick up the first byte of the guardian definition
+    // CP 255                  // Have we dealt with all the Skylabs yet?
+    // JP Z,LOOP_3             // If so, re-enter the main loop
+
+    uint8_t *guardian = &VGUARDS[i];
+
+    // LD A,(IY+2)             // Pick up the Skylab's pixel y-coordinate
+    // CP (IY+6)               // Has it reached its crash site yet?
+    // JR NC,SKYLABS_1         // Jump if so
+    if (guardian[2] != guardian[6]) {
+      // ADD A,(IY+4)            // Increment the Skylab's y-coordinate (moving it
+      // LD (IY+2),A             // downwards)
+      guardian[2] += guardian[4];
+      // JR SKYLABS_2
+    } else {
+      // The Skylab has reached its crash site. Start or continue its disintegration.
+      // SKYLABS_1:
+      // INC (IY+1)              // Increment the animation frame
+      guardian[1]++;
+
+      // LD A,(IY+1)             // Pick up the animation frame
+      // CP 8                    // Has the Skylab completely disintegrated yet?
+      // JR NZ,SKYLABS_2         // Jump if not
+      if (guardian[1] == 8) {
+        // LD A,(IY+5)             // Reset the Skylab's pixel y-coordinate
+        // LD (IY+2),A
+        guardian[2] = guardian[5];
+
+        // LD A,(IY+3)             // Add 8 to the Skylab's x-coordinate (wrapping around
+        // ADD A,8                 // at the right side of the screen)
+        // AND 31
+        // LD (IY+3),A
+        guardian[3] = ((guardian[3] + 8) & 31);
+
+        // LD (IY+1),0             // Reset the animation frame to 0
+        guardian[1] = 0;
+      }
+    }
+
+    // Now that the Skylab's movement has been dealt with, time to draw it.
+
+    // IMPORTANT: are these address calculations correct? -MRC-
+    // Are x/y coords uint16_t or uint8_t values?
+
+    // SKYLABS_2:
+    // LD E,(IY+2)             // Pick up the Skylab's pixel y-coordinate in E
+    // RLC E                   // Point DE at the entry in the screen buffer address
+    // LD D,131                // lookup table at SBUFADDRS that corresponds to the Skylab's pixel y-coordinate
+    // LD A,(DE)               // Point HL at the address of the Skylab's location in
+    addr = SBUFADDRS[guardian[2] << 1];
+    // ADD A,(IY+3)            // the screen buffer at 24576
+    // LD L,A
+    // INC DE
+    // LD A,(DE)
+    // LD H,A
+    addr += guardian[3];
+
+    // LD A,(IY+1)             // Pick up the animation frame (0-7)
+    // RRCA                    // Multiply it by 32
+    // RRCA
+    // RRCA
+    // LD E,A                  // Point DE at the graphic data for the corresponding
+    // LD D,129                // Skylab sprite (at GGDATA+A)
+    uint8_t sprite_offset = guardian[1] >> 3;
+    // LD C,1                  // Draw the Skylab to the screen buffer at 24576
+    // CALL DRWFIX
+    bool kill_willy = DRWFIX(&GGDATA[sprite_offset], addr, 1);
+    if (kill_willy) {
+      // JP NZ,KILLWILLY_1       // Kill Willy if the Skylab collided with him
+      KILLWILLY_0();
+      return true;
+    }
+
+    // LD A,(IY+2)             // Point HL at the address of the Skylab's location in
+    // AND 64                  // the attribute buffer at 23552
+    // RLCA
+    // RLCA
+    // ADD A,92
+    // LD H,A
+    addr = ((guardian[2] & 64) << 2) + 92;
+    split_address(addr, msb, lsb);
+    uint8_t msb_bak = msb;
+
+    // LD A,(IY+2)
+    // RLCA
+    // RLCA
+    // AND 224
+    addr = ((guardian[2]) << 2) & 224;
+    // OR (IY+3)
+    addr |= guardian[3];
+    split_address(addr, msb, lsb);
+    // LD L,A
+    addr = build_address(msb_bak, lsb);
+
+    // LD A,(IY+0)             // Pick up the Skylab's attribute byte
+    // CALL EUGENE_3           // Set the attribute bytes for the Skylab
+    EUGENE_3(addr, guardian[0]);
+
+    // The current guardian definition has been dealt with. Time for the next one.
+    // LD DE,7                 // Point IY at the first byte of the next vertical
+    // ADD IY,DE               // guardian definition
+    // JR SKYLABS_0            // Jump back to deal with the next Skylab
+  }
+}
 
 // Move and draw the vertical guardians in the current cavern
 //
