@@ -2511,60 +2511,108 @@ bool VGUARDIANS() {
 // Draw the items in the current cavern and collect any that Willy is touching
 //
 // Used by the routine at LOOP.
-DRAWITEMS:
-  XOR A                   // Initialise the attribute of the last item drawn at
-  LD (ITEMATTR),A         // ITEMATTR to 0 (in case there are no items left to draw)
-  LD IY,ITEMS             // Point IY at the first byte of the first item definition at ITEMS
-// The item-drawing loop begins here.
-DRAWITEMS_0:
-  LD A,(IY+0)             // Pick up the first byte of the item definition
-  CP 255                  // Have we dealt with all the items yet?
-  JR Z,DRAWITEMS_3        // Jump if so
-  OR A                    // Has this item already been collected?
-  JR Z,DRAWITEMS_2        // If so, skip it and consider the next one
-  LD E,(IY+1)             // Point DE at the address of the item's location in
-  LD D,(IY+2)             // the attribute buffer at 23552
-  LD A,(DE)               // Pick up the current attribute byte at the item's location
-  AND 7                   // Is the INK white (which happens if Willy is
-  CP 7                    // touching the item)?
-  JR NZ,DRAWITEMS_1       // Jump if not
-// Willy is touching this item, so add it to his collection.
-  LD HL,33836             // Add 100 to the score
-  CALL INCSCORE_0
-  LD (IY+0),0             // Set the item's attribute byte to 0 so that it will be skipped the next time
-  JR DRAWITEMS_2          // Jump forward to consider the next item
-// This item has not been collected yet.
-DRAWITEMS_1:
-  LD A,(IY+0)             // Pick up the item's current attribute byte
-  AND 248                 // Keep the BRIGHT and PAPER bits, and set the INK to
-  OR 3                    // 3 (magenta)
-  LD B,A                  // Store this value in B
-  LD A,(IY+0)             // Pick up the item's current attribute byte again
-  AND 3                   // Keep only bits 0 and 1 and add the value in B; this
-  ADD A,B                 // maintains the BRIGHT and PAPER bits, and cycles the INK colour through 3, 4, 5 and 6
-  LD (IY+0),A             // Store the new attribute byte
-  LD (DE),A               // Update the attribute byte at the item's location in the buffer at 23552
-  LD (ITEMATTR),A         // Store the new attribute byte at ITEMATTR as well
-  LD D,(IY+3)             // Point DE at the address of the item's location in the screen buffer at 24576
-  LD HL,ITEM              // Point HL at the item graphic for the current cavern (at ITEM)
-  LD B,8                  // There are eight pixel rows to copy
-  CALL PRINTCHAR_0        // Draw the item to the screen buffer at 24576
-// The current item definition has been dealt with. Time for the next one.
-DRAWITEMS_2:
-  INC IY                  // Point IY at the first byte of the next item
-  INC IY                  // definition
-  INC IY
-  INC IY
-  INC IY
-  JR DRAWITEMS_0          // Jump back to deal with the next item
-// All the items have been dealt with. Check whether there were any left.
-DRAWITEMS_3:
-  LD A,(ITEMATTR)         // Pick up the attribute of the last item drawn at ITEMATTR
-  OR A                    // Were any items drawn?
-  RET NZ                  // Return if so (some remain to be collected)
-  LD HL,PORTAL            // Ensure that the portal is flashing by setting bit 7
-  SET 7,(HL)              // of its attribute byte at PORTAL
-  RET
+void DRAWITEMS() {
+  uint8_t msb;
+  uint8_t lsb;
+  uint16_t addr;
+
+  // XOR A                   // Initialise the attribute of the last item drawn at
+  // LD (ITEMATTR),A         // ITEMATTR to 0 (in case there are no items left to draw)
+  ITEMATTR = 0;
+
+  // LD IY,ITEMS             // Point IY at the first byte of the first item definition at ITEMS
+
+  // The item-drawing loop begins here.
+  // DRAWITEMS_0:
+  for (int i = 0; i < 5; i++) {
+    // LD A,(IY+0)             // Pick up the first byte of the item definition
+    // CP 255                  // Have we dealt with all the items yet?
+    // JR Z,DRAWITEMS_3        // Jump if so
+
+    uint8_t *item = &ITEM[i];
+
+    // OR A                    // Has this item already been collected?
+    // JR Z,DRAWITEMS_2        // If so, skip it and consider the next one
+    if (item[0] == 0) {
+      continue;
+    }
+
+    // LD E,(IY+1)             // Point DE at the address of the item's location in
+    // LD D,(IY+2)             // the attribute buffer at 23552
+    addr = item[1];
+    split_address(addr, msb, lsb);
+
+    // LD A,(DE)               // Pick up the current attribute byte at the item's location
+    // AND 7                   // Is the INK white (which happens if Willy is
+    // CP 7                    // touching the item)?
+    // JR NZ,DRAWITEMS_1       // Jump if not
+    if ((MEM[addr] & 7) == 7) {
+      // Willy is touching this item, so add it to his collection.
+      // LD HL,33836             // Add 100 to the score
+      // CALL INCSCORE_0
+
+      // FIXME: It might be worth writing a custom score/highscore display update function.
+      current_score += 100;
+
+      // LD (IY+0),0             // Set the item's attribute byte to 0 so that it will be skipped the next time
+      item[0] = 0;
+      // JR DRAWITEMS_2          // Jump forward to consider the next item
+    } else {
+      // This item has not been collected yet.
+      // DRAWITEMS_1:
+      // LD A,(IY+0)             // Pick up the item's current attribute byte
+      // AND 248                 // Keep the BRIGHT and PAPER bits, and set the INK to
+      // OR 3                    // 3 (magenta)
+      // LD B,A                  // Store this value in B
+      uint8_t attribute = ((item[0] & 248) | 3);
+      // LD A,(IY+0)             // Pick up the item's current attribute byte again
+      // AND 3                   // Keep only bits 0 and 1 and add the value in B; this
+      // ADD A,B                 // maintains the BRIGHT and PAPER bits, and cycles the INK colour through 3, 4, 5 and 6
+      attribute += (item[0] & 3);
+      // LD (IY+0),A             // Store the new attribute byte
+      item[0] = attribute;
+
+      // LD (DE),A               // Update the attribute byte at the item's location in the buffer at 23552
+      MEM[addr] = attribute;
+
+      // LD (ITEMATTR),A         // Store the new attribute byte at ITEMATTR as well
+      ITEMATTR = attribute;
+
+      // LD D,(IY+3)             // Point DE at the address of the item's location in the screen buffer at 24576
+      msb = item[3];
+      addr = build_address(msb, lsb);
+      // LD HL,ITEM              // Point HL at the item graphic for the current cavern (at ITEM)
+      // LD B,8                  // There are eight pixel rows to copy
+      // CALL PRINTCHAR_0        // Draw the item to the screen buffer at 24576
+      PRINTCHAR_0(&item, addr, 8);
+    }
+
+    // The current item definition has been dealt with. Time for the next one.
+    // DRAWITEMS_2:
+    // INC IY                  // Point IY at the first byte of the next item
+    // INC IY                  // definition
+    // INC IY
+    // INC IY
+    // INC IY
+    // JR DRAWITEMS_0          // Jump back to deal with the next item
+  }
+
+  // All the items have been dealt with. Check whether there were any left.
+  // DRAWITEMS_3:
+  // LD A,(ITEMATTR)         // Pick up the attribute of the last item drawn at ITEMATTR
+  // OR A                    // Were any items drawn?
+  // RET NZ                  // Return if so (some remain to be collected)
+  if (ITEMATTR != 0) {
+    return;
+  }
+
+  // LD HL,PORTAL            // Ensure that the portal is flashing by setting bit 7
+  // SET 7,(HL)              // of its attribute byte at PORTAL
+  PORTAL |= (1 << 7);
+
+  // RET
+}
+
 
 // Draw the portal, or move to the next cavern if Willy has entered it
 //
