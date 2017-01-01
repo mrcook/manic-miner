@@ -2682,50 +2682,103 @@ void CHKPORTAL(uint16_t addr) {
 // C Drawing mode: 0 (overwrite) or 1 (blend)
 // DE Address of sprite graphic data
 // HL Address to draw at
-DRWFIX:
-  LD B,16                 // There are 16 rows of pixels to draw
-DRWFIX_0:
-  BIT 0,C                 // Set the zero flag if we're in overwrite mode
-  LD A,(DE)               // Pick up a sprite graphic byte
-  JR Z,DRWFIX_1           // Jump if we're in overwrite mode
-  AND (HL)                // Return with the zero flag reset if any of the set
-  RET NZ                  // bits in the sprite graphic byte collide with a set bit in the background (e.g. in Willy's sprite)
-  LD A,(DE)               // Pick up the sprite graphic byte again
-  OR (HL)                 // Blend it with the background byte
-DRWFIX_1:
-  LD (HL),A               // Copy the graphic byte to its destination cell
-  INC L                   // Move HL along to the next cell on the right
-  INC DE                  // Point DE at the next sprite graphic byte
-  BIT 0,C                 // Set the zero flag if we're in overwrite mode
-  LD A,(DE)               // Pick up a sprite graphic byte
-  JR Z,DRWFIX_2           // Jump if we're in overwrite mode
-  AND (HL)                // Return with the zero flag reset if any of the set
-  RET NZ                  // bits in the sprite graphic byte collide with a set bit in the background (e.g. in Willy's sprite)
-  LD A,(DE)               // Pick up the sprite graphic byte again
-  OR (HL)                 // Blend it with the background byte
-DRWFIX_2:
-  LD (HL),A               // Copy the graphic byte to its destination cell
-  DEC L                   // Move HL to the next pixel row down in the cell on
-  INC H                   // the left
-  INC DE                  // Point DE at the next sprite graphic byte
-  LD A,H                  // Have we drawn the bottom pixel row in this pair of
-  AND 7                   // cells yet?
-  JR NZ,DRWFIX_3          // Jump if not
-  LD A,H                  // Otherwise move HL to the top pixel row in the cell
-  SUB 8                   // below
-  LD H,A
-  LD A,L
-  ADD A,32
-  LD L,A
-  AND 224                 // Was the last pair of cells at y-coordinate 7 or 15?
-  JR NZ,DRWFIX_3          // Jump if not
-  LD A,H                  // Otherwise adjust HL to account for the movement
-  ADD A,8                 // from the top or middle third of the screen to the
-  LD H,A                  // next one down
-DRWFIX_3:
-  DJNZ DRWFIX_0           // Jump back until all 16 rows of pixels have been drawn
-  XOR A                   // Set the zero flag (to indicate no collision)
-  RET
+void DRWFIX(uint8_t *sprite, uint16_t addr, uint8_t mode) {
+  uint8_t msb;
+  uint8_t lsb;
+
+  // LD B,16                 // There are 16 rows of pixels to draw
+
+  // DRWFIX_0:
+  for (int i = 0; i < 16; ) {
+    split_address(addr, &msb, &lsb);  // IMPORTANT: just to make sure msb/lsb are up-to-date -MRC-
+
+    // BIT 0,C                 // Set the zero flag if we're in overwrite mode
+    // LD A,(DE)               // Pick up a sprite graphic byte
+    // JR Z,DRWFIX_1           // Jump if we're in overwrite mode
+    if (mode == 1) {
+      // AND (HL)                // Return with the zero flag reset if any of the set
+      // RET NZ                  // bits in the sprite graphic byte collide with a set bit in the background (e.g. in Willy's sprite)
+      if (*sprite[i] & MEM[addr]) {
+        return true;
+      }
+      // LD A,(DE)               // Pick up the sprite graphic byte again
+      // OR (HL)                 // Blend it with the background byte
+      *sprite[i] |= MEM[addr];
+    }
+
+    // DRWFIX_1:
+    // LD (HL),A               // Copy the graphic byte to its destination cell
+    MEM[addr] = *sprite[i];
+
+    // INC L                   // Move HL along to the next cell on the right
+    lsb++
+    addr = build_address(msb, lsb);
+
+    // INC DE                  // Point DE at the next sprite graphic byte
+    i++;
+
+    // BIT 0,C                 // Set the zero flag if we're in overwrite mode
+    // LD A,(DE)               // Pick up a sprite graphic byte
+    // JR Z,DRWFIX_2           // Jump if we're in overwrite mode
+    if (mode == 1) {
+      // AND (HL)                // Return with the zero flag reset if any of the set
+      // RET NZ                  // bits in the sprite graphic byte collide with a set bit in the background (e.g. in Willy's sprite)
+      if (*sprite[i] & MEM[addr]) {
+        return true;
+      }
+      // LD A,(DE)               // Pick up the sprite graphic byte again
+      // OR (HL)                 // Blend it with the background byte
+      *sprite[i] |= MEM[addr];
+    }
+
+    // DRWFIX_2:
+    // LD (HL),A               // Copy the graphic byte to its destination cell
+    MEM[addr] = *sprite[i];
+
+    // DEC L                   // Move HL to the next pixel row down in the cell on
+    lsb--;
+    // INC H                   // the left
+    msb++;
+    addr = build_address(msb, lsb);
+
+    // INC DE                  // Point DE at the next sprite graphic byte
+    i++;
+
+    // LD A,H                  // Have we drawn the bottom pixel row in this pair of
+    // AND 7                   // cells yet?
+    // JR NZ,DRWFIX_3          // Jump if not
+    if ((msb & 7) != 0) {
+      continue;
+    }
+
+    // LD A,H                  // Otherwise move HL to the top pixel row in the cell
+    // SUB 8                   // below
+    // LD H,A
+    msb -= 8;
+    // LD A,L
+    // ADD A,32
+    // LD L,A
+    lsb += 32;
+
+    // AND 224                 // Was the last pair of cells at y-coordinate 7 or 15?
+    // JR NZ,DRWFIX_3          // Jump if not
+    if ((lsb & 224) == 0) {
+      // LD A,H                  // Otherwise adjust HL to account for the movement
+      // ADD A,8                 // from the top or middle third of the screen to the
+      // LD H,A                  // next one down
+      msb += 8;
+    }
+
+    // DRWFIX_3:
+    // DJNZ DRWFIX_0           // Jump back until all 16 rows of pixels have been drawn
+    addr = build_address(msb, lsb); // IMPORTANT: just to make sure addr is up-to-date -MRC-
+  }
+
+  // XOR A                   // Set the zero flag (to indicate no collision)
+  // RET
+  return false; // NOTE: no collision -MRC-
+}
+
 
 // Move to the next cavern
 //
