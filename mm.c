@@ -2616,36 +2616,54 @@ void DRAWITEMS() {
 
 // Draw the portal, or move to the next cavern if Willy has entered it
 //
-// Used by the routine at LOOP. First check whether Willy has entered the
-// portal.
-CHKPORTAL:
-  LD HL,(PORTALLOC1)      // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
-  LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
-  CP L                    // Does it match that of the portal?
-  JR NZ,CHKPORTAL_0       // Jump if not
-  LD A,(32877)            // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
-  CP H                    // Does it match that of the portal?
-  JR NZ,CHKPORTAL_0       // Jump if not
-  LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
-  BIT 7,A                 // Is the portal flashing?
-  JR Z,CHKPORTAL_0        // Jump if not
-  POP HL                  // Drop the return address from the stack
-  JP NXSHEET              // Move Willy to the next cavern
-// Willy has not entered the portal, or it's not flashing, so just draw it.
-CHKPORTAL_0:
-  LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
-  LD (HL),A               // Set the attribute bytes for the portal in the
-  INC HL                  // buffer at 23552
-  LD (HL),A
-  LD DE,31
-  ADD HL,DE
-  LD (HL),A
-  INC HL
-  LD (HL),A
-  LD DE,PORTALG           // Point DE at the graphic data for the portal at PORTALG
-  LD HL,(PORTALLOC2)      // Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2
-  LD C,0                  // C=0: overwrite mode
-// This routine continues into the one at DRWFIX.
+// Used by the routine at LOOP. First check whether Willy has entered the portal.
+void CHKPORTAL(uint16_t addr) {
+  // LD HL,(PORTALLOC1)      // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
+  // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
+  // CP L                    // Does it match that of the portal?
+  // JR NZ,CHKPORTAL_0       // Jump if not
+  if (PORTALLOC1 == LOCATION) {
+    // LD A,(32877)            // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
+    // CP H                    // Does it match that of the portal?
+    // JR NZ,CHKPORTAL_0       // Jump if not
+    if (MEM[32877] == PORTALLOC1) {
+      // LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
+      // BIT 7,A                 // Is the portal flashing?
+      // JR Z,CHKPORTAL_0        // Jump if not
+      if (((PORTAL >> 7) & 1) == 1) {
+        POP HL                  // Drop the return address from the stack
+        JP NXSHEET              // Move Willy to the next cavern
+        return;
+      }
+    }
+  }
+
+  // Willy has not entered the portal, or it's not flashing, so just draw it.
+  // CHKPORTAL_0:
+  // LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
+  // LD (HL),A               // Set the attribute bytes for the portal in the
+  MEM[addr] = PORTAL;
+  // INC HL                  // buffer at 23552
+  addr++;
+  // LD (HL),A
+  MEM[addr] = PORTAL;
+  // LD DE,31
+  // ADD HL,DE
+  addr += 31;
+  // LD (HL),A
+  MEM[addr] = PORTAL;
+  // INC HL
+  addr++;
+  // LD (HL),A
+  MEM[addr] = PORTAL;
+
+  // LD DE,PORTALG           // Point DE at the graphic data for the portal at PORTALG
+  // LD HL,(PORTALLOC2)      // Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2
+  // LD C,0                  // C=0: overwrite mode
+  DRWFIX(&PORTALG, PORTALLOC2, 0);
+  // This routine continues into the one at DRWFIX.
+}
+
 
 // Draw a sprite
 //
