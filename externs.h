@@ -83,6 +83,7 @@ extern uint8_t TITLESCR2[2048];
 
 extern uint8_t CAVERN0[512];
 extern uint8_t BOOT[256];
+extern uint8_t EUGENEG[32];
 extern uint8_t CAVERN19[512];
 
 

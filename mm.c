@@ -2131,87 +2131,153 @@ bool DRAWHG() {
 
 // Move and draw Eugene in Eugene's Lair
 //
-// Used by the routine at LOOP. First we move Eugene up or down, or change his
-// direction.
-EUGENE:
-  LD A,(ITEMATTR)         // Pick up the attribute of the last item drawn from ITEMATTR
-  OR A                    // Have all the items been collected?
-  JR Z,EUGENE_0           // Jump if so
-  LD A,(EUGDIR)           // Pick up Eugene's direction from EUGDIR
-  OR A                    // Is Eugene moving downwards?
-  JR Z,EUGENE_0           // Jump if so
-  LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
-  DEC A                   // Decrement it (moving Eugene up)
-  JR Z,EUGENE_1           // Jump if Eugene has reached the top of the cavern
-  LD (EUGHGT),A           // Update Eugene's pixel y-coordinate at EUGHGT
-  JR EUGENE_2
-EUGENE_0:
-  LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
-  INC A                   // Increment it (moving Eugene down)
-  CP 88                   // Has Eugene reached the portal yet?
-  JR Z,EUGENE_1           // Jump if so
-  LD (EUGHGT),A           // Update Eugene's pixel y-coordinate at EUGHGT
-  JR EUGENE_2
-EUGENE_1:
-  LD A,(EUGDIR)           // Toggle Eugene's direction at EUGDIR
-  XOR 1
-  LD (EUGDIR),A
-// Now that Eugene's movement has been dealt with, it's time to draw him.
-EUGENE_2:
-  LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
-  AND 127                 // Point DE at the entry in the screen buffer address
-  RLCA                    // lookup table at SBUFADDRS that corresponds to
-  LD E,A                  // Eugene's y-coordinate
-  LD D,131
-  LD A,(DE)               // Point HL at the address of Eugene's location in the
-  OR 15                   // screen buffer at 24576
-  LD L,A
-  INC DE
-  LD A,(DE)
-  LD H,A
-  LD DE,32992             // Draw Eugene to the screen buffer at 24576
-  LD C,1
-  CALL DRWFIX
-  JP NZ,KILLWILLY_0       // Kill Willy if Eugene collided with him
-  LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
-  AND 120                 // Point HL at the address of Eugene's location in the
-  RLCA                    // attribute buffer at 23552
-  OR 7
-  SCF
-  RL A
-  LD L,A
-  LD A,0
-  ADC A,92
-  LD H,A
-  LD A,(ITEMATTR)         // Pick up the attribute of the last item drawn from ITEMATTR
-  OR A                    // Set the zero flag if all the items have been collected
-  LD A,7                  // Assume we will draw Eugene with white INK
-  JR NZ,EUGENE_3          // Jump if there are items remaining to be collected
-  LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
-  RRCA                    // Move bits 2-4 into bits 0-2 and clear the other
-  RRCA                    // bits; this value (which decreases by one on each
-  AND 7                   // pass through the main loop) will be Eugene's INK colour
+// Used by the routine at LOOP. First we move Eugene up or down, or change his direction.
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool EUGENE() {
+  // LD A,(ITEMATTR)         // Pick up the attribute of the last item drawn from ITEMATTR
+  // OR A                    // Have all the items been collected?
+  // JR Z,EUGENE_0           // Jump if so
+  // LD A,(EUGDIR)           // Pick up Eugene's direction from EUGDIR
+  // OR A                    // Is Eugene moving downwards?
+  // JR Z,EUGENE_0           // Jump if so
+  if (ITEMATTR != 0 || EUGDIR != 1) {
+    // LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
+    // DEC A                   // Decrement it (moving Eugene up)
+    // JR Z,EUGENE_1           // Jump if Eugene has reached the top of the cavern
+    if (EUGHGT - 1 == 0) {
+      EUGDIR = !EUGDIR;
+    } else {
+      // LD (EUGHGT),A           // Update Eugene's pixel y-coordinate at EUGHGT
+      EUGHGT--;
+      // JR EUGENE_2
+    }
+  } else {
+    // EUGENE_0:
+    // LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
+    // INC A                   // Increment it (moving Eugene down)
+    // CP 88                   // Has Eugene reached the portal yet?
+    // JR Z,EUGENE_1           // Jump if so
+    if (EUGHGT + 1 == 88) {
+      EUGDIR = !EUGDIR;
+    } else {
+      // LD (EUGHGT),A           // Update Eugene's pixel y-coordinate at EUGHGT
+      EUGHGT++;
+      // JR EUGENE_2
+    }
+  }
+
+  // IMPORTANT: this toggle has been inlided in the if statement above.
+  // EUGENE_1:
+  // LD A,(EUGDIR)           // Toggle Eugene's direction at EUGDIR
+  // XOR 1
+  // LD (EUGDIR),A
+
+  // Now that Eugene's movement has been dealt with, it's time to draw him.
+  // EUGENE_2:
+  // LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
+  // AND 127                 // Point DE at the entry in the screen buffer address
+  // RLCA                    // lookup table at SBUFADDRS that corresponds to
+  // LD E,A                  // Eugene's y-coordinate
+  // LD D,131
+  uint8_t y_coord = (EUGHGT & 127) << 1;
+  // LD A,(DE)               // Point HL at the address of Eugene's location in the
+  // OR 15                   // screen buffer at 24576
+  // LD L,A
+  // INC DE
+  // LD A,(DE)
+  // LD H,A
+  uint16_t addr = (SBUFADDRS[y_coord] | 15);
+  // LD DE,32992             // Draw Eugene to the screen buffer at 24576
+  // LD C,1
+  // CALL DRWFIX
+
+  // IMPORTANT: calculations for addr above are wrong :/ -MRC-
+  bool kill_willy = DRWFIX(&EUGENEG, addr, 1);
+
+  if (kill_willy) {
+    // JP NZ,KILLWILLY_0       // Kill Willy if Eugene collided with him
+    KILLWILLY_0();
+    return true;
+  }
+
+
+  // LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
+  // AND 120                 // Point HL at the address of Eugene's location in the
+  // RLCA                    // attribute buffer at 23552
+  y_coord = (EUGHGT & 120) << 1;
+  // OR 7
+  y_coord = (y_coord | 7);
+  // SCF
+  // RL A
+  y_coord = y_coord << 1;
+  // LD L,A
+  // LD A,0
+  // ADC A,92
+  // LD H,A
+  addr = build_address(92, y_coord);
+
+  // LD A,(ITEMATTR)         // Pick up the attribute of the last item drawn from ITEMATTR
+  // OR A                    // Set the zero flag if all the items have been collected
+  // LD A,7                  // Assume we will draw Eugene with white INK
+  uint8_t ink_color = 7;
+  // JR NZ,EUGENE_3          // Jump if there are items remaining to be collected
+  if (ITEMATTR != 0) {
+    // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
+    // RRCA                    // Move bits 2-4 into bits 0-2 and clear the other
+    // RRCA                    // bits; this value (which decreases by one on each
+    // AND 7                   // pass through the main loop) will be Eugene's INK colour
+    ink_color = ((CLOCK >> 2) & 7);
+  }
+
+  EUGENE_3(addr, ink_color); // IMPORTANT: implicit jump -MRC-
+
+  return false;
+}
+
+
 // This entry point is used by the routines at SKYLABS (to set the attributes
 // for a Skylab), VGUARDIANS (to set the attributes for a vertical guardian) and
 // KONGBEAST (to set the attributes for the Kong Beast).
-EUGENE_3:
-  LD (HL),A               // Save the INK colour in the attribute buffer temporarily
-  LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-  AND 248                 // Combine its PAPER colour with the chosen INK colour
-  OR (HL)
-  LD (HL),A               // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552
-  LD DE,31                // Prepare DE for addition
-  INC HL                  // Set the attribute byte for the top-right cell of
-  LD (HL),A               // the sprite in the attribute buffer at 23552
-  ADD HL,DE               // Set the attribute byte for the middle-left cell of
-  LD (HL),A               // the sprite in the attribute buffer at 23552
-  INC HL                  // Set the attribute byte for the middle-right cell of
-  LD (HL),A               // the sprite in the attribute buffer at 23552
-  ADD HL,DE               // Set the attribute byte for the bottom-left cell of
-  LD (HL),A               // the sprite in the attribute buffer at 23552
-  INC HL                  // Set the attribute byte for the bottom-right cell of
-  LD (HL),A               // the sprite in the attribute buffer at 23552
-  RET
+void EUGENE_3(uint16_t addr, uint8_t ink_color) {
+  // LD (HL),A               // Save the INK colour in the attribute buffer temporarily
+  MEM[addr] = ink_color;
+
+  // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+  // AND 248                 // Combine its PAPER colour with the chosen INK colour
+  // OR (HL)
+  // LD (HL),A               // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552
+  MEM[addr] = ((BACKGROUND & 248) | MEM[addr]);
+
+  // LD DE,31                // Prepare DE for addition
+
+  // INC HL                  // Set the attribute byte for the top-right cell of
+  addr++;
+  // LD (HL),A               // the sprite in the attribute buffer at 23552
+  MEM[addr] = ink_color;
+
+  // ADD HL,DE               // Set the attribute byte for the middle-left cell of
+  addr += 31;
+  // LD (HL),A               // the sprite in the attribute buffer at 23552
+  MEM[addr] = ink_color;
+
+  // INC HL                  // Set the attribute byte for the middle-right cell of
+  addr++;
+  // LD (HL),A               // the sprite in the attribute buffer at 23552
+  MEM[addr] = ink_color;
+
+  // ADD HL,DE               // Set the attribute byte for the bottom-left cell of
+  addr += 31;
+  // LD (HL),A               // the sprite in the attribute buffer at 23552
+  MEM[addr] = ink_color;
+
+  // INC HL                  // Set the attribute byte for the bottom-right cell of
+  addr++;
+  // LD (HL),A               // the sprite in the attribute buffer at 23552
+  MEM[addr] = ink_color;
+
+  // RET
+}
+
 
 // Move and draw the Skylabs in Skylab Landing Bay
 //

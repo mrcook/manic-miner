@@ -1656,12 +1656,15 @@ uint8_t BOOT[256] = {     // Boot graphic data
 //   DEFB 0                  // Initial pixel y-coordinate
 // // The next three bytes are unused.
 //   DEFB 0,0,0              // Unused
+
 // // The next 32 bytes define the Eugene graphic.
-// EUGENEG:
-//   DEFB 3,192,15,240,31,248,31,248 // Eugene graphic data
-//   DEFB 49,140,14,112,111,246,174,117
-//   DEFB 177,141,159,249,155,217,140,49
-//   DEFB 71,226,2,64,2,64,14,112
+uint8_t EUGENEG[32] = {   // Eugene graphic data
+  3,192,15,240,31,248,31,248,
+  49,140,14,112,111,246,174,117,
+  177,141,159,249,155,217,140,49,
+  71,226,2,64,2,64,14,112,
+};
+
 // // The next 256 bytes are copied to GGDATA and define the guardian graphics.
 //   DEFB 192,0,192,0,192,0,192,0 // Guardian graphic data
 //   DEFB 192,0,192,0,192,0,223,192
