@@ -261,9 +261,8 @@ STARTGAME:
   current_score = 0;
   print_score(current_score);
 
-// This entry point is used by the routines at LOOP (when teleporting into a
-// cavern or reinitialising the current cavern after Willy has lost a life) and
-// NXSHEET.
+// This entry point is used by the routines at LOOP (when teleporting into a cavern
+// or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
 NEWSHT:
   // IMPORTANT: only using the first cavern, CAVERN0, while porting -MRC-
   // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
@@ -2623,7 +2622,8 @@ void DRAWITEMS() {
 // Draw the portal, or move to the next cavern if Willy has entered it
 //
 // Used by the routine at LOOP. First check whether Willy has entered the portal.
-void CHKPORTAL(uint16_t addr) {
+// IMPORTANT: the CALLers should be able to handle the `goto NEWSHT` themselves, on the return. -MRC-
+bool CHKPORTAL(uint16_t addr) {
   // LD HL,(PORTALLOC1)      // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
   // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
   // CP L                    // Does it match that of the portal?
@@ -2637,9 +2637,12 @@ void CHKPORTAL(uint16_t addr) {
       // BIT 7,A                 // Is the portal flashing?
       // JR Z,CHKPORTAL_0        // Jump if not
       if (((PORTAL >> 7) & 1) == 1) {
-        POP HL                  // Drop the return address from the stack
-        JP NXSHEET              // Move Willy to the next cavern
-        return;
+        // POP HL                  // Drop the return address from the stack
+        // JP NXSHEET              // Move Willy to the next cavern
+
+        // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` -MRC-
+        NXSHEET();
+        return true;
       }
     }
   }
@@ -2668,6 +2671,8 @@ void CHKPORTAL(uint16_t addr) {
   // LD C,0                  // C=0: overwrite mode
   DRWFIX(&PORTALG, PORTALLOC2, 0);
   // This routine continues into the one at DRWFIX.
+
+  return false; // NOTE: callers should not `goto NEWSHT`.
 }
 
 
@@ -2789,121 +2794,200 @@ void DRWFIX(uint8_t *sprite, uint16_t addr, uint8_t mode) {
 // Move to the next cavern
 //
 // Used by the routines at LOOP and CHKPORTAL.
-void NXSHEET() {
-  LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-  INC A                   // Increment the cavern number
-  CP 20                   // Is the current cavern The Final Barrier?
-  JR NZ,NXSHEET_3         // Jump if not
-  LD A,(DEMO)             // Pick up the game mode indicator from DEMO
-  OR A                    // Are we in demo mode?
-  JP NZ,NXSHEET_2         // Jump if so
-  LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
-  CP 7                    // Is cheat mode activated?
-  JR Z,NXSHEET_2          // Jump if so
-// Willy has made it through The Final Barrier without cheating.
-  LD C,0                  // Draw Willy at (2,19) on the ground above the portal
-  LD DE,WILLYR3
-  LD HL,16467
-  CALL DRWFIX
-  LD DE,SWORDFISH         // Draw the swordfish graphic (see SWORDFISH) over the
-  LD HL,16563             // portal
-  CALL DRWFIX
-  LD HL,22611             // Point HL at (2,19) in the attribute file
-  LD DE,31                // Prepare DE for addition
-  LD (HL),47              // Set the attributes for the upper half of Willy's
-  INC HL                  // sprite at (2,19) and (2,20) to 47 (INK 7: PAPER 5)
-  LD (HL),47
-  ADD HL,DE               // Set the attributes for the lower half of Willy's
-  LD (HL),39              // sprite at (3,19) and (3,20) to 39 (INK 7: PAPER 4)
-  INC HL
-  LD (HL),39
-  ADD HL,DE               // Point HL at (5,19) in the attribute file
-  INC HL
-  ADD HL,DE
-  LD (HL),69              // Set the attributes for the fish at (5,19) and
-  INC HL                  // (5,20) to 69 (INK 5: PAPER 0: BRIGHT 1)
-  LD (HL),69
-  ADD HL,DE               // Set the attribute for the handle of the sword at
-  LD (HL),70              // (6,19) to 70 (INK 6: PAPER 0: BRIGHT 1)
-  INC HL                  // Set the attribute for the blade of the sword at
-  LD (HL),71              // (6,20) to 71 (INK 7: PAPER 0: BRIGHT 1)
-  ADD HL,DE               // Set the attributes at (7,19) and (7,20) to 0 (to
-  LD (HL),0               // hide Willy's feet just below where the portal was)
-  INC HL
-  LD (HL),0
-  LD BC,0                 // Prepare C and D for the celebratory sound effect
-  LD D,50
-  XOR A                   // A=0 (black border)
-NXSHEET_0:
-  OUT (254),A             // Produce the celebratory sound effect: Willy has
-  XOR 24                  // escaped from the mine
-  LD E,A
-  LD A,C
-  ADD A,D
-  ADD A,D
-  ADD A,D
-  LD B,A
-  LD A,E
-NXSHEET_1:
-  DJNZ NXSHEET_1
-  DEC C
-  JR NZ,NXSHEET_0
-  DEC D
-  JR NZ,NXSHEET_0
-NXSHEET_2:
-  XOR A                   // A=0 (the next cavern will be Central Cavern)
-NXSHEET_3:
-  LD (SHEET),A            // Update the cavern number at SHEET
-// The next section of code cycles the INK and PAPER colours of the current
-// cavern.
-  LD A,63                 // Initialise A to 63 (INK 7: PAPER 7)
-NXSHEET_4:
-  LD HL,22528             // Set the attributes for the top two-thirds of the
-  LD DE,22529             // screen to the value in A
-  LD BC,511
-  LD (HL),A
-  LDIR
-  LD BC,4                 // Pause for about 0.004s
-NXSHEET_5:
-  DJNZ NXSHEET_5
-  DEC C
-  JR NZ,NXSHEET_5
-  DEC A                   // Decrement the attribute value in A
-  JR NZ,NXSHEET_4         // Jump back until we've gone through all attribute values from 63 down to 1
-  LD A,(DEMO)             // Pick up the game mode indicator from DEMO
-  OR A                    // Are we in demo mode?
-  JP NZ,NEWSHT            // If so, demo the next cavern
-// The following loop increases the score and decreases the air supply until it
-// runs out.
-NXSHEET_6:
-  CALL DECAIR             // Decrease the air remaining in the current cavern
-  JP Z,NEWSHT             // Move to the next cavern if the air supply is now gone
-  LD HL,33838             // Add 1 to the score
-  CALL INCSCORE_0
-  LD IX,SCORBUF           // Print the new score at (19,26)
-  LD C,6
-  LD DE,20602
-  CALL PMESS
-  LD C,4                  // C=4; this value determines the duration of the sound effect
-  LD A,(AIR)              // Pick up the remaining air supply (S) from AIR
-  CPL                     // D=2*(63-S); this value determines the pitch of the
-  AND 63                  // sound effect (which decreases with the amount of
-  RLC A                   // air remaining)
-  LD D,A
-NXSHEET_7:
-  LD A,0                  // Produce a short note
-  OUT (254),A
-  LD B,D
-NXSHEET_8:
-  DJNZ NXSHEET_8
-  LD A,24
-  OUT (254),A
-  LD B,D
-NXSHEET_9:
-  DJNZ NXSHEET_9
-  DEC C
-  JR NZ,NXSHEET_7
-  JR NXSHEET_6            // Jump back to decrease the air supply again
+// IMPORTANT: the CALLers should be able to handle the `goto NEWSHT` themselves, on the return. -MRC-
+bool NXSHEET() {
+  uint16_t addr;
+
+  // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+  // INC A                   // Increment the cavern number
+  uint8_t next_sheet = SHEET + 1;
+
+  // CP 20                   // Is the current cavern The Final Barrier?
+  // JR NZ,NXSHEET_3         // Jump if not
+  if (next_sheet == 20) {
+    // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
+    // OR A                    // Are we in demo mode?
+    // JP NZ,NXSHEET_2         // Jump if so
+    // LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
+    // CP 7                    // Is cheat mode activated?
+    // JR Z,NXSHEET_2          // Jump if so
+    if (DEMO == 0 && CHEAT != 7) {
+      // Willy has made it through The Final Barrier without cheating.
+      // LD C,0                  // Draw Willy at (2,19) on the ground above the portal
+      // LD DE,WILLYR3
+      // LD HL,16467
+      // CALL DRWFIX
+      DRWFIX(&WILLYR3, 16467, 0);
+
+      // LD DE,SWORDFISH         // Draw the swordfish graphic (see SWORDFISH) over the
+      // LD HL,16563             // portal
+      // CALL DRWFIX
+      DRWFIX(&SWORDFISH, 16563, 0);
+
+      // LD DE,31                // Prepare DE for addition
+
+      // LD HL,22611             // Point HL at (2,19) in the attribute file
+      addr = 22611;
+
+      // LD (HL),47              // Set the attributes for the upper half of Willy's
+      MEM[addr] = 47;
+      // INC HL                  // sprite at (2,19) and (2,20) to 47 (INK 7: PAPER 5)
+      addr++;
+      // LD (HL),47
+      MEM[addr] = 47;
+      // ADD HL,DE               // Set the attributes for the lower half of Willy's
+      addr += 31;
+      // LD (HL),39              // sprite at (3,19) and (3,20) to 39 (INK 7: PAPER 4)
+      MEM[addr] = 39;
+      // INC HL
+      addr++;
+      // LD (HL),39
+      MEM[addr] = 39;
+      // ADD HL,DE               // Point HL at (5,19) in the attribute file
+      addr += 31;
+      // INC HL
+      addr++;
+      // ADD HL,DE
+      addr += 31;
+      // LD (HL),69              // Set the attributes for the fish at (5,19) and
+      MEM[addr] = 69;
+      // INC HL                  // (5,20) to 69 (INK 5: PAPER 0: BRIGHT 1)
+      addr++;
+      // LD (HL),69
+      MEM[addr] = 69;
+      // ADD HL,DE               // Set the attribute for the handle of the sword at
+      addr += 31;
+      // LD (HL),70              // (6,19) to 70 (INK 6: PAPER 0: BRIGHT 1)
+      MEM[addr] = 70;
+      // INC HL                  // Set the attribute for the blade of the sword at
+      addr++;
+      // LD (HL),71              // (6,20) to 71 (INK 7: PAPER 0: BRIGHT 1)
+      MEM[addr] = 71;
+      // ADD HL,DE               // Set the attributes at (7,19) and (7,20) to 0 (to
+      addr += 31;
+      // LD (HL),0               // hide Willy's feet just below where the portal was)
+      MEM[addr] = 0;
+      // INC HL
+      addr++;
+      // LD (HL),0
+      MEM[addr] = 0;
+
+      LD BC,0                 // Prepare C and D for the celebratory sound effect
+      LD D,50
+      XOR A                   // A=0 (black border)
+      // NXSHEET_0:
+      for (;;) {
+        OUT (254),A             // Produce the celebratory sound effect: Willy has
+        XOR 24                  // escaped from the mine
+        LD E,A
+        LD A,C
+        ADD A,D
+        ADD A,D
+        ADD A,D
+        LD B,A
+        LD A,E
+
+        NXSHEET_1:
+        DJNZ NXSHEET_1
+
+        DEC C
+        JR NZ,NXSHEET_0
+
+        DEC D
+        JR NZ,NXSHEET_0
+      }
+    }
+
+    // NXSHEET_2:
+    // XOR A                   // A=0 (the next cavern will be Central Cavern)
+    next_sheet = 0;
+  }
+
+  // NXSHEET_3:
+  // LD (SHEET),A            // Update the cavern number at SHEET
+  SHEET = next_sheet;
+
+  // The next section of code cycles the INK and PAPER colours of the current cavern.
+
+  // LD A,63                 // Initialise A to 63 (INK 7: PAPER 7)
+  uint8_t colors = 63;
+
+  // NXSHEET_4:
+  for (int ink = colors; ink > 0; ink--) {
+    // LD HL,22528             // Set the attributes for the top two-thirds of the
+    // LD DE,22529             // screen to the value in A
+    // LD BC,511
+    // LD (HL),A
+    // LDIR
+    for (int i = 0; i < 512; i++) {
+      MEM[22528 + i] = ink;
+    }
+
+    //   LD BC,4                 // Pause for about 0.004s
+    // NXSHEET_5:
+    //   DJNZ NXSHEET_5
+    //   DEC C
+    //   JR NZ,NXSHEET_5
+    millisleep(4);
+
+    // DEC A                   // Decrement the attribute value in A
+    // JR NZ,NXSHEET_4         // Jump back until we've gone through all attribute values from 63 down to 1
+  }
+
+  // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
+  // OR A                    // Are we in demo mode?
+  if (DEMO != 0) {
+    // JP NZ,NEWSHT            // If so, demo the next cavern
+
+    goto NEWSHT; // FIXME: remove this and let callers handle it.
+    return true;
+  }
+
+  // The following loop increases the score and decreases the air supply until it runs out.
+  // NXSHEET_6:
+  for (;;) {
+    // CALL DECAIR             // Decrease the air remaining in the current cavern
+    if (!DECAIR()) {
+      // JP Z,NEWSHT             // Move to the next cavern if the air supply is now gone
+
+      goto NEWSHT; // FIXME: remove this and let callers handle it.
+      return true;
+    }
+
+    // LD HL,33838             // Add 1 to the score
+    // CALL INCSCORE_0
+    current_score++;
+
+    // LD IX,SCORBUF           // Print the new score at (19,26)
+    // LD C,6
+    // LD DE,20602
+    // CALL PMESS
+    PMESS(&SCORBUF, 20602, 6);
+
+    LD C,4                  // C=4; this value determines the duration of the sound effect
+    LD A,(AIR)              // Pick up the remaining air supply (S) from AIR
+    CPL                     // D=2*(63-S); this value determines the pitch of the
+    AND 63                  // sound effect (which decreases with the amount of
+    RLC A                   // air remaining)
+    LD D,A
+  NXSHEET_7:
+    LD A,0                  // Produce a short note
+    OUT (254),A
+    LD B,D
+  NXSHEET_8:
+    DJNZ NXSHEET_8
+    LD A,24
+    OUT (254),A
+    LD B,D
+  NXSHEET_9:
+    DJNZ NXSHEET_9
+    DEC C
+    JR NZ,NXSHEET_7
+
+    // JR NXSHEET_6            // Jump back to decrease the air supply again
+  }
+
+  return false; // IMPORTANT: no `goto NEWSHT` required. -MRC-
 }
 
 
