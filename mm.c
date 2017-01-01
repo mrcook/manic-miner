@@ -1011,6 +1011,10 @@ FEET:
   // JP START
   goto START;
 
+} // NOTE: end of main() function!
+
+
+
 
 // Decrease the air remaining in the current cavern
 //
@@ -1485,6 +1489,8 @@ void CRUMBLE(uint16_t addr) {
   // RET
 }
 
+
+
 // Move Willy (2)
 //
 // Used by the routine at MOVEWILLY. This routine checks the keyboard and
@@ -1786,7 +1792,7 @@ void MOVEWILLY2_10() {
     // SBC HL,DE               // Point HL at the cell at (x+2,y+1)
   }
 
-MOVEWILLY2_11:
+  // MOVEWILLY2_11:
   // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
   // OR A                    // Clear the carry flag for subtraction
   // SBC HL,DE               // Point HL at the cell at (x+2,y)
@@ -2783,7 +2789,7 @@ void DRWFIX(uint8_t *sprite, uint16_t addr, uint8_t mode) {
 // Move to the next cavern
 //
 // Used by the routines at LOOP and CHKPORTAL.
-NXSHEET:
+void NXSHEET() {
   LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
   INC A                   // Increment the cavern number
   CP 20                   // Is the current cavern The Final Barrier?
@@ -2898,11 +2904,13 @@ NXSHEET_9:
   DEC C
   JR NZ,NXSHEET_7
   JR NXSHEET_6            // Jump back to decrease the air supply again
+}
+
 
 // Add to the score
 //
 // The entry point to this routine is at INCSCORE_0.
-INCSCORE:
+void INCSCORE() {
   LD (HL),48              // Roll the digit over from '9' to '0'
   DEC HL                  // Point HL at the next digit to the left
   LD A,L                  // Is this the 10000s digit?
@@ -2914,6 +2922,7 @@ INCSCORE:
   LD A,(NOMEN)            // Increment the number of lives remaining at NOMEN
   INC A
   LD (NOMEN),A
+
 // The entry point to this routine is here and is used by the routines at
 // DRAWITEMS, NXSHEET and KONGBEAST with HL pointing at the digit of the score
 // (see SCORBUF) to be incremented.
@@ -2923,11 +2932,13 @@ INCSCORE_0:
   JR Z,INCSCORE           // Jump if so
   INC (HL)                // Increment the digit
   RET
+}
+
 
 // Move the conveyor in the current cavern
 //
 // Used by the routine at LOOP.
-MVCONVEYOR:
+void MVCONVEYOR() {
   LD HL,(CONVLOC)         // Pick up the address of the conveyor's location in the screen buffer at 28672 from CONVLOC
   LD E,L                  // Copy this address to DE
   LD D,H
@@ -2963,11 +2974,13 @@ MVCONVEYOR_1:
   RLC C                   // Rotate it left twice
   RLC C
   JR MVCONVEYOR_0         // Jump back to update the first and third pixel rows of every conveyor tile
+}
+
 
 // Move and draw the Kong Beast in the current cavern
-KONGBEAST//
+//
 // Used by the routine at LOOP.
-KONGBEAST:
+void KONGBEAST() {
   LD HL,23558             // Flip the left-hand switch at (0,6) if Willy is
   CALL CHKSWITCH          // touching it
   LD A,(EUGDIR)           // Pick up the Kong Beast's status from EUGDIR
@@ -3096,6 +3109,8 @@ KONGBEAST_8:
   LD (23567),A
   LD (23568),A
   RET
+}
+
 
 // Flip a switch in a Kong Beast cavern if Willy is touching it
 //
@@ -3103,7 +3118,7 @@ KONGBEAST_8:
 // flips the switch.
 //
 // HL Address of the switch's location in the attribute buffer at 23552
-CHKSWITCH:
+void CHKSWITCH() {
   LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
   INC A                   // Is it equal to or one less than the LSB of the
   AND 254                 // address of the switch's location?
@@ -3125,11 +3140,12 @@ CHKSWITCH:
   XOR A                   // Set the zero flag: Willy has flipped the switch
   OR A                    // This instruction is redundant
   RET
+}
 
 // Check and set the attribute bytes for Willy's sprite in the buffer at 23552
 //
 // Used by the routine at LOOP.
-WILLYATTRS:
+void WILLYATTRS() {
   LD HL,(LOCATION)        // Pick up the address of Willy's location in the attribute buffer at 23552 from LOCATION
   LD DE,31                // Prepare DE for addition
   LD C,15                 // Set C=15 for the top two rows of cells (to make the routine at WILLYATTR force white INK)
@@ -3147,6 +3163,7 @@ WILLYATTRS:
   INC HL                  // Move HL to the next cell to the right
   CALL WILLYATTR          // Check and set the attribute byte for the bottom-right cell
   JR DRAWWILLY            // Draw Willy to the screen buffer at 24576
+}
 
 // Check and set the attribute byte for a cell occupied by Willy's sprite
 //
@@ -3154,7 +3171,7 @@ WILLYATTRS:
 //
 // C 15 or Willy's pixel y-coordinate
 // HL Address of the cell in the attribute buffer at 23552
-WILLYATTR:
+void WILLYATTR() {
   LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   CP (HL)                 // Does this cell contain a background tile?
   JR NZ,WILLYATTR_0       // Jump if not
@@ -3172,8 +3189,7 @@ WILLYATTR_0:
   CP (HL)                 // Has Willy hit a nasty of the second kind?
   JP Z,KILLWILLY          // Kill Willy if so
   RET
-
-} // NOTE: end of main() function!
+}
 
 
 
