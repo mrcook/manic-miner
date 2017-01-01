@@ -2028,51 +2028,106 @@ void LIGHTBEAM() {
 // Draw the horizontal guardians in the current cavern
 //
 // Used by the routine at LOOP.
-DRAWHG:
-  LD IY,HGUARDS           // Point IY at the first byte of the first horizontal guardian definition at HGUARDS
-// The guardian-drawing loop begins here.
-DRAWHG_0:
-  LD A,(IY+0)             // Pick up the first byte of the guardian definition
-  CP 255                  // Have we dealt with all the guardians yet?
-  RET Z                   // Return if so
-  OR A                    // Is this guardian definition blank?
-  JR Z,DRAWHG_2           // If so, skip it and consider the next one
-  LD DE,31                // Prepare DE for addition
-  LD L,(IY+1)             // Point HL at the address of the guardian's location
-  LD H,(IY+2)             // in the attribute buffer at 23552
-  AND 127                 // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
-  LD (HL),A               // Set the attribute bytes for the guardian in the
-  INC HL                  // buffer at 23552
-  LD (HL),A
-  ADD HL,DE
-  LD (HL),A
-  INC HL
-  LD (HL),A
-  LD C,1                  // Prepare C for the call to the drawing routine at DRWFIX later on
-  LD A,(IY+4)             // Pick up the animation frame (0-7)
-  RRCA                    // Multiply it by 32
-  RRCA
-  RRCA
-  LD E,A                  // Copy the result to E
-  LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-  CP 7                    // Are we in one of the first seven caverns?
-  JR C,DRAWHG_1           // Jump if so
-  CP 9                    // Are we in The Endorian Forest?
-  JR Z,DRAWHG_1           // Jump if so
-  CP 15                   // Are we in The Sixteenth Cavern?
-  JR Z,DRAWHG_1           // Jump if so
-  SET 7,E                 // Add 128 to E (the horizontal guardians in this cavern use frames 4-7 only)
-DRAWHG_1:
-  LD D,129                // Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E)
-  LD L,(IY+1)             // Point HL at the address of the guardian's location
-  LD H,(IY+3)             // in the screen buffer at 24576
-  CALL DRWFIX             // Draw the guardian to the screen buffer at 24576
-  JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
-// The current guardian definition has been dealt with. Time for the next one.
-DRAWHG_2:
-  LD DE,7                 // Point IY at the first byte of the next horizontal
-  ADD IY,DE               // guardian definition
-  JR DRAWHG_0             // Jump back to deal with the next horizontal guardian
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool DRAWHG() {
+  // LD IY,HGUARDS           // Point IY at the first byte of the first horizontal guardian definition at HGUARDS
+
+  uint8_t msb;
+  uint8_t lsb;
+  uint16_t addr;
+
+  // The guardian-drawing loop begins here.
+  // DRAWHG_0:
+  for (int i = 0; i < 4; i++) {
+    // LD A,(IY+0)             // Pick up the first byte of the guardian definition
+    // CP 255                  // Have we dealt with all the guardians yet?
+    // RET Z                   // Return if so
+
+    uint16_t *guardian = &HGUARDS[i];
+
+    // OR A                    // Is this guardian definition blank?
+    // JR Z,DRAWHG_2           // If so, skip it and consider the next one
+    if (guardian[0] == 0 && guardian[1] == 0 && guardian[2] == 0 && guardian[3] == 0 && guardian[4] == 0 && guardian[5] == 0) {
+      continue;
+    }
+
+    // LD DE,31                // Prepare DE for addition
+    uint8_t next_frame_id = 31;
+
+    // LD L,(IY+1)             // Point HL at the address of the guardian's location
+    // LD H,(IY+2)             // in the attribute buffer at 23552
+    split_address(guardian[1], &msb, &lsb);
+    msb += 1;
+    lsb += 2;
+    addr = build_address(msb, lsb);
+
+    uint8_t attr = guardian[0];
+
+    // AND 127                 // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
+    attr &= 127;
+    // LD (HL),A               // Set the attribute bytes for the guardian in the
+    MEM[addr] = attr;
+    // INC HL                  // buffer at 23552
+    addr++;
+    // LD (HL),A
+    MEM[addr] = attr;
+
+    // ADD HL,DE
+    addr += 31;
+    // LD (HL),A
+    MEM[addr] = attr;
+
+    // INC HL
+    addr++;
+    // LD (HL),A
+    MEM[addr] = attr;
+
+    // LD C,1                  // Prepare C for the call to the drawing routine at DRWFIX later on
+
+    // LD A,(IY+4)             // Pick up the animation frame (0-7)
+    // RRCA                    // Multiply it by 32
+    // RRCA
+    // RRCA
+    // LD E,A                  // Copy the result to E
+    uint8_t anim_frame = guardian[3] >> 3;
+
+    // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+    // CP 7                    // Are we in one of the first seven caverns?
+    // JR C,DRAWHG_1           // Jump if so
+    // CP 9                    // Are we in The Endorian Forest?
+    // JR Z,DRAWHG_1           // Jump if so
+    // CP 15                   // Are we in The Sixteenth Cavern?
+    // JR Z,DRAWHG_1           // Jump if so
+    if (SHEET != 7 && SHEET != 9 && SHEET != 15) {
+      // SET 7,E                 // Add 128 to E (the horizontal guardians in this cavern use frames 4-7 only)
+      anim_frame |= (1 << 7);
+    }
+
+    // DRAWHG_1:
+    // LD D,129                // Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E)
+    // LD L,(IY+1)             // Point HL at the address of the guardian's location
+    // LD H,(IY+3)             // in the screen buffer at 24576
+    split_address(guardian[1], &msb, &lsb);
+    addr = build_address(guardian[2], lsb);
+    // CALL DRWFIX             // Draw the guardian to the screen buffer at 24576
+    bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);
+
+    if (kill_willy) {
+      // JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
+      KILLWILLY_0();
+      return true;
+    }
+
+    // // The current guardian definition has been dealt with. Time for the next one.
+    // DRAWHG_2:
+    // LD DE,7                 // Point IY at the first byte of the next horizontal
+    // ADD IY,DE               // guardian definition
+    // JR DRAWHG_0             // Jump back to deal with the next horizontal guardian
+  }
+
+  return false; // IMPORTANT Willy has not died! -MRC-
+}
+
 
 // Move and draw Eugene in Eugene's Lair
 //
