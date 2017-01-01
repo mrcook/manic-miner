@@ -3055,41 +3055,88 @@ void INCSCORE_0(uint16_t addr) {
 //
 // Used by the routine at LOOP.
 void MVCONVEYOR() {
-  LD HL,(CONVLOC)         // Pick up the address of the conveyor's location in the screen buffer at 28672 from CONVLOC
-  LD E,L                  // Copy this address to DE
-  LD D,H
-  LD A,(CONVLEN)          // Pick up the length of the conveyor from CONVLEN
-  LD B,A                  // B will count the conveyor tiles
-  LD A,(CONVDIR)          // Pick up the direction of the conveyor from CONVDIR
-  OR A                    // Is the conveyor moving right?
-  JR NZ,MVCONVEYOR_1      // Jump if so
-// The conveyor is moving left.
-  LD A,(HL)               // Copy the first pixel row of the conveyor tile to A
-  RLC A                   // Rotate it left twice
-  RLC A
-  INC H                   // Point HL at the third pixel row of the conveyor
-  INC H                   // tile
-  LD C,(HL)               // Copy this pixel row to C
-  RRC C                   // Rotate it right twice
-  RRC C
-MVCONVEYOR_0:
-  LD (DE),A               // Update the first and third pixel rows of every
-  LD (HL),C               // conveyor tile in the screen buffer at 28672
-  INC L
-  INC E
-  DJNZ MVCONVEYOR_0
-  RET
-// The conveyor is moving right.
-MVCONVEYOR_1:
-  LD A,(HL)               // Copy the first pixel row of the conveyor tile to A
-  RRC A                   // Rotate it right twice
-  RRC A
-  INC H                   // Point HL at the third pixel row of the conveyor
-  INC H                   // tile
-  LD C,(HL)               // Copy this pixel row to C
-  RLC C                   // Rotate it left twice
-  RLC C
-  JR MVCONVEYOR_0         // Jump back to update the first and third pixel rows of every conveyor tile
+  uint8_t h, l, d, e; // MSB/LSB for the address.
+  uint8_t pixels_a, pixels_c;
+
+  // LD HL,(CONVLOC)         // Pick up the address of the conveyor's location in the screen buffer at 28672 from CONVLOC
+  uint16_t row_hl = CONVLOC;
+  // LD E,L                  // Copy this address to DE
+  // LD D,H
+  uint16_t row_de = CONVLOC;
+
+  // NOTE: using CONVLEN directly in loop below. -MRC-
+  // LD A,(CONVLEN)          // Pick up the length of the conveyor from CONVLEN
+  // LD B,A                  // B will count the conveyor tiles
+
+  // LD A,(CONVDIR)          // Pick up the direction of the conveyor from CONVDIR
+  // OR A                    // Is the conveyor moving right?
+  // JR NZ,MVCONVEYOR_1      // Jump if so
+  if (CONVDIR == 0) {
+    // The conveyor is moving left.
+    // LD A,(HL)               // Copy the first pixel row of the conveyor tile to A
+    // RLC A                   // Rotate it left twice
+    // RLC A
+    pixels_a = MEM[row_hl] << 2;
+
+    split_address(row_hl, &h, &l);
+    // INC H                   // Point HL at the third pixel row of the conveyor
+    // INC H                   // tile
+    h += 2;
+    row_hl = build_address(h, l);
+
+    // LD C,(HL)               // Copy this pixel row to C
+    // RRC C                   // Rotate it right twice
+    // RRC C
+    pixels_c = MEM[row_hl] >> 2;
+
+    // IMPORTANT: moved MVCONVEYOR_0 below, as the `else` takes card of the needed jumps and RET.
+
+    // RET
+  } else {
+    // The conveyor is moving right.
+    // MVCONVEYOR_1:
+    // LD A,(HL)               // Copy the first pixel row of the conveyor tile to A
+    // RRC A                   // Rotate it right twice
+    // RRC A
+    pixels_a = MEM[row_hl] >> 2;
+
+    split_address(row_hl, &h, &l);
+    // INC H                   // Point HL at the third pixel row of the conveyor
+    // INC H                   // tile
+    h += 2;
+    row_hl = build_address(h, l);
+
+    // LD C,(HL)               // Copy this pixel row to C
+    // RLC C                   // Rotate it left twice
+    // RLC C
+    pixels_c = MEM[row_hl] << 2;
+
+    // JR MVCONVEYOR_0         // Jump back to update the first and third pixel rows of every conveyor tile
+  }
+
+  // IMPORTANT: moved here so both if/else blocks can use it, without the need of goto's.
+
+  // MVCONVEYOR_0:
+  for (int b = CONVLEN; b > 0; b--) {
+    // LD (DE),A               // Update the first and third pixel rows of every
+    MEM[row_de] = pixels_a;
+
+    // LD (HL),C               // conveyor tile in the screen buffer at 28672
+    MEM[row_hl] = pixels_c;
+
+    split_address(row_hl, &h, &l);
+    // INC L
+    l++;
+    row_hl = build_address(h, l);
+
+    split_address(row_de, &d, &e);
+    // INC E
+    e++;
+    row_de = build_address(d, e);
+
+    // decrementing register B -MRC-
+    // DJNZ MVCONVEYOR_0
+  }
 }
 
 
