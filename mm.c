@@ -2401,67 +2401,112 @@ bool SKYLABS() {
 // Move and draw the vertical guardians in the current cavern
 //
 // Used by the routine at LOOP.
-VGUARDIANS:
-  LD IY,VGUARDS           // Point IY at the first byte of the first vertical guardian definition at VGUARDS
-// The guardian-moving loop begins here.
-VGUARDIANS_0:
-  LD A,(IY+0)             // Pick up the first byte of the guardian definition
-  CP 255                  // Have we dealt with all the guardians yet?
-  RET Z                   // Return if so
-  INC (IY+1)              // Increment the guardian's animation frame
-  RES 2,(IY+1)            // Reset the animation frame to 0 if it overflowed to 4
-  LD A,(IY+2)             // Pick up the guardian's pixel y-coordinate
-  ADD A,(IY+4)            // Add the current y-coordinate increment
-  CP (IY+5)               // Has the guardian reached the highest point of its path (minimum y-coordinate)?
-  JR C,VGUARDIANS_1       // If so, jump to change its direction of movement
-  CP (IY+6)               // Has the guardian reached the lowest point of its path (maximum y-coordinate)?
-  JR NC,VGUARDIANS_1      // If so, jump to change its direction of movement
-  LD (IY+2),A             // Update the guardian's pixel y-coordinate
-  JR VGUARDIANS_2
-VGUARDIANS_1:
-  LD A,(IY+4)             // Negate the y-coordinate increment; this changes the
-  NEG                     // guardian's direction of movement
-  LD (IY+4),A
-// Now that the guardian's movement has been dealt with, time to draw it.
-VGUARDIANS_2:
-  LD A,(IY+2)             // Pick up the guardian's pixel y-coordinate
-  AND 127                 // Point DE at the entry in the screen buffer address
-  RLCA                    // lookup table at SBUFADDRS that corresponds to the
-  LD E,A                  // guardian's pixel y-coordinate
-  LD D,131
-  LD A,(DE)               // Point HL at the address of the guardian's location
-  OR (IY+3)               // in the screen buffer at 24576
-  LD L,A
-  INC DE
-  LD A,(DE)
-  LD H,A
-  LD A,(IY+1)             // Pick up the guardian's animation frame (0-3)
-  RRCA                    // Multiply it by 32
-  RRCA
-  RRCA
-  LD E,A                  // Point DE at the graphic data for the appropriate
-  LD D,129                // guardian sprite (at GGDATA+A)
-  LD C,1                  // Draw the guardian to the screen buffer at 24576
-  CALL DRWFIX
-  JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
-  LD A,(IY+2)             // Pick up the guardian's pixel y-coordinate
-  AND 64                  // Point HL at the address of the guardian's location
-  RLCA                    // in the attribute buffer at 23552
-  RLCA
-  ADD A,92
-  LD H,A
-  LD A,(IY+2)
-  RLCA
-  RLCA
-  AND 224
-  OR (IY+3)
-  LD L,A
-  LD A,(IY+0)             // Pick up the guardian's attribute byte
-  CALL EUGENE_3           // Set the attribute bytes for the guardian
-// The current guardian definition has been dealt with. Time for the next one.
-  LD DE,7                 // Point IY at the first byte of the next vertical
-  ADD IY,DE               // guardian definition
-  JR VGUARDIANS_0         // Jump back to deal with the next vertical guardian
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool VGUARDIANS() {
+  // LD IY,VGUARDS           // Point IY at the first byte of the first vertical guardian definition at VGUARDS
+
+  // The guardian-moving loop begins here.
+  // VGUARDIANS_0:
+  for (int i = 0; i < 4; i++) {
+    // LD A,(IY+0)             // Pick up the first byte of the guardian definition
+    // CP 255                  // Have we dealt with all the guardians yet?
+    // RET Z                   // Return if so
+
+    uint8_t *guardian = &VGUARDS[i];
+
+    // INC (IY+1)              // Increment the guardian's animation frame
+    // RES 2,(IY+1)            // Reset the animation frame to 0 if it overflowed to 4
+    if (guardian[1] < 3) {
+      guardian[1]++;
+    } else {
+      guardian[1] = 0;
+    }
+
+    // LD A,(IY+2)             // Pick up the guardian's pixel y-coordinate
+    // ADD A,(IY+4)            // Add the current y-coordinate increment
+    uint16_t y_coord = guardian[2] + guardian[4];
+
+    // CP (IY+5)               // Has the guardian reached the highest point of its path (minimum y-coordinate)?
+    // JR C,VGUARDIANS_1       // If so, jump to change its direction of movement
+    // CP (IY+6)               // Has the guardian reached the lowest point of its path (maximum y-coordinate)?
+    // JR NC,VGUARDIANS_1      // If so, jump to change its direction of movement
+    if (y_coord != guardian[5] && y_coord != guardian[6]) {
+      // LD (IY+2),A             // Update the guardian's pixel y-coordinate
+      guardian[2] += guardian[4];
+      // JR VGUARDIANS_2
+    } else {
+      // VGUARDIANS_1:
+      // LD A,(IY+4)             // Negate the y-coordinate increment; this changes the
+      // NEG                     // guardian's direction of movement
+      // LD (IY+4),A
+
+      // FIXME: hmmm, our type is an unsigned int, what do we do?
+      guardian[4] = -guardian[4];
+    }
+
+    // Now that the guardian's movement has been dealt with, time to draw it.
+    // VGUARDIANS_2:
+    // LD A,(IY+2)             // Pick up the guardian's pixel y-coordinate
+    // AND 127                 // Point DE at the entry in the screen buffer address
+    // RLCA                    // lookup table at SBUFADDRS that corresponds to the
+    // LD E,A                  // guardian's pixel y-coordinate
+    // LD D,131
+    uint8_t y_coord = (guardian[2] & 127) << 1;
+    // LD A,(DE)               // Point HL at the address of the guardian's location
+    // OR (IY+3)               // in the screen buffer at 24576
+    // LD L,A
+    // INC DE
+    // LD A,(DE)
+    // LD H,A
+    uint16_t addr = SBUFADDRS[y_coord] | guardian[3];
+    // LD A,(IY+1)             // Pick up the guardian's animation frame (0-3)
+    // RRCA                    // Multiply it by 32
+    // RRCA
+    // RRCA
+    uint8_t anim_frame = guardian[1] >> 3;
+    // LD E,A                  // Point DE at the graphic data for the appropriate
+    // LD D,129                // guardian sprite (at GGDATA+A)
+    // LD C,1                  // Draw the guardian to the screen buffer at 24576
+    // CALL DRWFIX
+    bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);
+    if (kill_willy) {
+      // JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
+      KILLWILLY_0();
+      return true;
+    }
+
+    // LD A,(IY+2)             // Pick up the guardian's pixel y-coordinate
+    // AND 64                  // Point HL at the address of the guardian's location
+    // RLCA                    // in the attribute buffer at 23552
+    // RLCA
+    // ADD A,92
+    // LD H,A
+    addr = ((guardian[2] & 64) << 2) + 92;
+    split_address(addr, msb, lsb);
+    uint8_t msb_bak = msb;
+
+    // LD A,(IY+2)
+    // RLCA
+    // RLCA
+    // AND 224
+    addr = ((guardian[2]) << 2) & 224;
+    // OR (IY+3)
+    addr |= guardian[3];
+    split_address(addr, msb, lsb);
+    // LD L,A
+    addr = build_address(msb_bak, lsb);
+
+    // LD A,(IY+0)             // Pick up the guardian's attribute byte
+    // CALL EUGENE_3           // Set the attribute bytes for the guardian
+    EUGENE_3(addr, guardian[0]);
+
+    // The current guardian definition has been dealt with. Time for the next one.
+    //   LD DE,7                 // Point IY at the first byte of the next vertical
+    //   ADD IY,DE               // guardian definition
+    //   JR VGUARDIANS_0         // Jump back to deal with the next vertical guardian
+  }
+}
+
 
 // Draw the items in the current cavern and collect any that Willy is touching
 //
