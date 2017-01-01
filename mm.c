@@ -1963,41 +1963,67 @@ void MOVEHG() {
 // Move and draw the light beam in Solar Power Generator
 //
 // Used by the routine at LOOP.
-LIGHTBEAM:
-  LD HL,23575             // Point HL at the cell at (0,23) in the attribute buffer at 23552 (the source of the light beam)
-  LD DE,32                // Prepare DE for addition (the beam travels vertically downwards to start with)
-// The beam-drawing loop begins here.
-LIGHTBEAM_0:
-  LD A,(FLOOR)            // Pick up the attribute byte of the floor tile for the cavern from FLOOR
-  CP (HL)                 // Does HL point at a floor tile?
-  RET Z                   // Return if so (the light beam stops here)
-  LD A,(WALL)             // Pick up the attribute byte of the wall tile for the cavern from WALL
-  CP (HL)                 // Does HL point at a wall tile?
-  RET Z                   // Return if so (the light beam stops here)
-  LD A,39                 // A=39 (INK 7: PAPER 4)
-  CP (HL)                 // Does HL point at a tile with this attribute value?
-  JR NZ,LIGHTBEAM_1       // Jump if not (the light beam is not touching Willy)
-  EXX                     // Switch to the shadow registers briefly (to preserve DE and HL)
-  CALL DECAIR             // Decrease the air supply by four units
-  CALL DECAIR
-  CALL DECAIR
-  CALL DECAIR
-  EXX                     // Switch back to the normal registers (restoring DE and HL)
-  JR LIGHTBEAM_2          // Jump forward to draw the light beam over Willy
-LIGHTBEAM_1:
-  LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the cavern from BACKGROUND
-  CP (HL)                 // Does HL point at a background tile?
-  JR Z,LIGHTBEAM_2        // Jump if so (the light beam will not be reflected at this point)
-  LD A,E                  // Toggle the value in DE between 32 and -1 (and
-  XOR 223                 // therefore the direction of the light beam between
-  LD E,A                  // vertically downwards and horizontally to the left):
-  LD A,D                  // the light beam has hit a guardian
-  CPL
-  LD D,A
-LIGHTBEAM_2:
-  LD (HL),119             // Draw a portion of the light beam with attribute value 119 (INK 7: PAPER 6: BRIGHT 1)
-  ADD HL,DE               // Point HL at the cell where the next portion of the light beam will be drawn
-  JR LIGHTBEAM_0          // Jump back to draw the next portion of the light beam
+void LIGHTBEAM() {
+  // LD HL,23575             // Point HL at the cell at (0,23) in the attribute buffer at 23552 (the source of the light beam)
+  uint16_t addr = 23575;
+
+  // LD DE,32                // Prepare DE for addition (the beam travels vertically downwards to start with)
+  uint8_t dir = 32;
+
+  // The beam-drawing loop begins here.
+  // LIGHTBEAM_0:
+  for (;;) {
+    // LD A,(FLOOR)            // Pick up the attribute byte of the floor tile for the cavern from FLOOR
+    // CP (HL)                 // Does HL point at a floor tile?
+    // RET Z                   // Return if so (the light beam stops here)
+    // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the cavern from WALL
+    // CP (HL)                 // Does HL point at a wall tile?
+    // RET Z                   // Return if so (the light beam stops here)
+    if (MEM[addr] == FLOOR || MEM[addr] == WALL) {
+      return;
+    }
+
+    // LD A,39                 // A=39 (INK 7: PAPER 4)
+    // CP (HL)                 // Does HL point at a tile with this attribute value?
+    // JR NZ,LIGHTBEAM_1       // Jump if not (the light beam is not touching Willy)
+    if (MEM[addr] == 39) {
+      // EXX                     // Switch to the shadow registers briefly (to preserve DE and HL)
+      // CALL DECAIR             // Decrease the air supply by four units
+      DECAIR();
+      // CALL DECAIR
+      DECAIR();
+      // CALL DECAIR
+      DECAIR();
+      // CALL DECAIR
+      DECAIR();
+      // EXX                     // Switch back to the normal registers (restoring DE and HL)
+      // JR LIGHTBEAM_2          // Jump forward to draw the light beam over Willy
+    } else {
+      // LIGHTBEAM_1:
+      // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the cavern from BACKGROUND
+      // CP (HL)                 // Does HL point at a background tile?
+      // JR Z,LIGHTBEAM_2        // Jump if so (the light beam will not be reflected at this point)
+      if (MEM[addr] != BACKGROUND) {
+        // LD A,E                  // Toggle the value in DE between 32 and -1 (and
+        // XOR 223                 // therefore the direction of the light beam between
+        de ^= 223;
+        // LD E,A                  // vertically downwards and horizontally to the left):
+        // LD A,D                  // the light beam has hit a guardian
+        // CPL   // NOTE: CPL just inverts all bits.
+        // LD D,A
+        de = ~de;
+      }
+    }
+
+    // LIGHTBEAM_2:
+    // LD (HL),119             // Draw a portion of the light beam with attribute value 119 (INK 7: PAPER 6: BRIGHT 1)
+    MEM[addr] = 119;
+    // ADD HL,DE               // Point HL at the cell where the next portion of the light beam will be drawn
+    addr += dir;
+    // JR LIGHTBEAM_0          // Jump back to draw the next portion of the light beam
+  }
+}
+
 
 // Draw the horizontal guardians in the current cavern
 //
