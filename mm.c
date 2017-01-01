@@ -2991,32 +2991,64 @@ bool NXSHEET() {
 }
 
 
-// Add to the score
+// IMPORTANT: rewrite of the old functions to remove the jumps.
 //
-// The entry point to this routine is at INCSCORE_0.
-void INCSCORE() {
-  LD (HL),48              // Roll the digit over from '9' to '0'
-  DEC HL                  // Point HL at the next digit to the left
-  LD A,L                  // Is this the 10000s digit?
-  CP 42
-  JR NZ,INCSCORE_0        // Jump if not
-// Willy has scored another 10000 points. Give him an extra life.
-  LD A,8                  // Set the screen flash counter at FLASH to 8
-  LD (FLASH),A
-  LD A,(NOMEN)            // Increment the number of lives remaining at NOMEN
-  INC A
-  LD (NOMEN),A
-
 // The entry point to this routine is here and is used by the routines at
 // DRAWITEMS, NXSHEET and KONGBEAST with HL pointing at the digit of the score
 // (see SCORBUF) to be incremented.
-INCSCORE_0:
-  LD A,(HL)               // Pick up a digit of the score
-  CP 57                   // Is it '9'?
-  JR Z,INCSCORE           // Jump if so
-  INC (HL)                // Increment the digit
-  RET
+void INCSCORE_0(uint16_t addr) {
+  uint8_t msb;
+  uint8_t lsb;
+
+  for (;;) {
+    // Pick up a digit of the score, is it '9'?
+    if (MEM[addr] < 57) {
+      MEM[addr]++;
+      return;
+    }
+
+    // Roll the digit over from '9' to '0'
+    MEM[addr] = 48;
+
+    // Point HL at the next digit to the left
+    addr--;
+
+    // Is this the 10000s digit?
+    split_address(addr, &msb, &lsb);
+    if (lsb == 42) {
+      FLASH = 8;
+      NOMEN++;
+    }
+  }
 }
+// // Add to the score
+// //
+// // The entry point to this routine is at INCSCORE_0.
+// void INCSCORE(uint16_t addr) {
+//   LD (HL),48              // Roll the digit over from '9' to '0'
+//   DEC HL                  // Point HL at the next digit to the left
+//   LD A,L                  // Is this the 10000s digit?
+//   CP 42
+//   JR NZ,INCSCORE_0        // Jump if not
+
+//   // Willy has scored another 10000 points. Give him an extra life.
+//   LD A,8                  // Set the screen flash counter at FLASH to 8
+//   LD (FLASH),A
+
+//   LD A,(NOMEN)            // Increment the number of lives remaining at NOMEN
+//   INC A
+//   LD (NOMEN),A
+// }
+// // The entry point to this routine is here and is used by the routines at
+// // DRAWITEMS, NXSHEET and KONGBEAST with HL pointing at the digit of the score
+// // (see SCORBUF) to be incremented.
+// void INCSCORE_0() {
+//   LD A,(HL)               // Pick up a digit of the score
+//   CP 57                   // Is it '9'?
+//   JR Z,INCSCORE           // Jump if so
+//   INC (HL)                // Increment the digit
+//   RET
+// }
 
 
 // Move the conveyor in the current cavern
