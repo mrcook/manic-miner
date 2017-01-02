@@ -435,13 +435,20 @@ LOOP:
 
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Are we in demo mode?
+  // CALL Z,MOVEWILLY        // If not, move Willy
   if (DEMO == 0) {
-    CALL Z,MOVEWILLY        // If not, move Willy
+    if ( MOVEWILLY() ) {
+      goto LOOP_4; // Willy has died!
+    }
   }
+
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Are we in demo mode?
+  // CALL Z,WILLYATTRS       // If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
   if (DEMO == 0) {
-    CALL Z,WILLYATTRS       // If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
+    if ( WILLYATTRS() ) {
+      goto LOOP_4; // Willy has died!
+    }
   }
 
   // CALL DRAWHG             // Draw the horizontal guardians in the current cavern
@@ -455,32 +462,51 @@ LOOP:
   case 4:
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // CP 4                    // Are we in Eugene's Lair?
-    CALL Z,EUGENE           // If so, move and draw Eugene
+    // CALL Z,EUGENE           // If so, move and draw Eugene
+    if ( EUGENE() ) {
+      goto LOOP_4; // Willy has died!
+    }
   case 13:
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // CP 13                   // Are we in Skylab Landing Bay?
-    JP Z,SKYLABS            // If so, move and draw the Skylabs
+    // JP Z,SKYLABS            // If so, move and draw the Skylabs
+    if ( SKYLABS() ) {
+      goto LOOP_4; // Willy has died!
+    }
   case 8:
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // CP 8                    // Are we in Wacky Amoebatrons or beyond?
-    CALL NC,VGUARDIANS      // If so, move and draw the vertical guardians
+    // CALL NC,VGUARDIANS      // If so, move and draw the vertical guardians
+    if ( VGUARDIANS() ) {
+      goto LOOP_4; // Willy has died!
+    }
   case 7:
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // CP 7                    // Are we in Miner Willy meets the Kong Beast?
-    CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
+    // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
+    if ( KONGBEAST() ) {
+      goto LOOP_4; // Willy has died!
+    }
   case 11:
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // CP 11                   // Are we in Return of the Alien Kong Beast?
-    CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
+    // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
+    if ( KONGBEAST() ) {
+      goto LOOP_4; // Willy has died!
+    }
   case 18:
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // CP 18                   // Are we in Solar Power Generator?
-    CALL Z,LIGHTBEAM        // If so, move and draw the light beam
+    // CALL Z,LIGHTBEAM        // If so, move and draw the light beam
+    LIGHTBEAM();
   }
 
 // This entry point is used by the routine at SKYLABS.
 LOOP_3:
-  CALL CHKPORTAL          // Draw the portal, or move to the next cavern if Willy has entered it
+  // CALL CHKPORTAL          // Draw the portal, or move to the next cavern if Willy has entered it
+  if ( CHKPORTAL() ) {
+    goto NEWSHT;
+  }
 
 // This entry point is used by the routine at KILLWILLY.
 LOOP_4:
@@ -1153,13 +1179,14 @@ DRAWSHEET_0:
 }
 
 
-// IMPORTANT: "probably" need a return to indicate if Willy is dead or not ().
-// MOVEWILLY2 calls KILLWILLY_0, which itself returns to LOOP_4, which is very
-// close to the original CALL MOVEWILLY. -MRC-
 
 // Move Willy (1)
 //
 // Used by the routine at LOOP. This routine deals with Willy if he's jumping or falling.
+//
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+// MOVEWILLY2 calls KILLWILLY_0, which itself returns to LOOP_4, which is very
+// close to the original CALL MOVEWILLY. -MRC-
 bool MOVEWILLY() {
   // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
   // CP 1
@@ -1211,7 +1238,8 @@ bool MOVEWILLY() {
     // RLCA                    // falling as Willy falls)
     anim_counter = (anim_counter + 1) << 3;
 
-    LD D,A
+    // LD D,A
+    uint8_t delay = anim_counter;
     // LD C,32                 // C=32; this value determines the duration of the jumping sound effect
 
     // Pick up the border colour for the current cavern from BORDER
@@ -1226,8 +1254,9 @@ bool MOVEWILLY() {
       border_colour ^= 24;
 
       // LD B,D
-      MOVEWILLY_2:
-      DJNZ MOVEWILLY_2
+      // MOVEWILLY_2:
+      // DJNZ MOVEWILLY_2
+      millisleep(delay); // FIXME: probably not the correct delay length.
 
       // DEC C
       // JR NZ,MOVEWILLY_1
@@ -1307,15 +1336,13 @@ bool MOVEWILLY() {
         // DEC HL                  // Point HL at the left-hand cell below Willy's sprite
         // JP NZ,MOVEWILLY2        // Jump if the right-hand cell below Willy's sprite is not empty
         if (MEM[addr] == BACKGROUND) {
-          MOVEWILLY2(addr);
-          return;
+          return MOVEWILLY2(addr);
         }
         addr--;
         // CP (HL)                 // Is the left-hand cell below Willy's sprite empty?
         // JP NZ,MOVEWILLY2        // Jump if not
         if (MEM[addr] == BACKGROUND) {
-          MOVEWILLY2(addr);
-          return;
+          return MOVEWILLY2(addr);
         }
       }
     }
@@ -1327,7 +1354,7 @@ bool MOVEWILLY() {
   // JP Z,MOVEWILLY2_6       // Jump if so
   if (AIRBORNE == 1) {
     MOVEWILLY2_6();
-    return;
+    return false;
   }
 
   // If we get here, then Willy is either in the process of falling or just about to start falling.
@@ -1338,7 +1365,7 @@ bool MOVEWILLY() {
   // JP Z,MOVEWILLY_9        // Jump if not
   if (AIRBORNE == 0) {
     MOVEWILLY_9();
-    return;
+    return false;
   }
 
   // INC A                   // Increment the airborne status indicator at AIRBORNE
@@ -2625,7 +2652,7 @@ void DRAWITEMS() {
 //
 // Used by the routine at LOOP. First check whether Willy has entered the portal.
 // IMPORTANT: the CALLers should be able to handle the `goto NEWSHT` themselves, on the return. -MRC-
-bool CHKPORTAL(uint16_t addr) {
+bool CHKPORTAL() {
   // LD HL,(PORTALLOC1)      // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
   // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
   // CP L                    // Does it match that of the portal?
@@ -3541,7 +3568,8 @@ bool WILLYATTRS() {
 //
 // C 15 or Willy's pixel y-coordinate
 // HL Address of the cell in the attribute buffer at 23552
-void WILLYATTR(uint16_t addr, uint8_t ink) {
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool WILLYATTR(uint16_t addr, uint8_t ink) {
   // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   // CP (HL)                 // Does this cell contain a background tile?
   // JR NZ,WILLYATTR_0       // Jump if not
