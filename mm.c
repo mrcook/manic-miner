@@ -3724,66 +3724,123 @@ void PRINTCHAR_0(uintptr_t *chr; uint16_t addr, uint8_t len) {
 //
 // IY THEMETUNE (tune data)
 bool PLAYTUNE() {
-  LD A,(IY+0)             // Pick up the next byte of tune data from the table at THEMETUNE
-  CP 255                  // Has the tune finished?
-  RET Z                   // Return (with the zero flag set) if so
-  LD C,A                  // Copy the first byte of data for this note (which determines the duration) to C
-  LD B,0                  // Initialise B, which will be used as a delay counter in the note-producing loop
-  XOR A                   // Set A=0 (for no apparent reasaon)
-  LD D,(IY+1)             // Pick up the second byte of data for this note
-  LD A,D                  // Copy it to A
-  CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
-  LD (HL),80              // Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1)
-  LD E,(IY+2)             // Pick up the third byte of data for this note
-  LD A,E                  // Copy it to A
-  CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
-  LD (HL),40              // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0)
-PLAYTUNE_0:
-  OUT (254),A             // Produce a sound based on the frequency parameters
-  DEC D                   // in the second and third bytes of data for this note
-  JR NZ,PLAYTUNE_1        // (copied into D and E)
-  LD D,(IY+1)
-  XOR 24
-PLAYTUNE_1:
-  DEC E
-  JR NZ,PLAYTUNE_2
-  LD E,(IY+2)
-  XOR 24
-PLAYTUNE_2:
-  DJNZ PLAYTUNE_0
-  DEC C
-  JR NZ,PLAYTUNE_0
-  CALL CHECKENTER         // Check whether ENTER or the fire button is being pressed
-  RET NZ                  // Return (with the zero flag reset) if it is
-  LD A,(IY+1)             // Pick up the second byte of data for this note
-  CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
-  LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
-  LD A,(IY+2)             // Pick up the third byte of data for this note
-  CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
-  LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
-  INC IY                  // Move IY along to the data for the next note in the
-  INC IY                  // tune
-  INC IY
-  JR PLAYTUNE             // Jump back to play the next note
+  uint8_t freq1, freq2;
+  uint16_t addr;
+
+  for (int i = 0; i < 95; i++) {
+    // LD A,(IY+0)             // Pick up the next byte of tune data from the table at THEMETUNE
+    // CP 255                  // Has the tune finished?
+    // RET Z                   // Return (with the zero flag set) if so
+    uint8_t note[] = THEMETUNE[i];
+
+    // NOTE: `duration` used directly in the loop below -MRC-
+    // LD C,A                  // Copy the first byte of data for this note (which determines the duration) to C
+
+    // LD B,0                  // Initialise B, which will be used as a delay counter in the note-producing loop
+    uint8_t delay_counter = 0;
+    // XOR A                   // Set A=0 (for no apparent reasaon)
+
+    // LD D,(IY+1)             // Pick up the second byte of data for this note
+    // LD A,D                  // Copy it to A
+    freq1 = note[1];
+    // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
+    addr = PIANOKEY(freq1)
+
+    // LD (HL),80              // Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1)
+    MEM[addr] = 80;
+
+    // LD E,(IY+2)             // Pick up the third byte of data for this note
+    // LD A,E                  // Copy it to A
+    freq2 = note[2];
+    // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
+    addr = PIANOKEY(freq2)
+
+    // LD (HL),40              // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0)
+    MEM[addr] = 40;
+
+    // PLAYTUNE_0:
+    for (duration = note[0]; duration > 0; duration--) {
+      OUT (254),A             // Produce a sound based on the frequency parameters
+
+      // DEC D                   // in the second and third bytes of data for this note
+      freq1--;
+      // JR NZ,PLAYTUNE_1        // (copied into D and E)
+      if (freq1 == 0) {
+        // LD D,(IY+1)
+        freq1 = note[1];
+        // XOR 24
+        freq1 ^= 24;
+      }
+
+      // PLAYTUNE_1:
+      // DEC E
+      freq2--;
+      // JR NZ,PLAYTUNE_2
+      if (freq2 == 0) {
+        // LD E,(IY+2)
+        freq2 = note[2];
+        // XOR 24
+        freq2 ^= 24;
+      }
+
+      // FIXME: reg B is initialized to 0, but never set anywhere else, so this code is obsolete...?
+      // PLAYTUNE_2:
+      // DJNZ PLAYTUNE_0
+
+      // DEC C
+      // JR NZ,PLAYTUNE_0
+    }
+
+    // CALL CHECKENTER         // Check whether ENTER or the fire button is being pressed
+    // RET NZ                  // Return (with the zero flag reset) if it is
+    if ( CHECKENTER() ) {
+      return true;
+    }
+
+    // LD A,(IY+1)             // Pick up the second byte of data for this note
+    // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
+    addr = PIANOKEY(note[1])
+
+    // LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
+    MEM[addr] = 56;
+
+    // LD A,(IY+2)             // Pick up the third byte of data for this note
+    // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
+    addr = PIANOKEY(note[2])
+
+    // LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
+    MEM[addr] = 56;
+
+    // INC IY                  // Move IY along to the data for the next note in the
+    // INC IY                  // tune
+    // INC IY
+    // JR PLAYTUNE             // Jump back to play the next note
+  }
+
+  return false;
 }
 
 
 // Calculate the attribute file address for a piano key
 //
-// Used by the routine at PLAYTUNE. Returns with the attribute file address in
-// HL.
+// Used by the routine at PLAYTUNE. Returns with the attribute file address in HL.
 //
 // A Frequency parameter from the tune data table at THEMETUNE
-void PIANOKEY() {
-  SUB 8                   // Compute the piano key index (K) based on the
-  RRCA                    // frequency parameter (F), and store it in bits 0-4
-  RRCA                    // of A: K=31-INT((F-8)/8)
-  RRCA
-  CPL
-  OR 224                  // A=224+K; this is the LSB
-  LD L,A                  // Set HL to the attribute file address for the piano
-  LD H,89                 // key
-  RET
+uint16_t PIANOKEY(uint8_t frequency) {
+  // SUB 8                   // Compute the piano key index (K) based on the
+  frequency -= 8;
+  // RRCA                    // frequency parameter (F), and store it in bits 0-4
+  // RRCA                    // of A: K=31-INT((F-8)/8)
+  // RRCA
+  frequency = frequency >> 3;
+  // CPL
+  frequency = ~frequency;
+  // OR 224                  // A=224+K; this is the LSB
+  frequency |= 224;
+  // LD L,A                  // Set HL to the attribute file address for the piano
+  // LD H,89                 // key
+  // RET
+  return build_address(89, frequency);
 }
 
 
