@@ -3849,18 +3849,29 @@ uint16_t PIANOKEY(uint8_t frequency) {
 // Used by the routine at PLAYTUNE. Returns with the zero flag reset if ENTER or
 // the fire button on the joystick is being pressed.
 bool CHECKENTER() {
-  LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
-  OR A                    // Is the joystick connected?
-  JR Z,CHECKENTER_0       // Jump if not
-  IN A,(31)               // Collect input from the joystick
-  BIT 4,A                 // Is the fire button being pressed?
-  RET NZ                  // Return (with the zero flag reset) if so
-CHECKENTER_0:
-  LD BC,49150             // Read keys H-J-K-L-ENTER
-  IN A,(C)
-  AND 1                   // Keep only bit 0 of the result (ENTER)
-  CP 1                    // Reset the zero flag if ENTER is being pressed
-  RET
+  // LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
+  // OR A                    // Is the joystick connected?
+  // JR Z,CHECKENTER_0       // Jump if not
+  if (KEMP != 0) {
+    /* TODO
+      IN A,(31)               // Collect input from the joystick
+      BIT 4,A                 // Is the fire button being pressed?
+      RET NZ                  // Return (with the zero flag reset) if so
+    */
+  }
+
+  // CHECKENTER_0:
+  // LD BC,49150             // Read keys H-J-K-L-ENTER
+  // IN A,(C)
+  uint8_t key = MEM[49150];
+  // AND 1                   // Keep only bit 0 of the result (ENTER)
+  // CP 1                    // Reset the zero flag if ENTER is being pressed
+  // RET
+  if (key & 1) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 
