@@ -97,7 +97,6 @@ bool CHECKENTER();
 
 
 void initialize_cavern0();
-void print_score(int current_score);
 
 // helpers.c
 void millisleep(int milliseconds);

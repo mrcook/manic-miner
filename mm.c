@@ -257,9 +257,8 @@ STARTGAME:
   // LD DE,33830
   // LD BC,9
   // LD (HL),48
-  // LDIR
   current_score = 0;
-  print_score(current_score);
+  // LDIR
 
 // This entry point is used by the routines at LOOP (when teleporting into a cavern
 // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
@@ -2555,9 +2554,8 @@ void DRAWITEMS() {
       // Willy is touching this item, so add it to his collection.
       // LD HL,33836             // Add 100 to the score
       // CALL INCSCORE_0
-
-      // FIXME: It might be worth writing a custom score/highscore display update function.
       current_score += 100;
+      INCSCORE_0(33836);
 
       // LD (IY+0),0             // Set the item's attribute byte to 0 so that it will be skipped the next time
       item[0] = 0;
@@ -2957,6 +2955,7 @@ bool NXSHEET() {
     // LD HL,33838             // Add 1 to the score
     // CALL INCSCORE_0
     current_score++;
+    INCSCORE_0(33838);
 
     // LD IX,SCORBUF           // Print the new score at (19,26)
     // LD C,6
@@ -3872,12 +3871,6 @@ bool CHECKENTER() {
   } else {
     return false;
   }
-}
-
-
-void print_score(int current_score) {
-  sprintf(SCORE, "%6d", current_score);
-  // MEM[33830]  // position for score to be printed.
 }
 
 
