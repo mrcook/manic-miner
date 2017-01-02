@@ -430,7 +430,8 @@ LOOP:
     MEM[24576 + i] = MEM[28672 + i];
   }
 
-  CALL MOVEHG             // Move the horizontal guardians in the current cavern
+  // CALL MOVEHG             // Move the horizontal guardians in the current cavern
+  MOVEHG();
 
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Are we in demo mode?
@@ -443,9 +444,12 @@ LOOP:
     CALL Z,WILLYATTRS       // If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
   }
 
-  CALL DRAWHG             // Draw the horizontal guardians in the current cavern
-  CALL MVCONVEYOR         // Move the conveyor in the current cavern
-  CALL DRAWITEMS          // Draw the items in the current cavern and collect any that Willy is touching
+  // CALL DRAWHG             // Draw the horizontal guardians in the current cavern
+  DRAWHG();
+  // CALL MVCONVEYOR         // Move the conveyor in the current cavern
+  MVCONVEYOR();
+  // CALL DRAWITEMS          // Draw the items in the current cavern and collect any that Willy is touching
+  DRAWITEMS();
 
   switch (SHEET) {
   case 4:
@@ -2691,7 +2695,7 @@ bool CHKPORTAL(uint16_t addr) {
 // C Drawing mode: 0 (overwrite) or 1 (blend)
 // DE Address of sprite graphic data
 // HL Address to draw at
-void DRWFIX(uint8_t *sprite, uint16_t addr, uint8_t mode) {
+void DRWFIX(void *sprite, uint16_t addr, uint8_t mode) {
   uint8_t msb;
   uint8_t lsb;
 
@@ -3651,7 +3655,7 @@ void DRAWWILLY() {
 // IX Address of the message
 // C Length of the message
 // DE Display file address
-void PMESS(uintptr_t *msg, uint16_t addr, uint8_t len) {
+void PMESS(void *msg, uint16_t addr, uint8_t len) {
   for (int i = 0; i < len; i++) {
     // LD A,(IX+0)             // Collect a character from the message
     // CALL PRINTCHAR          // Print it
@@ -3685,7 +3689,7 @@ void PRINTCHAR(char ch, uint16_t addr) {
   // ADD HL,HL
   // ADD HL,HL
   uint8_t ch_index_id = ch - 32;
-  uintptr_t *chr = &character_set[ch_index_id];
+  uint8_t *chr = &character_set[ch_index_id];
 
   // LD B,8                  // There are eight pixel rows in a character bitmap
 
@@ -3694,7 +3698,7 @@ void PRINTCHAR(char ch, uint16_t addr) {
 
 // This entry point is used by the routine at DRAWITEMS to draw an item in the
 // current cavern.
-void PRINTCHAR_0(uintptr_t *chr; uint16_t addr, uint8_t len) {
+void PRINTCHAR_0(void *chr, uint16_t addr, uint8_t len) {
   uint8_t msb, lsb;
 
   for (int i = 0; i < len; i++) {
