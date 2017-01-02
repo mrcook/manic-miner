@@ -3576,43 +3576,71 @@ void WILLYATTR(uint16_t addr, uint8_t ink) {
 //
 // Used by the routine at WILLYATTRS.
 void DRAWWILLY() {
-  LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
-  LD IXh,131              // Point IX at the entry in the screen buffer address
-  LD IXl,A                // lookup table at SBUFADDRS that corresponds to Willy's y-coordinate
-  LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
-  AND 1                   // Now E=0 if Willy is facing right, or 128 if he's
-  RRCA                    // facing left
-  LD E,A
-  LD A,(FRAME)            // Pick up Willy's animation frame (0-3) from FRAME
-  AND 3                   // Point DE at the sprite graphic data for Willy's
-  RRCA                    // current animation frame (see MANDAT)
-  RRCA
-  RRCA
-  OR E
-  LD E,A
-  LD D,130
-  LD B,16                 // There are 16 rows of pixels to copy
-  LD A,(LOCATION)         // Pick up Willy's screen x-coordinate (0-31) from
-  AND 31                  // LOCATION
-  LD C,A                  // Copy it to C
-DRAWWILLY_0:
-  LD A,(IX+0)             // Set HL to the address in the screen buffer at 24576
-  LD H,(IX+1)             // that corresponds to where we are going to draw the
-  OR C                    // next pixel row of the sprite graphic
-  LD L,A
-  LD A,(DE)               // Pick up a sprite graphic byte
-  OR (HL)                 // Merge it with the background
-  LD (HL),A               // Save the resultant byte to the screen buffer
-  INC HL                  // Move HL along to the next cell to the right
-  INC DE                  // Point DE at the next sprite graphic byte
-  LD A,(DE)               // Pick it up in A
-  OR (HL)                 // Merge it with the background
-  LD (HL),A               // Save the resultant byte to the screen buffer
-  INC IX                  // Point IX at the next entry in the screen buffer
-  INC IX                  // address lookup table at SBUFADDRS
-  INC DE                  // Point DE at the next sprite graphic byte
-  DJNZ DRAWWILLY_0        // Jump back until all 16 rows of pixels have been drawn
-  RET
+  // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
+  // LD IXh,131              // Point IX at the entry in the screen buffer address
+  // LD IXl,A                // lookup table at SBUFADDRS that corresponds to Willy's y-coordinate
+  uint16_t y_coord = SBUFADDRS[PIXEL_Y];
+
+  // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
+  // AND 1                   // Now E=0 if Willy is facing right, or 128 if he's
+  // RRCA                    // facing left
+  // LD E,A
+  uint8_t id = (DMFLAGS & 1) >> 1;
+  // LD A,(FRAME)            // Pick up Willy's animation frame (0-3) from FRAME
+  // AND 3                   // Point DE at the sprite graphic data for Willy's
+  // RRCA                    // current animation frame (see MANDAT)
+  // RRCA
+  // RRCA
+  // OR E
+  // LD E,A
+  id = (((FRAME & 3) >> 3) | mov_id);
+  // LD D,130
+  uint8_t *sprite = &MANDAT[id];
+
+  // LD B,16                 // There are 16 rows of pixels to copy
+
+  // LD A,(LOCATION)         // Pick up Willy's screen x-coordinate (0-31) from
+  // AND 31                  // LOCATION
+  // LD C,A                  // Copy it to C
+  uint8_t x_coord = (LOCATION & 31);
+
+  uint8_t msb, lsb;
+  uint16_t addr;
+
+  // DRAWWILLY_0:
+  for (int i = 0; i < 16; i++) {
+    split_address(y_coord, &msb, &lsb);
+    // LD A,(IX+0)             // Set HL to the address in the screen buffer at 24576
+    // LD H,(IX+1)             // that corresponds to where we are going to draw the
+    // OR C                    // next pixel row of the sprite graphic
+    // LD L,A
+    lsb |= x_coord;
+    addr = build_address(msb, lsb);
+
+    // LD A,(DE)               // Pick up a sprite graphic byte
+    // OR (HL)                 // Merge it with the background
+    // LD (HL),A               // Save the resultant byte to the screen buffer
+    *sprite[i] |= (*sprite[i] | MEM[addr]);
+
+    // INC HL                  // Move HL along to the next cell to the right
+    addr++;
+    // INC DE                  // Point DE at the next sprite graphic byte
+    i++;
+
+    // LD A,(DE)               // Pick it up in A
+    // OR (HL)                 // Merge it with the background
+    // LD (HL),A               // Save the resultant byte to the screen buffer
+    *sprite[i] |= (*sprite[i] | MEM[addr]);
+
+    // INC IX                  // Point IX at the next entry in the screen buffer
+    // INC IX                  // address lookup table at SBUFADDRS
+    y_coord += 2;
+
+    // INC DE                  // Point DE at the next sprite graphic byte
+    // DJNZ DRAWWILLY_0        // Jump back until all 16 rows of pixels have been drawn
+  }
+
+  // RET
 }
 
 
