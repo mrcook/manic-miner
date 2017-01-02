@@ -82,6 +82,7 @@ extern uint8_t TITLESCR1[2048];
 extern uint8_t TITLESCR2[2048];
 
 extern uint8_t CAVERN0[512];
+extern uint8_t PLINTH[32];
 extern uint8_t BOOT[256];
 extern uint8_t EUGENEG[32];
 extern uint8_t CAVERN19[512];
@@ -114,7 +115,7 @@ bool SKYLABS();
 bool VGUARDIANS();
 void DRAWITEMS();
 bool CHKPORTAL();
-void DRWFIX(void *sprite, uint16_t addr, uint8_t mode);
+bool DRWFIX(void *sprite, uint16_t addr, uint8_t mode);
 bool NXSHEET();
 void INCSCORE_0(uint16_t addr);
 void MVCONVEYOR();

@@ -791,7 +791,9 @@ MANDEAD:
   // OR A                    // Is it demo mode?
   // JP NZ,NXSHEET           // If so, move to the next cavern
   if (DEMO != 0) {
-    goto NXSHEET;
+    // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` -MRC-
+    NXSHEET();
+    goto NEWSHT;
   }
 
   // LD A,71                 // A=71 (INK 7: PAPER 0: BRIGHT 1)
@@ -1202,7 +1204,7 @@ bool MOVEWILLY() {
     // LD (HL),A
     PIXEL_Y += (JUMPING & ~(1 << 0)) - 8;
     // CALL MOVEWILLY_7        // Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate
-    MOVEWILLY_7();
+    MOVEWILLY_7(PIXEL_Y);
 
     // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // CP (HL)                 // Is the top-left cell of Willy's sprite overlapping a wall tile?
@@ -1393,7 +1395,7 @@ MOVEWILLY_6:
   // LD (PIXEL_Y),A
   PIXEL_Y += 8;
 
-  MOVEWILLY_7(); // IMPORTANT: implicit call to this subroutine.
+  MOVEWILLY_7(PIXEL_Y); // IMPORTANT: implicit call to this subroutine.
 }
 
 void MOVEWILLY_7(uint8_t a) {
@@ -1438,7 +1440,7 @@ void MOVEWILLY_10() {
   PIXEL_Y = ((PIXEL_Y + 16) & 240);
 
   // CALL MOVEWILLY_7        // Adjust Willy's attribute buffer location at LOCATION to account for this new pixel y-coordinate
-  MOVEWILLY_7();
+  MOVEWILLY_7(PIXEL_Y);
 
   // LD A,2                  // Set the airborne status indicator at AIRBORNE to 2:
   // LD (AIRBORNE),A         // Willy has started falling
@@ -1464,7 +1466,7 @@ void CRUMBLE(uint16_t addr) {
 
   uint8_t b;
   uint8_t c;
-  split_address(addr, &b, &c)
+  split_address(addr, &b, &c);
 
   // ADD A,27
   // OR 7
@@ -1707,7 +1709,7 @@ void MOVEWILLY2_6() {
   // LD A,(FRAME)            // Pick up Willy's animation frame from FRAME
   // OR A                    // Is it 0?
   // JR Z,MOVEWILLY2_7       // If so, jump to move Willy's sprite left across a cell boundary
-  if (FRAME | FRAME == 0) {
+  if (FRAME == 0) {
     MOVEWILLY2_7();
     return;
   }
@@ -1763,7 +1765,7 @@ void MOVEWILLY2_7() {
   }
 
   // LD (LOCATION),HL        // Save Willy's new attribute buffer coordinates (in HL) at LOCATION
-  LOCATION = add;
+  LOCATION = addr;
 
   // LD A,3                  // Change Willy's animation frame at FRAME from 0 to 3
   // LD (FRAME),A
@@ -1778,7 +1780,7 @@ void MOVEWILLY2_9() {
   // CP 3                    // Is it 3?
   // JR Z,MOVEWILLY2_10      // If so, jump to move Willy's sprite right across a cell boundary
   if (FRAME == 3) {
-    MOVEWILLY2_10()
+    MOVEWILLY2_10();
   } else {
     // INC A                   // Increment Willy's animation frame at FRAME
     // LD (FRAME),A
@@ -1913,11 +1915,11 @@ void MOVEHG() {
     // RRCA                    // the main loop) to bit 7 and clear all the other
     // RRCA                    // bits
     // RRCA
-    current_clock = current_clock >> 3
+    current_clock = current_clock >> 3;
 
     // AND (IY+0)              // Combine this bit with bit 7 of the first byte of the guardian definition, which specifies the guardian's animation speed: 0=normal, 1=slow
     // JR NZ,MOVEHG_6          // Jump to consider the next guardian if this one is not due to be moved on this pass
-    if (current_clock & guardian[0] != 0) {
+    if ((current_clock & guardian[0]) != 0) {
         continue;
     }
 
@@ -2041,12 +2043,12 @@ void LIGHTBEAM() {
       if (MEM[addr] != BACKGROUND) {
         // LD A,E                  // Toggle the value in DE between 32 and -1 (and
         // XOR 223                 // therefore the direction of the light beam between
-        de ^= 223;
+        dir ^= 223;
         // LD E,A                  // vertically downwards and horizontally to the left):
         // LD A,D                  // the light beam has hit a guardian
         // CPL   // NOTE: CPL just inverts all bits.
         // LD D,A
-        de = ~de;
+        dir = ~dir;
       }
     }
 
@@ -2408,7 +2410,7 @@ bool SKYLABS() {
     // ADD A,92
     // LD H,A
     addr = ((guardian[2] & 64) << 2) + 92;
-    split_address(addr, msb, lsb);
+    split_address(addr, &msb, &lsb);
     uint8_t msb_bak = msb;
 
     // LD A,(IY+2)
@@ -2418,7 +2420,7 @@ bool SKYLABS() {
     addr = ((guardian[2]) << 2) & 224;
     // OR (IY+3)
     addr |= guardian[3];
-    split_address(addr, msb, lsb);
+    split_address(addr, &msb, &lsb);
     // LD L,A
     addr = build_address(msb_bak, lsb);
 
@@ -2438,6 +2440,8 @@ bool SKYLABS() {
 // Used by the routine at LOOP.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool VGUARDIANS() {
+  uint8_t msb, lsb;
+
   // LD IY,VGUARDS           // Point IY at the first byte of the first vertical guardian definition at VGUARDS
 
   // The guardian-moving loop begins here.
@@ -2486,7 +2490,7 @@ bool VGUARDIANS() {
     // RLCA                    // lookup table at SBUFADDRS that corresponds to the
     // LD E,A                  // guardian's pixel y-coordinate
     // LD D,131
-    uint8_t y_coord = (guardian[2] & 127) << 1;
+    y_coord = (guardian[2] & 127) << 1;
     // LD A,(DE)               // Point HL at the address of the guardian's location
     // OR (IY+3)               // in the screen buffer at 24576
     // LD L,A
@@ -2517,7 +2521,7 @@ bool VGUARDIANS() {
     // ADD A,92
     // LD H,A
     addr = ((guardian[2] & 64) << 2) + 92;
-    split_address(addr, msb, lsb);
+    split_address(addr, &msb, &lsb);
     uint8_t msb_bak = msb;
 
     // LD A,(IY+2)
@@ -2527,7 +2531,7 @@ bool VGUARDIANS() {
     addr = ((guardian[2]) << 2) & 224;
     // OR (IY+3)
     addr |= guardian[3];
-    split_address(addr, msb, lsb);
+    split_address(addr, &msb, &lsb);
     // LD L,A
     addr = build_address(msb_bak, lsb);
 
@@ -2575,7 +2579,7 @@ void DRAWITEMS() {
     // LD E,(IY+1)             // Point DE at the address of the item's location in
     // LD D,(IY+2)             // the attribute buffer at 23552
     addr = item[1];
-    split_address(addr, msb, lsb);
+    split_address(addr, &msb, &lsb);
 
     // LD A,(DE)               // Pick up the current attribute byte at the item's location
     // AND 7                   // Is the INK white (which happens if Willy is
@@ -2654,6 +2658,8 @@ void DRAWITEMS() {
 // IMPORTANT: the CALLers should be able to handle the `goto NEWSHT` themselves, on the return. -MRC-
 bool CHKPORTAL() {
   // LD HL,(PORTALLOC1)      // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
+  uint16_t addr = PORTALLOC1;
+
   // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
   // CP L                    // Does it match that of the portal?
   // JR NZ,CHKPORTAL_0       // Jump if not
@@ -2722,7 +2728,7 @@ bool CHKPORTAL() {
 // C Drawing mode: 0 (overwrite) or 1 (blend)
 // DE Address of sprite graphic data
 // HL Address to draw at
-void DRWFIX(void *sprite, uint16_t addr, uint8_t mode) {
+bool DRWFIX(void *sprite, uint16_t addr, uint8_t mode) {
   uint8_t msb;
   uint8_t lsb;
 
@@ -3283,7 +3289,7 @@ bool KONGBEAST() {
     // LD B,8                  // Clear the cells at (2,15) and (2,16), removing the
     // KONGBEAST_3:
     for (int i = 8; i > 0; i--) {
-      split_address(addr, msb, lsb);
+      split_address(addr, &msb, &lsb);
 
       // LD (HL),0               // floor beneath the Kong Beast
       MEM[addr] = 0;

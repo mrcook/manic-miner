@@ -1049,11 +1049,12 @@ memcpy(GGDATA, newGGDATA, sizeof(newGGDATA));
 //   DEFB 0,0                // Unused
 // // The next 32 bytes define the plinth graphic that appears on the Game Over
 // // screen.
-// PLINTH:
-//   DEFB 255,255,114,78,138,81,170,85 // Plinth graphic data
-//   DEFB 74,82,18,72,34,68,42,84
-//   DEFB 42,84,42,84,42,84,42,84
-//   DEFB 42,84,42,84,42,84,42,84
+uint8_t PLINTH[32] = {      // Plinth graphic data
+  {255,255,114,78,138,81,170,85},
+  {74,82,18,72,34,68,42,84},
+  {42,84,42,84,42,84,42,84},
+  {42,84,42,84,42,84,42,84},
+};
 // // The next 256 bytes are copied to GGDATA and define the guardian graphics.
 //   DEFB 12,0,30,0,27,0,30,192 // Guardian graphic data
 //   DEFB 57,0,50,0,58,0,61,0
