@@ -3404,28 +3404,62 @@ bool KONGBEAST_8() {
 // flips the switch.
 //
 // HL Address of the switch's location in the attribute buffer at 23552
-void CHKSWITCH(uint16_t addr) {
-  LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
-  INC A                   // Is it equal to or one less than the LSB of the
-  AND 254                 // address of the switch's location?
-  CP L
-  RET NZ                  // Return (with the zero flag reset) if not
-  LD A,(32877)            // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
-  CP H                    // Does it match the MSB of the address of the switch's location?
-  RET NZ                  // Return (with the zero flag reset) if not
-  LD A,(32869)            // Pick up the sixth byte of the graphic data for the switch tile from 32869
-  LD H,117                // Point HL at the sixth row of pixels of the switch tile in the screen buffer at 28672
-  CP (HL)                 // Has the switch already been flipped?
-  RET NZ                  // Return (with the zero flag reset) if so
-// Willy is flipping the switch.
-  LD (HL),8               // Update the sixth, seventh and eighth rows of pixels
-  INC H                   // of the switch tile in the screen buffer at 28672 to
-  LD (HL),6               // make it appear flipped
-  INC H
-  LD (HL),6
-  XOR A                   // Set the zero flag: Willy has flipped the switch
-  OR A                    // This instruction is redundant
-  RET
+bool CHKSWITCH(uint16_t addr) {
+  uint8_t msb, lsb;
+
+  uint8_t sw_msb, sw_lsb;
+  split_address(addr, &sw_msb, &sw_lsb);
+
+  // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
+  // INC A                   // Is it equal to or one less than the LSB of the
+  // AND 254                 // address of the switch's location?
+  lsb = ((LOCATION + 1) & 254);
+  // CP L
+  // RET NZ                  // Return (with the zero flag reset) if not
+  if (lsb == sw_lsb) {
+    return false;
+  }
+
+  // LD A,(32877)            // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
+  split_address(32877, &msb, &lsb);
+  // CP H                    // Does it match the MSB of the address of the switch's location?
+  // RET NZ                  // Return (with the zero flag reset) if not
+  if (msb == sw_msb) {
+    return false;
+  }
+
+  // LD A,(32869)            // Pick up the sixth byte of the graphic data for the switch tile from 32869
+  // LD H,117                // Point HL at the sixth row of pixels of the switch tile in the screen buffer at 28672
+  sw_msb = 117;
+  addr = build_address(sw_msb, sw_lsb);
+  // CP (HL)                 // Has the switch already been flipped?
+  // RET NZ                  // Return (with the zero flag reset) if so
+  if (MEM[addr] == MEM[32869]) {
+    return true;
+  }
+
+  // Willy is flipping the switch.
+  // LD (HL),8               // Update the sixth, seventh and eighth rows of pixels
+  MEM[addr]  = 8;
+
+  split_address(32877, &sw_msb, &sw_lsb);
+  // INC H                   // of the switch tile in the screen buffer at 28672 to
+  sw_msb++;
+  addr = build_address(sw_msb, sw_lsb);
+  // LD (HL),6               // make it appear flipped
+  MEM[addr]  = 6;
+
+  split_address(32877, &sw_msb, &sw_lsb);
+  // INC H
+  sw_msb++;
+  addr = build_address(sw_msb, sw_lsb);
+  // LD (HL),6
+  MEM[addr]  = 6;
+
+  // XOR A                   // Set the zero flag: Willy has flipped the switch
+  // OR A                    // This instruction is redundant
+  // RET
+  return true;
 }
 
 // Check and set the attribute bytes for Willy's sprite in the buffer at 23552
