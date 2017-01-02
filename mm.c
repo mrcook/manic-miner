@@ -3652,17 +3652,22 @@ void DRAWWILLY() {
 // IX Address of the message
 // C Length of the message
 // DE Display file address
-void PMESS() {
-  LD A,(IX+0)             // Collect a character from the message
-  CALL PRINTCHAR          // Print it
-  INC IX                  // Point IX at the next character in the message
-  INC E                   // Point DE at the next character cell (subtracting 8
-  LD A,D                  // from D compensates for the operations performed by
-  SUB 8                   // the routine at PRINTCHAR)
-  LD D,A
-  DEC C                   // Have we printed the entire message yet?
-  JR NZ,PMESS             // If not, jump back to print the next character
-  RET
+void PMESS(uintptr_t *msg, uint16_t addr, uint8_t len) {
+  for (int i = 0; i < len; i++) {
+    // LD A,(IX+0)             // Collect a character from the message
+    // CALL PRINTCHAR          // Print it
+    PRINTCHAR(*msg[i], addr);
+    // INC IX                  // Point IX at the next character in the message
+    // INC E                   // Point DE at the next character cell (subtracting 8
+    // LD A,D                  // from D compensates for the operations performed by
+    // SUB 8                   // the routine at PRINTCHAR)
+    // LD D,A
+    addr++;
+    // DEC C                   // Have we printed the entire message yet?
+    // JR NZ,PMESS             // If not, jump back to print the next character
+  }
+
+  // RET
 }
 
 
@@ -3673,23 +3678,41 @@ void PMESS() {
 //
 // A ASCII code of the character
 // DE Display file address
-void PRINTCHAR() {
-  LD H,7                  // Point HL at the bitmap for the character (in the
-  LD L,A                  // ROM)
-  SET 7,L
-  ADD HL,HL
-  ADD HL,HL
-  ADD HL,HL
-  LD B,8                  // There are eight pixel rows in a character bitmap
+void PRINTCHAR(char ch, uint16_t addr) {
+  // LD H,7                  // Point HL at the bitmap for the character (in the
+  // LD L,A                  // ROM)
+  // SET 7,L
+  // ADD HL,HL
+  // ADD HL,HL
+  // ADD HL,HL
+  uint8_t ch_index_id = ch - 32;
+  uintptr_t *chr = &character_set[ch_index_id];
+
+  // LD B,8                  // There are eight pixel rows in a character bitmap
+
+  PRINTCHAR_0(chr, addr, 8); // IMPORTANT: implicit call to function.
+}
+
 // This entry point is used by the routine at DRAWITEMS to draw an item in the
 // current cavern.
-PRINTCHAR_0:
-  LD A,(HL)               // Copy the character bitmap to the screen (or item
-  LD (DE),A               // graphic to the screen buffer)
-  INC HL
-  INC D
-  DJNZ PRINTCHAR_0
-  RET
+void PRINTCHAR_0(uintptr_t *chr; uint16_t addr, uint8_t len) {
+  uint8_t msb, lsb;
+
+  for (int i = 0; i < len; i++) {
+    split_address(addr, &msb, &lsb);
+
+    // LD A,(HL)               // Copy the character bitmap to the screen (or item
+    // LD (DE),A               // graphic to the screen buffer)
+    MEM[addr] = *chr[i];
+    // INC HL
+
+    // INC D
+    msb++;
+
+    // DJNZ PRINTCHAR_0
+    addr = build_address(msb, lsb);
+  }
+  // RET
 }
 
 
