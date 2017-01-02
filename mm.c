@@ -3465,24 +3465,71 @@ bool CHKSWITCH(uint16_t addr) {
 // Check and set the attribute bytes for Willy's sprite in the buffer at 23552
 //
 // Used by the routine at LOOP.
-void WILLYATTRS() {
-  LD HL,(LOCATION)        // Pick up the address of Willy's location in the attribute buffer at 23552 from LOCATION
-  LD DE,31                // Prepare DE for addition
-  LD C,15                 // Set C=15 for the top two rows of cells (to make the routine at WILLYATTR force white INK)
-  CALL WILLYATTR          // Check and set the attribute byte for the top-left cell
-  INC HL                  // Move HL to the next cell to the right
-  CALL WILLYATTR          // Check and set the attribute byte for the top-right cell
-  ADD HL,DE               // Move HL down a row and back one cell to the left
-  CALL WILLYATTR          // Check and set the attribute byte for the mid-left cell
-  INC HL                  // Move HL to the next cell to the right
-  CALL WILLYATTR          // Check and set the attribute byte for the mid-right cell
-  LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
-  LD C,A                  // Copy it to C
-  ADD HL,DE               // Move HL down a row and back one cell to the left
-  CALL WILLYATTR          // Check and set the attribute byte for the bottom-left cell
-  INC HL                  // Move HL to the next cell to the right
-  CALL WILLYATTR          // Check and set the attribute byte for the bottom-right cell
-  JR DRAWWILLY            // Draw Willy to the screen buffer at 24576
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool WILLYATTRS() {
+  bool kill_willy;
+
+  // LD HL,(LOCATION)        // Pick up the address of Willy's location in the attribute buffer at 23552 from LOCATION
+  uint16_t addr = LOCATION;
+
+  // LD DE,31                // Prepare DE for addition
+
+  // LD C,15                 // Set C=15 for the top two rows of cells (to make the routine at WILLYATTR force white INK)
+  uint8_t ink = 15;
+
+  // CALL WILLYATTR          // Check and set the attribute byte for the top-left cell
+  if (WILLYATTR(addr, ink)) {
+    kill_willy = true;
+  }
+
+  // INC HL                  // Move HL to the next cell to the right
+  addr++;
+  // CALL WILLYATTR          // Check and set the attribute byte for the top-right cell
+  if (WILLYATTR(addr, ink)) {
+    kill_willy = true;
+  }
+
+  // ADD HL,DE               // Move HL down a row and back one cell to the left
+  addr += 31;
+  // CALL WILLYATTR          // Check and set the attribute byte for the mid-left cell
+  if (WILLYATTR(addr, ink)) {
+    kill_willy = true;
+  }
+
+  // INC HL                  // Move HL to the next cell to the right
+  addr++;
+  // CALL WILLYATTR          // Check and set the attribute byte for the mid-right cell
+  if (WILLYATTR(addr, ink)) {
+    kill_willy = true;
+  }
+
+  // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
+  // LD C,A                  // Copy it to C
+  ink = PIXEL_Y;
+
+  // ADD HL,DE               // Move HL down a row and back one cell to the left
+  addr += 31;
+  // CALL WILLYATTR          // Check and set the attribute byte for the bottom-left cell
+  if (WILLYATTR(addr, ink)) {
+    kill_willy = true;
+  }
+
+  // INC HL                  // Move HL to the next cell to the right
+  addr++;
+  // CALL WILLYATTR          // Check and set the attribute byte for the bottom-right cell
+  if (WILLYATTR(addr, ink)) {
+    kill_willy = true;
+  }
+
+  // JR DRAWWILLY            // Draw Willy to the screen buffer at 24576
+  DRAWWILLY();
+
+  // Is Willy dead?
+  if (kill_willy) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 // Check and set the attribute byte for a cell occupied by Willy's sprite
@@ -3491,24 +3538,36 @@ void WILLYATTRS() {
 //
 // C 15 or Willy's pixel y-coordinate
 // HL Address of the cell in the attribute buffer at 23552
-void WILLYATTR() {
-  LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-  CP (HL)                 // Does this cell contain a background tile?
-  JR NZ,WILLYATTR_0       // Jump if not
-  LD A,C                  // Set the zero flag if we are going to retain the INK
-  AND 15                  // colour in this cell; this happens only if the cell is in the bottom row and Willy's sprite is confined to the top two rows
-  JR Z,WILLYATTR_0        // Jump if we are going to retain the current INK colour in this cell
-  LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-  OR 7                    // Set bits 0-2, making the INK white
-  LD (HL),A               // Set the attribute byte for this cell in the buffer at 23552
-WILLYATTR_0:
-  LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
-  CP (HL)                 // Has Willy hit a nasty of the first kind?
-  JP Z,KILLWILLY          // Kill Willy if so
-  LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
-  CP (HL)                 // Has Willy hit a nasty of the second kind?
-  JP Z,KILLWILLY          // Kill Willy if so
-  RET
+void WILLYATTR(uint16_t addr, uint8_t ink) {
+  // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+  // CP (HL)                 // Does this cell contain a background tile?
+  // JR NZ,WILLYATTR_0       // Jump if not
+  if (MEM[addr] != BACKGROUND) {
+    // LD A,C                  // Set the zero flag if we are going to retain the INK
+    // AND 15                  // colour in this cell; this happens only if the cell is in the bottom row and Willy's sprite is confined to the top two rows
+    // JR Z,WILLYATTR_0        // Jump if we are going to retain the current INK colour in this cell
+    if (ink & 15) {
+      // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+      // OR 7                    // Set bits 0-2, making the INK white
+      // LD (HL),A               // Set the attribute byte for this cell in the buffer at 23552
+      MEM[addr] = (BACKGROUND | 7);
+    }
+  }
+
+  // WILLYATTR_0:
+  // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
+  // CP (HL)                 // Has Willy hit a nasty of the first kind?
+  // JP Z,KILLWILLY          // Kill Willy if so
+  // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
+  // CP (HL)                 // Has Willy hit a nasty of the second kind?
+  // JP Z,KILLWILLY          // Kill Willy if so
+  if (MEM[addr] == NASTY1 || MEM[addr] == NASTY2) {
+    KILLWILLY();
+    return true;
+  }
+
+  // RET
+  return false;
 }
 
 
