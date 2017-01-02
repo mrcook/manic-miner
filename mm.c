@@ -3143,135 +3143,258 @@ void MVCONVEYOR() {
 // Move and draw the Kong Beast in the current cavern
 //
 // Used by the routine at LOOP.
-void KONGBEAST() {
-  LD HL,23558             // Flip the left-hand switch at (0,6) if Willy is
-  CALL CHKSWITCH          // touching it
-  LD A,(EUGDIR)           // Pick up the Kong Beast's status from EUGDIR
-  CP 2                    // Is the Kong Beast already dead?
-  RET Z                   // Return if so
-  LD A,(29958)            // Pick up the sixth pixel row of the left-hand switch from the screen buffer at 28672
-  CP 16                   // Has the switch been flipped?
-  JP Z,KONGBEAST_8        // Jump if not
-// The left-hand switch has been flipped. Deal with opening up the wall if that
-// is still in progress.
-  LD A,(24433)            // Pick up the attribute byte of the tile at (11,17) in the buffer at 24064
-  OR A                    // Has the wall there been removed yet?
-  JR Z,KONGBEAST_2        // Jump if so
-  LD HL,32625             // Point HL at the bottom row of pixels of the wall tile at (11,17) in the screen buffer at 28672
-KONGBEAST_0:
-  LD A,(HL)               // Pick up a pixel row
-  OR A                    // Is it blank yet?
-  JR NZ,KONGBEAST_1       // Jump if not
-  DEC H                   // Point HL at the next pixel row up
-  LD A,H                  // Have we checked all 8 pixel rows yet?
-  CP 119
-  JR NZ,KONGBEAST_0       // If not, jump back to check the next one
-  LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-  LD (24433),A            // Change the attributes at (11,17) and (12,17) in the
-  LD (24465),A            // buffer at 24064 to match the background tile (the wall there is now gone)
-  LD A,114                // Update the seventh byte of the guardian definition
-  LD (32971),A            // at HGUARD2 so that the guardian moves through the opening in the wall
-  JR KONGBEAST_2
-KONGBEAST_1:
-  LD (HL),0               // Clear a pixel row of the wall tile at (11,17) in the screen buffer at 28672
-  LD L,145                // Point HL at the opposite pixel row of the wall tile
-  LD A,H                  // one cell down at (12,17)
-  XOR 7
-  LD H,A
-  LD (HL),0               // Clear that pixel row as well
-// Now check the right-hand switch.
-KONGBEAST_2:
-  LD HL,23570             // Flip the right-hand switch at (0,18) if Willy is
-  CALL CHKSWITCH          // touching it (and it hasn't already been flipped)
-  JR NZ,KONGBEAST_4       // Jump if the switch was not flipped
-  XOR A                   // Initialise the Kong Beast's pixel y-coordinate at
-  LD (EUGHGT),A           // EUGHGT to 0
-  INC A                   // Update the Kong Beast's status at EUGDIR to 1: he
-  LD (EUGDIR),A           // is falling
-  LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-  LD (24143),A            // Change the attributes of the floor beneath the Kong
-  LD (24144),A            // Beast in the buffer at 24064 to match that of the background tile
-  LD HL,28751             // Point HL at (2,15) in the screen buffer at 28672
-  LD B,8                  // Clear the cells at (2,15) and (2,16), removing the
-KONGBEAST_3:
-  LD (HL),0               // floor beneath the Kong Beast
-  INC L
-  LD (HL),0
-  DEC L
-  INC H
-  DJNZ KONGBEAST_3
-KONGBEAST_4:
-  LD A,(EUGDIR)           // Pick up the Kong Beast's status from EUGDIR
-  OR A                    // Is the Kong Beast still on the ledge?
-  JR Z,KONGBEAST_8        // Jump if so
-// The Kong Beast is falling.
-  LD A,(EUGHGT)           // Pick up the Kong Beast's pixel y-coordinate from EUGHGT
-  CP 100                  // Has he fallen into the portal yet?
-  JR Z,KONGBEAST_7        // Jump if so
-  ADD A,4                 // Add 4 to the Kong Beast's pixel y-coordinate at
-  LD (EUGHGT),A           // EUGHGT (moving him downwards)
-  LD C,A                  // Copy the pixel y-coordinate to C; this value determines the pitch of the sound effect
-  LD D,16                 // D=16; this value determines the duration of the sound effect
-  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-KONGBEAST_5:
-  OUT (254),A             // Make a falling sound effect
-  XOR 24
-  LD B,C
-KONGBEAST_6:
-  DJNZ KONGBEAST_6
-  DEC D
-  JR NZ,KONGBEAST_5
-  LD A,C                  // Copy the Kong Beast's pixel y-coordinate back into A
-  RLCA                    // Point DE at the entry in the screen buffer address
-  LD E,A                  // lookup table at SBUFADDRS that corresponds to the
-  LD D,131                // Kong Beast's pixel y-coordinate
-  LD A,(DE)               // Point HL at the address of the Kong Beast's
-  OR 15                   // location in the screen buffer at 24576
-  LD L,A
-  INC DE
-  LD A,(DE)
-  LD H,A
-  LD D,129                // Use bit 5 of the value of the game clock at CLOCK
-  LD A,(CLOCK)            // (which is toggled once every eight passes through
-  AND 32                  // the main loop) to point DE at the graphic data for
-  OR 64                   // the appropriate Kong Beast sprite
-  LD E,A
-  LD C,0                  // Draw the Kong Beast to the screen buffer at 24576
-  CALL DRWFIX
-  LD HL,33836             // Add 100 to the score
-  CALL INCSCORE_0
-  LD A,(EUGHGT)           // Pick up the Kong Beast's pixel y-coordinate from EUGHGT
-  AND 120                 // Point HL at the address of the Kong Beast's
-  LD L,A                  // location in the attribute buffer at 23552
-  LD H,23
-  ADD HL,HL
-  ADD HL,HL
-  LD A,L
-  OR 15
-  LD L,A
-  LD A,6                  // The Kong Beast is drawn with yellow INK
-  JP EUGENE_3             // Set the attribute bytes for the Kong Beast
-// The Kong Beast has fallen into the portal.
-KONGBEAST_7:
-  LD A,2                  // Set the Kong Beast's status at EUGDIR to 2: he is
-  LD (EUGDIR),A           // dead
-  RET
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool KONGBEAST() {
+  uint16_t addr;
+  uint8_t msb, lsb;
+
+  // LD HL,23558             // Flip the left-hand switch at (0,6) if Willy is
+  // CALL CHKSWITCH          // touching it
+  CHKSWITCH(23558);
+
+  // LD A,(EUGDIR)           // Pick up the Kong Beast's status from EUGDIR
+  // CP 2                    // Is the Kong Beast already dead?
+  // RET Z                   // Return if so
+  if (EUGDIR == 2) {
+    return false; // NOTE: willy is not dead!
+  }
+
+  // LD A,(29958)            // Pick up the sixth pixel row of the left-hand switch from the screen buffer at 28672
+  // CP 16                   // Has the switch been flipped?
+  // JP Z,KONGBEAST_8        // Jump if not
+  if (MEM[29958] != 16) {
+    return KONGBEAST_8();  // return dead-ness state of Willy! -MRC-
+  }
+
+  // The left-hand switch has been flipped. Deal with opening up the wall if that is still in progress.
+
+  // LD A,(24433)            // Pick up the attribute byte of the tile at (11,17) in the buffer at 24064
+  // OR A                    // Has the wall there been removed yet?
+  // JR Z,KONGBEAST_2        // Jump if so
+  if (MEM[24433] != 0) {
+    // LD HL,32625             // Point HL at the bottom row of pixels of the wall tile at (11,17) in the screen buffer at 28672
+    addr = 32625;
+
+    // KONGBEAST_0:
+    for (;;) {
+      split_address(addr, &msb, &lsb);
+
+      // LD A,(HL)               // Pick up a pixel row
+      // OR A                    // Is it blank yet?
+      // JR NZ,KONGBEAST_1       // Jump if not
+      if (MEM[addr] != 0) {
+        // IMPORTANT: moving KONGBEAST_1 as it's the only place that calls it, and it saves some goto's -MRC-
+        // KONGBEAST_1:
+        // LD (HL),0               // Clear a pixel row of the wall tile at (11,17) in the screen buffer at 28672
+        MEM[addr] = 0;
+
+        // LD L,145                // Point HL at the opposite pixel row of the wall tile
+        lsb = 145;
+        // LD A,H                  // one cell down at (12,17)
+        // XOR 7
+        // LD H,A
+        msb ^= 7;
+        addr = build_address(msb, lsb);
+
+        // LD (HL),0               // Clear that pixel row as well
+        MEM[addr] = 0;
+
+        break;
+      }
+
+      // DEC H                   // Point HL at the next pixel row up
+      msb--;
+      // LD A,H                  // Have we checked all 8 pixel rows yet?
+      // CP 119
+      // JR NZ,KONGBEAST_0       // If not, jump back to check the next one
+      if (msb != 119) {
+        break;
+      }
+
+      addr = build_address(msb, lsb);
+    }
+
+    // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+    // LD (24433),A            // Change the attributes at (11,17) and (12,17) in the
+    MEM[24433] = BACKGROUND;
+    // LD (24465),A            // buffer at 24064 to match the background tile (the wall there is now gone)
+    MEM[24465] = BACKGROUND;
+    // LD A,114                // Update the seventh byte of the guardian definition
+    // LD (32971),A            // at HGUARD2 so that the guardian moves through the opening in the wall
+    MEM[32971] = 114;
+
+    // JR KONGBEAST_2
+
+    // IMPORTANT: KONGBEAST_1 is never reached without the jump above, so moving this block up there -MRC-
+  }
+
+  // Now check the right-hand switch.
+  // KONGBEAST_2:
+  // LD HL,23570             // Flip the right-hand switch at (0,18) if Willy is
+  // CALL CHKSWITCH          // touching it (and it hasn't already been flipped)
+  // JR NZ,KONGBEAST_4       // Jump if the switch was not flipped
+  if ( !CHKSWITCH(23570) ) {
+    // XOR A                   // Initialise the Kong Beast's pixel y-coordinate at
+    // LD (EUGHGT),A           // EUGHGT to 0
+    EUGHGT = 0;
+
+    // INC A                   // Update the Kong Beast's status at EUGDIR to 1: he
+    // LD (EUGDIR),A           // is falling
+    EUGDIR = 1;
+
+    // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+    // LD (24143),A            // Change the attributes of the floor beneath the Kong
+    MEM[24143] = BACKGROUND;
+    // LD (24144),A            // Beast in the buffer at 24064 to match that of the background tile
+    MEM[24144] = BACKGROUND;
+
+    // LD HL,28751             // Point HL at (2,15) in the screen buffer at 28672
+    addr = 28751;
+    // LD B,8                  // Clear the cells at (2,15) and (2,16), removing the
+    // KONGBEAST_3:
+    for (int i = 8; i > 0; i--) {
+      split_address(addr, msb, lsb);
+
+      // LD (HL),0               // floor beneath the Kong Beast
+      MEM[addr] = 0;
+
+      // INC L
+      lsb++;
+      addr = build_address(msb, lsb);
+
+      // LD (HL),0
+      MEM[addr] = 0;
+
+      // DEC L
+      // INC H
+      lsb--;
+      msb++;
+
+      // DJNZ KONGBEAST_3
+      addr = build_address(msb, lsb);
+    }
+  }
+
+  // KONGBEAST_4:
+  // LD A,(EUGDIR)           // Pick up the Kong Beast's status from EUGDIR
+  // OR A                    // Is the Kong Beast still on the ledge?
+  // JR Z,KONGBEAST_8        // Jump if so
+  if (EUGDIR == 0) {
+    return KONGBEAST_8();  // return dead-ness state of Willy! -MRC-
+  }
+
+  // The Kong Beast is falling.
+  // LD A,(EUGHGT)           // Pick up the Kong Beast's pixel y-coordinate from EUGHGT
+  // CP 100                  // Has he fallen into the portal yet?
+  // JR Z,KONGBEAST_7        // Jump if so
+  if (EUGHGT != 100) {
+    // ADD A,4                 // Add 4 to the Kong Beast's pixel y-coordinate at
+    // LD (EUGHGT),A           // EUGHGT (moving him downwards)
+    EUGHGT += 4;
+
+    // LD C,A                  // Copy the pixel y-coordinate to C; this value determines the pitch of the sound effect
+
+    LD D,16                 // D=16; this value determines the duration of the sound effect
+    LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
+  KONGBEAST_5:
+    OUT (254),A             // Make a falling sound effect
+    XOR 24
+    LD B,C
+  KONGBEAST_6:
+    DJNZ KONGBEAST_6
+    DEC D
+    JR NZ,KONGBEAST_5
+
+    // LD A,C                  // Copy the Kong Beast's pixel y-coordinate back into A
+    // RLCA                    // Point DE at the entry in the screen buffer address
+    // LD E,A                  // lookup table at SBUFADDRS that corresponds to the
+    // LD D,131                // Kong Beast's pixel y-coordinate
+    // LD A,(DE)               // Point HL at the address of the Kong Beast's
+    // OR 15                   // location in the screen buffer at 24576
+    // LD L,A
+    // INC DE
+    // LD A,(DE)
+    // LD H,A
+    addr = (SBUFADDRS[EUGHGT << 1] | 15);
+    // LD D,129                // Use bit 5 of the value of the game clock at CLOCK
+    // LD A,(CLOCK)            // (which is toggled once every eight passes through
+    // AND 32                  // the main loop) to point DE at the graphic data for
+    // OR 64                   // the appropriate Kong Beast sprite
+    // LD E,A
+    uint16_t sprite_id = ((CLOCK & 32) | 64);
+    // LD C,0                  // Draw the Kong Beast to the screen buffer at 24576
+    // CALL DRWFIX
+    DRWFIX(&GGDATA[sprite_id], addr, 0)
+
+    // LD HL,33836             // Add 100 to the score
+    // CALL INCSCORE_0
+    current_score += 100;
+    INCSCORE_0(33836);
+
+    // LD A,(EUGHGT)           // Pick up the Kong Beast's pixel y-coordinate from EUGHGT
+    // AND 120                 // Point HL at the address of the Kong Beast's
+    // LD L,A                  // location in the attribute buffer at 23552
+    // LD H,23
+    lsb = (EUGHGT & 120);
+    msb = 23;
+    addr = build_address(msb, lsb);
+    // ADD HL,HL
+    addr += addr;
+    // ADD HL,HL
+    addr += addr;
+    split_address(addr, &msb, &lsb);
+    // LD A,L
+    // OR 15
+    // LD L,A
+    lsb |= 15;
+    addr = build_address(msb, lsb);
+
+    // LD A,6                  // The Kong Beast is drawn with yellow INK
+
+    // JP EUGENE_3             // Set the attribute bytes for the Kong Beast
+    EUGENE_3(addr, 6);
+    // return false; // FIXME: do we need to return here?
+  }
+
+  // The Kong Beast has fallen into the portal.
+  // KONGBEAST_7:
+  // LD A,2                  // Set the Kong Beast's status at EUGDIR to 2: he is
+  // LD (EUGDIR),A           // dead
+  EUGDIR = 2;
+
+  // RET
+  return false; // return dead-ness state of Willy! -MRC-
+}
+
 // The Kong Beast is still on the ledge.
-KONGBEAST_8:
-  LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
-  AND 32                  // Use bit 5 of this value (which is toggled once
-  LD E,A                  // every eight passes through the main loop) to point
-  LD D,129                // DE at the graphic data for the appropriate Kong Beast sprite
-  LD HL,24591             // Draw the Kong Beast at (0,15) in the screen buffer
-  LD C,1                  // at 24576
-  CALL DRWFIX
-  JP NZ,KILLWILLY_0       // Kill Willy if he collided with the Kong Beast
-  LD A,68                 // A=68 (INK 4: PAPER 0: BRIGHT 1)
-  LD (23599),A            // Set the attribute bytes for the Kong Beast in the
-  LD (23600),A            // buffer at 23552
-  LD (23567),A
-  LD (23568),A
-  RET
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool KONGBEAST_8() {
+  // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
+  // AND 32                  // Use bit 5 of this value (which is toggled once
+  // LD E,A                  // every eight passes through the main loop) to point
+  uint8_t sprite_id = (CLOCK & 32);
+  // LD D,129                // DE at the graphic data for the appropriate Kong Beast sprite
+  // LD HL,24591             // Draw the Kong Beast at (0,15) in the screen buffer
+  // LD C,1                  // at 24576
+  // CALL DRWFIX
+  bool kill_willy = DRWFIX(&GGDATA[sprite_id], 24591, 1);
+  if (kill_willy) {
+    // JP NZ,KILLWILLY_0       // Kill Willy if he collided with the Kong Beast
+    return true;
+  }
+
+  // LD A,68                 // A=68 (INK 4: PAPER 0: BRIGHT 1)
+  // LD (23599),A            // Set the attribute bytes for the Kong Beast in the
+  // LD (23600),A            // buffer at 23552
+  // LD (23567),A
+  // LD (23568),A
+  MEM[23599] = 68;
+  MEM[23600] = 68;
+  MEM[23567] = 68;
+  MEM[23568] = 68;
+
+  // RET
+  return false; // NOTE: willy is not dead.
 }
 
 
@@ -3281,7 +3404,7 @@ KONGBEAST_8:
 // flips the switch.
 //
 // HL Address of the switch's location in the attribute buffer at 23552
-void CHKSWITCH() {
+void CHKSWITCH(uint16_t addr) {
   LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
   INC A                   // Is it equal to or one less than the LSB of the
   AND 254                 // address of the switch's location?
