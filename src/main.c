@@ -720,7 +720,8 @@ int main() {
       // CP 31
       // JP NZ,START             // If so, return to the title screen
       if (((MEM[254] & 0xFF) & 31) == 31) {
-        goto START;
+        // goto START;
+        continue;
       }
 
       // LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
@@ -1259,7 +1260,7 @@ bool MOVEWILLY() {
     // INC HL                  // Point HL at the top-right cell occupied by Willy's sprite
     // CP (HL)                 // Is the top-right cell of Willy's sprite overlapping a wall tile?
     // JP Z,MOVEWILLY_10       // Jump if so
-    if (MEM[PIXEL_Y] == WALL || MEM[PIXEL_Y + 1] == WALL) {
+    if ( memcmp(&MEM[PIXEL_Y], WALL, sizeof(WALL)) == 0 || memcmp(&MEM[PIXEL_Y + 1], WALL, sizeof(WALL)) == 0 ) {
       MOVEWILLY_10();
       return false;
     }
@@ -1353,15 +1354,15 @@ bool MOVEWILLY() {
     // LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
     // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
     // CALL Z,CRUMBLE          // If so, make it crumble
-    if (MEM[addr] == CRUMBLING) {
+    if ( memcmp(&MEM[addr], CRUMBLING, sizeof(CRUMBLING)) == 0 ) {
       CRUMBLE(addr);
     }
 
-    if (MEM[addr] == NASTY1) {
+    if ( memcmp(&MEM[addr], NASTY1, sizeof(NASTY1)) == 0 ) {
       // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
       // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
       // JR Z,MOVEWILLY_4        // Jump if so
-    } else if (MEM[addr] == NASTY2) {
+    } else if ( memcmp(&MEM[addr], NASTY2, sizeof(NASTY2)) == 0 ) {
       // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
       // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
       // JR Z,MOVEWILLY_4        // Jump if so
@@ -1372,15 +1373,15 @@ bool MOVEWILLY() {
       // LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
       // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
       // CALL Z,CRUMBLE          // If so, make it crumble
-      if (MEM[addr] == CRUMBLING) {
+      if ( memcmp(&MEM[addr], CRUMBLING, sizeof(CRUMBLING)) == 0 ) {
         CRUMBLE(addr);
       }
 
-      if (MEM[addr] == NASTY1) {
+      if ( memcmp(&MEM[addr], NASTY1, sizeof(NASTY1)) == 0 ) {
         // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
         // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
         // JR Z,MOVEWILLY_4        // Jump if so
-      } else if (MEM[addr] == NASTY2) {
+      } else if ( memcmp(&MEM[addr], NASTY2, sizeof(NASTY2)) == 0 ) {
         // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
         // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
         // JR Z,MOVEWILLY_4        // Jump if so
@@ -1389,13 +1390,13 @@ bool MOVEWILLY() {
         // CP (HL)                 // Set the zero flag if the right-hand cell below Willy's sprite is empty
         // DEC HL                  // Point HL at the left-hand cell below Willy's sprite
         // JP NZ,MOVEWILLY2        // Jump if the right-hand cell below Willy's sprite is not empty
-        if (MEM[addr] == BACKGROUND) {
+        if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) == 0 ) {
           return MOVEWILLY2(addr);
         }
         addr--;
         // CP (HL)                 // Is the left-hand cell below Willy's sprite empty?
         // JP NZ,MOVEWILLY2        // Jump if not
-        if (MEM[addr] == BACKGROUND) {
+        if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) == 0 ) {
           return MOVEWILLY2(addr);
         }
       }
@@ -1460,16 +1461,16 @@ bool MOVEWILLY() {
   PIXEL_Y += 8;
 
   MOVEWILLY_7(PIXEL_Y); // IMPORTANT: implicit call to this subroutine.
+
+  return false; // FIXME: is this the correct return value?
 }
 
 void MOVEWILLY_7(uint8_t y_coord) {
-  uint8_t msb, lsb;
-
   // AND 240                 // L=16*Y, where Y is Willy's screen y-coordinate
   y_coord &= 240;
 
   // LD L,A                  // (0-14)
-  lsb = y_coord;
+  uint8_t lsb = y_coord;
 
   // XOR A                   // Clear A and the carry flag
   // RL L                    // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8)
@@ -1588,7 +1589,7 @@ void CRUMBLE(uint16_t addr) {
   // DEC H                   // Set HL back to the address of the crumbling floor
   // DEC H                   // tile's location in the attribute buffer at 23552
   split_address(addr, &b, &c);
-  MEM[build_address(b+2, c)] = BACKGROUND;
+  memcpy(&MEM[build_address(b+2, c)], BACKGROUND, sizeof(BACKGROUND));
 
   // RET
 }
@@ -1623,7 +1624,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // INC HL                  // Point HL at the right-hand cell below Willy's sprite
   // CP (HL)                 // Does the attribute byte of the right-hand cell below Willy's sprite match that of the conveyor tile?
   // JR NZ,MOVEWILLY2_1      // Jump if not
-  if (MEM[addr] == CONVEYOR || MEM[addr+1] == CONVEYOR) {
+  if ( memcmp(&MEM[addr], CONVEYOR, sizeof(CONVEYOR)) == 0 || memcmp(&MEM[addr + 1], CONVEYOR, sizeof(CONVEYOR)) == 0 ) {
     // MOVEWILLY2_0:
     // LD A,(CONVDIR)          // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
     // SUB 3                   // Now E=253 (bit 1 reset) if the conveyor is moving
@@ -1807,7 +1808,7 @@ void MOVEWILLY2_7() {
   // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if (MEM[addr] == WALL) {
+  if ( memcmp(&MEM[addr], WALL, sizeof(WALL)) == 0 ) {
     return;
   }
 
@@ -1819,7 +1820,7 @@ void MOVEWILLY2_7() {
     // ADD HL,DE               // Point HL at the cell at (x-1,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
     // RET Z                   // Return if so without moving Willy (his path is blocked)
-    if (MEM[addr + 32] == WALL) {
+    if ( memcmp(&MEM[addr + 32], WALL, sizeof(WALL)) == 0 ) {
       return;
     }
     // OR A                    // Clear the carry flag for subtraction
@@ -1833,7 +1834,7 @@ void MOVEWILLY2_7() {
   addr -= 32;
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if (MEM[addr] == WALL) {
+  if ( memcmp(&MEM[addr], WALL, sizeof(WALL)) == 0 ) {
     return;
   }
 
@@ -1877,7 +1878,7 @@ void MOVEWILLY2_10() {
   addr += 32;
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if (MEM[addr] == WALL) {
+  if ( memcmp(&MEM[addr], WALL, sizeof(WALL)) == 0 ) {
     return;
   }
 
@@ -1889,7 +1890,7 @@ void MOVEWILLY2_10() {
     // ADD HL,DE               // Point HL at the cell at (x+2,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
     // RET Z                   // Return if so without moving Willy (his path is blocked)
-    if (MEM[addr + 32] == WALL) {
+    if ( memcmp(&MEM[addr + 32], WALL, sizeof(WALL)) == 0 ) {
       return;
     }
     // OR A                    // Clear the carry flag for subtraction
@@ -1903,7 +1904,7 @@ void MOVEWILLY2_10() {
   addr -= 32;
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if (MEM[addr] == WALL) {
+  if ( memcmp(&MEM[addr], WALL, sizeof(WALL)) == 0 ) {
     return;
   }
 
@@ -2089,7 +2090,7 @@ void LIGHTBEAM() {
     // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the cavern from WALL
     // CP (HL)                 // Does HL point at a wall tile?
     // RET Z                   // Return if so (the light beam stops here)
-    if (MEM[addr] == FLOOR || MEM[addr] == WALL) {
+    if ( memcmp(&MEM[addr], FLOOR, sizeof(FLOOR)) == 0 || memcmp(&MEM[addr], WALL, sizeof(WALL)) == 0 ) {
       return;
     }
 
@@ -2113,7 +2114,7 @@ void LIGHTBEAM() {
       // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the cavern from BACKGROUND
       // CP (HL)                 // Does HL point at a background tile?
       // JR Z,LIGHTBEAM_2        // Jump if so (the light beam will not be reflected at this point)
-      if (MEM[addr] != BACKGROUND) {
+      if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) != 0 ) {
         // LD A,E                  // Toggle the value in DE between 32 and -1 (and
         // XOR 223                 // therefore the direction of the light beam between
         dir ^= 223;
@@ -2199,7 +2200,7 @@ bool DRAWHG() {
     // RRCA
     // RRCA
     // LD E,A                  // Copy the result to E
-    uint8_t anim_frame = guardian[3] >> 3;
+    uint8_t anim_frame = (uint8_t)(guardian[3] >> 3);
 
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // CP 7                    // Are we in one of the first seven caverns?
@@ -2506,6 +2507,8 @@ bool SKYLABS() {
     // ADD IY,DE               // guardian definition
     // JR SKYLABS_0            // Jump back to deal with the next Skylab
   }
+
+  return false; // Willy is not dead!
 }
 
 // Move and draw the vertical guardians in the current cavern
@@ -2617,6 +2620,8 @@ bool VGUARDIANS() {
     //   ADD IY,DE               // guardian definition
     //   JR VGUARDIANS_0         // Jump back to deal with the next vertical guardian
   }
+
+  return false; // Willy is not dead.
 }
 
 
@@ -3348,9 +3353,9 @@ bool KONGBEAST() {
 
     // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // LD (24433),A            // Change the attributes at (11,17) and (12,17) in the
-    MEM[24433] = BACKGROUND;
+    memcpy(&MEM[24433], BACKGROUND, sizeof(BACKGROUND));
     // LD (24465),A            // buffer at 24064 to match the background tile (the wall there is now gone)
-    MEM[24465] = BACKGROUND;
+    memcpy(&MEM[24465], BACKGROUND, sizeof(BACKGROUND));
     // LD A,114                // Update the seventh byte of the guardian definition
     // LD (32971),A            // at HGUARD2 so that the guardian moves through the opening in the wall
     MEM[32971] = 114;
@@ -3376,9 +3381,9 @@ bool KONGBEAST() {
 
     // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // LD (24143),A            // Change the attributes of the floor beneath the Kong
-    MEM[24143] = BACKGROUND;
+    memcpy(&MEM[24143], BACKGROUND, sizeof(BACKGROUND));
     // LD (24144),A            // Beast in the buffer at 24064 to match that of the background tile
-    MEM[24144] = BACKGROUND;
+    memcpy(&MEM[24144], BACKGROUND, sizeof(BACKGROUND));
 
     // LD HL,28751             // Point HL at (2,15) in the screen buffer at 28672
     addr = 28751;
@@ -3684,7 +3689,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
   // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   // CP (HL)                 // Does this cell contain a background tile?
   // JR NZ,WILLYATTR_0       // Jump if not
-  if (MEM[addr] != BACKGROUND) {
+  if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) != 0 ) {
     // LD A,C                  // Set the zero flag if we are going to retain the INK
     // AND 15                  // colour in this cell; this happens only if the cell is in the bottom row and Willy's sprite is confined to the top two rows
     // JR Z,WILLYATTR_0        // Jump if we are going to retain the current INK colour in this cell
@@ -3692,7 +3697,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
       // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
       // OR 7                    // Set bits 0-2, making the INK white
       // LD (HL),A               // Set the attribute byte for this cell in the buffer at 23552
-      MEM[addr] = (BACKGROUND | 7);
+      MEM[addr] = (uint8_t)(BACKGROUND[0] | 7);
     }
   }
 
@@ -3703,7 +3708,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
   // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
   // CP (HL)                 // Has Willy hit a nasty of the second kind?
   // JP Z,KILLWILLY          // Kill Willy if so
-  if (MEM[addr] == NASTY1 || MEM[addr] == NASTY2) {
+  if ( memcmp(&MEM[addr], NASTY1, sizeof(NASTY1)) == 0 || memcmp(&MEM[addr], NASTY2, sizeof(NASTY2)) == 0 ) {
     KILLWILLY();
     return true;
   }
