@@ -7,12 +7,6 @@
 #include "headers.h"
 #include "externs.h"
 
-#include "character_set.c"
-#include "helpers.c"
-#include "globals.c"
-#include "data.c"
-
-
 // ---------------------------SPECCY EMULATOR--------------------------------
 
 // Memory Layout
@@ -913,7 +907,7 @@ INCCHT:
     //   LDIR
     if (current_score > highscore) {
       highscore = current_score;
-      memcpy(HGHSCOR, SCORBUF, sizeof(SCORBUF));
+      memcpy(HGHSCOR, SCORBUF, sizeof(&SCORBUF));
     }
 
 // Now prepare the screen for the game over sequence.

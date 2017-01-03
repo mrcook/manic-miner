@@ -1,7 +1,6 @@
 // Manic Miner C Port Copyright 2016 Michael R. Cook
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-
 // globals.c
 
 extern char *CAVERNNAME;
@@ -61,6 +60,10 @@ extern uint8_t DEMO;
 extern uint8_t NOTEINDEX;
 extern uint8_t MUSICFLAGS;
 extern uint8_t CHEAT;
+
+// character_set.c
+
+extern uint8_t character_set[96][8];
 
 
 // data.c
@@ -137,3 +140,5 @@ void initialize_cavern0();
 
 // helpers.c
 void millisleep(int milliseconds);
+void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb);
+uint16_t build_address(uint8_t msb, uint8_t lsb);
