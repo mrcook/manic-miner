@@ -460,47 +460,49 @@ LOOP:
   // CALL DRAWITEMS          // Draw the items in the current cavern and collect any that Willy is touching
   DRAWITEMS();
 
-  switch (SHEET) {
-  case 4:
-    // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-    // CP 4                    // Are we in Eugene's Lair?
-    // CALL Z,EUGENE           // If so, move and draw Eugene
-    if ( EUGENE() ) {
-      goto LOOP_4; // Willy has died!
-    }
-  case 13:
-    // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-    // CP 13                   // Are we in Skylab Landing Bay?
-    // JP Z,SKYLABS            // If so, move and draw the Skylabs
-    if ( SKYLABS() ) {
-      goto LOOP_4; // Willy has died!
-    }
-  case 8:
-    // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-    // CP 8                    // Are we in Wacky Amoebatrons or beyond?
-    // CALL NC,VGUARDIANS      // If so, move and draw the vertical guardians
-    if ( VGUARDIANS() ) {
-      goto LOOP_4; // Willy has died!
-    }
-  case 7:
-    // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-    // CP 7                    // Are we in Miner Willy meets the Kong Beast?
-    // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
-    if ( KONGBEAST() ) {
-      goto LOOP_4; // Willy has died!
-    }
-  case 11:
-    // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-    // CP 11                   // Are we in Return of the Alien Kong Beast?
-    // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
-    if ( KONGBEAST() ) {
-      goto LOOP_4; // Willy has died!
-    }
-  case 18:
-    // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-    // CP 18                   // Are we in Solar Power Generator?
-    // CALL Z,LIGHTBEAM        // If so, move and draw the light beam
-    LIGHTBEAM();
+  switch(SHEET) {
+    case 4:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 4                    // Are we in Eugene's Lair?
+      // CALL Z,EUGENE           // If so, move and draw Eugene
+      if (EUGENE()) {
+        goto LOOP_4; // Willy has died!
+      }
+    case 13:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 13                   // Are we in Skylab Landing Bay?
+      // JP Z,SKYLABS            // If so, move and draw the Skylabs
+      if (SKYLABS()) {
+        goto LOOP_4; // Willy has died!
+      }
+    case 8:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 8                    // Are we in Wacky Amoebatrons or beyond?
+      // CALL NC,VGUARDIANS      // If so, move and draw the vertical guardians
+      if (VGUARDIANS()) {
+        goto LOOP_4; // Willy has died!
+      }
+    case 7:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 7                    // Are we in Miner Willy meets the Kong Beast?
+      // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
+      if (KONGBEAST()) {
+        goto LOOP_4; // Willy has died!
+      }
+    case 11:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 11                   // Are we in Return of the Alien Kong Beast?
+      // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
+      if (KONGBEAST()) {
+        goto LOOP_4; // Willy has died!
+      }
+    case 18:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 18                   // Are we in Solar Power Generator?
+      // CALL Z,LIGHTBEAM        // If so, move and draw the light beam
+      LIGHTBEAM();
+    default:
+      ; // NOOP
   }
 
 // This entry point is used by the routine at SKYLABS.
@@ -1075,7 +1077,6 @@ FEET:
   // Display the title screen and play the theme tune
   // JP START
   goto START;
-
 } // NOTE: end of main() function!
 
 
