@@ -1,7 +1,8 @@
 // Manic Miner C Port Copyright 2016 Michael R. Cook
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-
+#include "headers.h"
+#include "externs.h"
 
 // Willy sprite graphic data
 //
@@ -1050,10 +1051,10 @@ memcpy(GGDATA, newGGDATA, sizeof(newGGDATA));
 // // The next 32 bytes define the plinth graphic that appears on the Game Over
 // // screen.
 uint8_t PLINTH[32] = {      // Plinth graphic data
-  {255,255,114,78,138,81,170,85},
-  {74,82,18,72,34,68,42,84},
-  {42,84,42,84,42,84,42,84},
-  {42,84,42,84,42,84,42,84},
+  255,255,114,78,138,81,170,85,
+  74,82,18,72,34,68,42,84,
+  42,84,42,84,42,84,42,84,
+  42,84,42,84,42,84,42,84,
 };
 // // The next 256 bytes are copied to GGDATA and define the guardian graphics.
 //   DEFB 12,0,30,0,27,0,30,192 // Guardian graphic data

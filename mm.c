@@ -31,6 +31,8 @@
 // IN 49150 reads the half row ENTER to H
 // IN 32766 reads the half row SPACE to B
 
+// OUT(254) border/sound output.
+
 // Initialize a 64K block of memory, for general use
 // Holds memory for Screen, Attributes, input, sound, etc.
 // The emulator may tap into these for IO.
@@ -385,7 +387,7 @@ LOOP:
     // RLCA                    // (frame 3)
     // RLCA
     // AND 96
-    uint8_t anim_frame = (NOTEINDEX << 3) & 96;
+    uint8_t anim_frame = ((NOTEINDEX << 3) & 96);
     // LD E,A                  // Point DE at the corresponding Willy sprite (at
     // LD D,130                // MANDAT+A)
     uint8_t *mandat_sprite_ptr = &MANDAT[anim_frame];
@@ -631,7 +633,7 @@ LOOP_4:
   if (((MEM[49150] & 0xFF) & 31) == 31) {
     // BIT 0,(HL)              // Were any of these keys being pressed the last time we checked?
     // JR NZ,LOOP_9            // Jump if so
-    if ((MUSICFLAGS >> 0) & 1 == 0) {
+    if (((MUSICFLAGS >> 0) & 1) == 0) {
       // LD A,(HL)               // Set bit 0 (the keypress flag) and flip bit 1 (the
       // XOR 3                   // in-game music flag) at MUSICFLAGS
       // LD (HL),A
@@ -647,7 +649,7 @@ LOOP_4:
   // LOOP_9:
   // BIT 1,(HL)              // Has the in-game music been switched off?
   // JR NZ,NONOTE4           // Jump if so
-  if ((MUSICFLAGS >> 1) & 1 == 0) {
+  if (((MUSICFLAGS >> 1) & 1) == 0) {
     // The next section of code plays a note of the in-game music.
 
     // Increment the in-game music note index at NOTEINDEX
@@ -656,30 +658,39 @@ LOOP_4:
     // LD (NOTEINDEX),A
     NOTEINDEX++;
 
-    AND 126                 // Point HL at the appropriate entry in the tune data
-    RRCA                    // table at GAMETUNE
-    LD E,A
-    LD D,0
-    LD HL,GAMETUNE
-    ADD HL,DE
-    LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-    LD E,(HL)               // Initialise the pitch delay counter in E
-    LD BC,3                 // Initialise the duration delay counters in B (0) and C (3)
+    // AND 126                 // Point HL at the appropriate entry in the tune data
+    // RRCA                    // table at GAMETUNE
+    NOTEINDEX = (NOTEINDEX & 126) >> 1;
+    // LD E,A
+    // LD D,0
+    // LD HL,GAMETUNE
+    //  ADD HL,DE
+    //  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
+    uint8_t note = BORDER;
+    //  LD E,(HL)               // Initialise the pitch delay counter in E
+    uint8_t pitch_delay_counter = GAMETUNE[NOTEINDEX];
+    //  LD BC,3                 // Initialise the duration delay counters in B (0) and C (3)
 
     // TM51:
-    for (;;) {
-      OUT (254),A             // Produce a note of the in-game music
+    for (int i = 0; i < 3; i++) {
+      // OUT (254),A             // Produce a note of the in-game music
+      MEM[254] = note;
 
       // SEE37708:
-      DEC E
-      JR NZ,NOFLP6
-      LD E,(HL)
-      XOR 24
+      // DEC E
+      pitch_delay_counter--;
+      // JR NZ,NOFLP6
+      if (pitch_delay_counter > 0) {
+        // LD E,(HL)
+        pitch_delay_counter = GAMETUNE[NOTEINDEX];
+        // XOR 24
+        note ^= 24;
+      }
 
-      NOFLP6:
-      DJNZ TM51
-      DEC C
-      JR NZ,TM51
+      // NOFLP6:
+      // DJNZ TM51
+      // DEC C
+      // JR NZ,TM51
     }
   }
 
@@ -796,12 +807,13 @@ MANDEAD:
     goto NEWSHT;
   }
 
+  uint8_t pitch, duration;
   // LD A,71                 // A=71 (INK 7: PAPER 0: BRIGHT 1)
 
   // The following loop fills the top two thirds of the attribute file with a
   // single value (71 TO 64 STEP -1) and makes a sound effect.
   // LPDEAD1:
-  for (int attr = 71; attr > 64; attr--) {
+  for (uint8_t attr = 71; attr > 64; attr--) {
     // LD HL,22528             // Fill the top two thirds of the attribute file with
     // LD DE,22529             // the value in A
     // LD BC,511
@@ -811,32 +823,44 @@ MANDEAD:
       MEM[22528 + i] = attr;
     }
 
-    LD E,A                  // Save the attribute byte (64-71) in E for later retrieval
+    // LD E,A                  // Save the attribute byte (64-71) in E for later retrieval
 
-    CPL                     // D=63-8*(E AND 7); this value determines the pitch
-    AND 7                   // of the short note that will be played
-    RLCA
-    RLCA
-    RLCA
-    OR 7
-    LD D,A
-    LD C,E                  // C=8+32*(E AND 7); this value determines the
-    RRC C                   // duration of the short note that will be played
-    RRC C
-    RRC C
-    OR 16                   // Set bit 4 of A (for no apparent reason)
-    XOR A                   // Set A=0 (this will make the border black)
-  TM21:
-    OUT (254),A             // Produce a short note whose pitch is determined by D
-    XOR 24                  // and whose duration is determined by C
-    LD B,D
-  TM22:
-    DJNZ TM22
-    DEC C
-    JR NZ,TM21
+    // CPL                     // D=63-8*(E AND 7); this value determines the pitch
+    pitch = ~attr;
+    // AND 7                   // of the short note that will be played
+    // RLCA
+    // RLCA
+    // RLCA
+    // OR 7
+    // LD D,A
+    pitch = (uint8_t)(((pitch & 7) << 3) | 7);
 
-    LD A,E                  // Restore the attribute byte (originally 71) to A
+    // LD C,E                  // C=8+32*(E AND 7); this value determines the
+    // RRC C                   // duration of the short note that will be played
+    // RRC C
+    // RRC C
+    // OR 16                   // Set bit 4 of A (for no apparent reason)
+    duration = (uint8_t)((attr >> 3) | 16);
 
+    // XOR A                   // Set A=0 (this will make the border black)
+    uint8_t border = 0;
+    // TM21:
+    for (int d = 0; d < duration; d++) {
+      // OUT(254), A             // Produce a short note whose pitch is determined by D
+      MEM[254] = border;
+      // XOR 24                  // and whose duration is determined by C
+      border ^= 24;
+
+      // LD B, D
+      // TM22:
+      // DJNZ TM22
+      millisleep(1); // hmm, are we sleeping for 1ms
+
+      // DEC C
+      // JR NZ, TM21
+    }
+
+    // LD A,E                  // Restore the attribute byte (originally 71) to A
     // DEC A                   // Decrement it (effectively decrementing the INK colour)
     // CP 63                   // Have we used attribute value 64 (INK 0) yet?
     // JR NZ,LPDEAD1           // If not, jump back to update the INK colour in the top two thirds of the screen and make another sound effect
@@ -934,19 +958,30 @@ FEET:
     // CALL DRWFIX             // leaves the portion of the boot sprite that's above the ankle in place, and makes the boot appear as if it's at the end of a long, extending trouser leg
     DRWFIX(&BOOT, MEM[SBUFADDRS[EUGHGT]], 0); // FIXME: this IS wrong, fix it! -MRC-
 
-    LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
-    CPL                     // A=255-A
-    LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
-    XOR A                   // A=0 (black border)
-    LD BC,64                // C=64; this value determines the duration of the sound effect
-  TM111:
-    OUT (254),A             // Produce a short note whose pitch is determined by E
-    XOR 24
-    LD B,E
-  TM112:
-    DJNZ TM112
-    DEC C
-    JR NZ,TM111
+    // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
+    // CPL                     // A=255-A
+    uint8_t distance = ~EUGHGT;
+    // LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
+    pitch = distance;
+    // XOR A                   // A=0 (black border)
+    uint8_t border = 0;
+    // LD BC,64                // C=64; this value determines the duration of the sound effect
+
+    // TM111:
+    for (int i = 0; i < 64; i++) {
+      // OUT(254), A             // Produce a short note whose pitch is determined by E
+      MEM[254] = border;
+      // XOR 24
+      border ^= 24;
+
+      // LD B, E
+      // TM112:
+      // DJNZ TM112
+      millisleep(1);
+
+      // DEC C
+      // JR NZ, TM111
+    }
 
     // LD HL,22528             // Prepare BC, DE and HL for setting the attribute
     // LD DE,22529             // bytes in the top two-thirds of the screen
@@ -1120,24 +1155,31 @@ bool DECAIR() {
 //
 // Used by the routine at STARTGAME.
 void DRAWSHEET() {
-  LD IX,24064             // Point IX at the first byte of the attribute buffer at 24064
-  LD A,112                // Set the operand of the 'LD D,n' instruction at
-  LD (35484),A            // SBMSB (below) to 112
-  CALL DRAWSHEET_0        // Draw the tiles for the top half of the cavern to the screen buffer at 28672
+  // LD IX,24064             // Point IX at the first byte of the attribute buffer at 24064
+  // LD A,112                // Set the operand of the 'LD D,n' instruction at
+  // LD (35484),A            // SBMSB (below) to 112
+  MEM[35484] = 112;
+  // CALL DRAWSHEET_0        // Draw the tiles for the top half of the cavern to the screen buffer at 28672
+  DRAWSHEET_0(24064);
 
   // LD IX,24320             // Point IX at the 256th byte of the attribute buffer at 24064 in preparation for drawing the bottom half of the cavern; this instruction is redundant, since IX already holds 24320
-  LD A,120                // Set the operand of the 'LD D,n' instruction at
-  LD (35484),A            // SBMSB (below) to 120
+  // LD A,120                // Set the operand of the 'LD D,n' instruction at
+  // LD (35484),A            // SBMSB (below) to 120
+  MEM[35484] = 120;
+  DRAWSHEET_0(24320); // IMPORTANT: implicit function call
+}
+
+
 // ----------------------------------------------------------------------------------------------
 // FIXME: currently we have all this data in separate arrays, so how do we iterate over all that?
 // ----------------------------------------------------------------------------------------------
-DRAWSHEET_0:
+void DRAWSHEET_0(uint16_t addr) {
+/* TODO
   LD C,0                  // C will count 256 tiles
-
   // The following loop draws 256 tiles (for either the top half or the bottom
   // half of the cavern) to the screen buffer at 28672.
   // DRAWSHEET_1:
-  for (;;) {
+  for (int i = 0; i < 256; i++) {
     LD E,C                  // E holds the LSB of the screen buffer address
     LD A,(IX+0)             // Pick up an attribute byte from the buffer at 24064; this identifies the type of tile to draw
     LD HL,BACKGROUND        // Move HL through the attribute bytes and graphic
@@ -1158,9 +1200,11 @@ DRAWSHEET_0:
     }
 
     INC IX                  // Move IX along to the next byte in the attribute buffer
-    INC C                   // Have we drawn 256 tiles yet?
-    JP NZ,DRAWSHEET_1       // If not, jump back to draw the next one
+    // INC C                   // Have we drawn 256 tiles yet?
+    // JP NZ,DRAWSHEET_1       // If not, jump back to draw the next one
   }
+*/
+
 
   // The empty cavern has been drawn to the screen buffer at 28672. If we're in
   // The Final Barrier, however, there is further work to do.
@@ -1374,21 +1418,33 @@ bool MOVEWILLY() {
   // LD (AIRBORNE),A
   AIRBORNE++;
 
-  RLCA                    // D=16*A; this value determines the pitch of the
-  RLCA                    // falling sound effect
-  RLCA
-  RLCA
-  LD D,A
-  LD C,32                 // C=32; this value determines the duration of the falling sound effect
-  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-MOVEWILLY_5:
-  OUT (254),A             // Make a falling sound effect
-  XOR 24
-  LD B,D
-MOVEWILLY_6:
-  DJNZ MOVEWILLY_6
-  DEC C
-  JR NZ,MOVEWILLY_5
+  // RLCA                    // D=16*A; this value determines the pitch of the
+  // RLCA                    // falling sound effect
+  // RLCA
+  // RLCA
+  pitch = AIRBORNE << 4;
+  // LD D,A
+
+  // LD C,32                 // C=32; this value determines the duration of the falling sound effect
+
+  // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
+  uint8_t border = BORDER;
+
+  // MOVEWILLY_5:
+  for (int i = 0; i < 32; i++) {
+    // OUT(254), A             // Make a falling sound effect
+    MEM[254] = border;
+    // XOR 24
+    border ^= 24;
+
+    // LD B, D
+    // MOVEWILLY_6:
+    // DJNZ MOVEWILLY_6
+    millisleep(1);
+
+    // DEC C
+    // JR NZ, MOVEWILLY_5
+  }
 
   // LD A,(PIXEL_Y)          // Add 8 to Willy's pixel y-coordinate at PIXEL_Y;
   // ADD A,8                 // this moves Willy downwards by 4 pixels
@@ -1398,19 +1454,28 @@ MOVEWILLY_6:
   MOVEWILLY_7(PIXEL_Y); // IMPORTANT: implicit call to this subroutine.
 }
 
-void MOVEWILLY_7(uint8_t a) {
-  AND 240                 // L=16*Y, where Y is Willy's screen y-coordinate
-  LD L,A                  // (0-14)
-  XOR A                   // Clear A and the carry flag
-  RL L                    // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8)
-  ADC A,92                // H=92 or 93 (MSB of the address of Willy's location
-  LD H,A                  // in the attribute buffer)
+void MOVEWILLY_7(uint8_t y_coord) {
+  uint8_t msb, lsb;
 
-  LD A,(LOCATION)         // Pick up Willy's screen x-coordinate (1-29) from
-  AND 31                  // bits 0-4 at LOCATION
-  OR L                    // Now L holds the LSB of Willy's attribute buffer
-  LD L,A                  // address
-  LD (LOCATION),HL        // Store Willy's updated attribute buffer location at LOCATION
+  // AND 240                 // L=16*Y, where Y is Willy's screen y-coordinate
+  y_coord &= 240;
+
+  // LD L,A                  // (0-14)
+  lsb = y_coord;
+
+  // XOR A                   // Clear A and the carry flag
+  // RL L                    // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8)
+  lsb = lsb << 1;
+  // ADC A,92                // H=92 or 93 (MSB of the address of Willy's location
+  // LD H,A                  // in the attribute buffer)
+  uint16_t addr = build_address(92, lsb);
+
+  // LD A,(LOCATION)         // Pick up Willy's screen x-coordinate (1-29) from
+  // AND 31                  // bits 0-4 at LOCATION
+  // OR L                    // Now L holds the LSB of Willy's attribute buffer
+  // LD L,A                  // address
+  // LD (LOCATION),HL        // Store Willy's updated attribute buffer location at LOCATION
+  LOCATION = ((LOCATION & 31) | lsb );
 
   // RET
 }
@@ -1851,7 +1916,7 @@ void MOVEWILLY2_10() {
 //
 // Used by the routine at WILLYATTR when Willy hits a nasty.
 bool KILLWILLY() {
-  POP HL                  // Drop the return address from the stack
+  // POP HL                  // Drop the return address from the stack
 
   return KILLWILLY_0();
 }
@@ -1862,7 +1927,7 @@ bool KILLWILLY() {
 // (when Willy collides with a vertical guardian) and KONGBEAST (when Willy
 // collides with the Kong Beast).
 bool KILLWILLY_0() {
-  POP HL                  // Drop the return address from the stack
+  // POP HL                  // Drop the return address from the stack
 
   return KILLWILLY_1();
 }
@@ -2757,7 +2822,7 @@ bool DRWFIX(void *sprite, uint16_t addr, uint8_t mode) {
     MEM[addr] = *sprite[i];
 
     // INC L                   // Move HL along to the next cell on the right
-    lsb++
+    lsb++;
     addr = build_address(msb, lsb);
 
     // INC DE                  // Point DE at the next sprite graphic byte
@@ -2907,29 +2972,36 @@ bool NXSHEET() {
       // LD (HL),0
       MEM[addr] = 0;
 
-      LD BC,0                 // Prepare C and D for the celebratory sound effect
-      LD D,50
-      XOR A                   // A=0 (black border)
+      // LD BC,0                 // Prepare C and D for the celebratory sound effect
+      // LD D,50
+      // XOR A                   // A=0 (black border)
+      uint8_t border = 0;
       // NXSHEET_0:
-      for (;;) {
-        OUT (254),A             // Produce the celebratory sound effect: Willy has
-        XOR 24                  // escaped from the mine
-        LD E,A
+      for (int i = 0; i < 50; i++) {
+        // OUT (254),A             // Produce the celebratory sound effect: Willy has
+        MEM[254] = border;
+        // XOR 24                  // escaped from the mine
+        border ^= 24;
+
+        // LD E,A // backup
+/* TODO
         LD A,C
         ADD A,D
         ADD A,D
         ADD A,D
         LD B,A
-        LD A,E
+*/
+        // LD A,E // restore
 
-        NXSHEET_1:
-        DJNZ NXSHEET_1
-
+        // NXSHEET_1:
+        // DJNZ NXSHEET_1
+        millisleep(1);
+/* TODO
         DEC C
         JR NZ,NXSHEET_0
-
-        DEC D
-        JR NZ,NXSHEET_0
+*/
+        // DEC D
+        // JR NZ,NXSHEET_0
       }
     }
 
@@ -2974,7 +3046,7 @@ bool NXSHEET() {
   if (DEMO != 0) {
     // JP NZ,NEWSHT            // If so, demo the next cavern
 
-    goto NEWSHT; // FIXME: remove this and let callers handle it.
+    // goto NEWSHT; // FIXME: remove this and let callers handle it.
     return true;
   }
 
@@ -2985,7 +3057,7 @@ bool NXSHEET() {
     if (!DECAIR()) {
       // JP Z,NEWSHT             // Move to the next cavern if the air supply is now gone
 
-      goto NEWSHT; // FIXME: remove this and let callers handle it.
+      // goto NEWSHT; // FIXME: remove this and let callers handle it.
       return true;
     }
 
@@ -3000,25 +3072,39 @@ bool NXSHEET() {
     // CALL PMESS
     PMESS(&SCORBUF, 20602, 6);
 
-    LD C,4                  // C=4; this value determines the duration of the sound effect
-    LD A,(AIR)              // Pick up the remaining air supply (S) from AIR
-    CPL                     // D=2*(63-S); this value determines the pitch of the
-    AND 63                  // sound effect (which decreases with the amount of
-    RLC A                   // air remaining)
-    LD D,A
-  NXSHEET_7:
-    LD A,0                  // Produce a short note
-    OUT (254),A
-    LD B,D
-  NXSHEET_8:
-    DJNZ NXSHEET_8
-    LD A,24
-    OUT (254),A
-    LD B,D
-  NXSHEET_9:
-    DJNZ NXSHEET_9
-    DEC C
-    JR NZ,NXSHEET_7
+    // LD C,4                  // C=4; this value determines the duration of the sound effect
+    uint8_t duration = 4;
+
+    // LD A,(AIR)              // Pick up the remaining air supply (S) from AIR
+    // CPL                     // D=2*(63-S); this value determines the pitch of the
+    // AND 63                  // sound effect (which decreases with the amount of
+    // RLC A                   // air remaining)
+    // LD D,A
+    uint8_t pitch = ((~AIR & 63) << 1);
+
+    // NXSHEET_7:
+    for (int i = 0; i < duration; i++) {
+      // LD A, 0                  // Produce a short note
+      // OUT(254), A
+      MEM[254] = 0;
+
+      // LD B, D
+      // NXSHEET_8:
+      // DJNZ NXSHEET_8
+      millisleep(1);
+
+      // LD A, 24
+      // OUT(254), A
+      MEM[254] = 24;
+
+      // LD B, D
+      // NXSHEET_9:
+      // DJNZ NXSHEET_9
+      millisleep(1);
+
+      // DEC C
+      // JR NZ, NXSHEET_7
+    }
 
     // JR NXSHEET_6            // Jump back to decrease the air supply again
   }
@@ -3330,16 +3416,25 @@ bool KONGBEAST() {
 
     // LD C,A                  // Copy the pixel y-coordinate to C; this value determines the pitch of the sound effect
 
-    LD D,16                 // D=16; this value determines the duration of the sound effect
-    LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-  KONGBEAST_5:
-    OUT (254),A             // Make a falling sound effect
-    XOR 24
-    LD B,C
-  KONGBEAST_6:
-    DJNZ KONGBEAST_6
-    DEC D
-    JR NZ,KONGBEAST_5
+    // LD D,16                 // D=16; this value determines the duration of the sound effect
+    // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
+    uint8_t border = BORDER;
+
+    // KONGBEAST_5:
+    for (int i = 0; i < 16; i++) {
+      // OUT (254),A             // Make a falling sound effect
+      MEM[254] = border;
+      // XOR 24
+      border ^= 24;
+
+      // LD B,C
+      // KONGBEAST_6:
+      // DJNZ KONGBEAST_6
+      millisleep(1);
+
+      // DEC D
+      // JR NZ,KONGBEAST_5
+    }
 
     // LD A,C                  // Copy the Kong Beast's pixel y-coordinate back into A
     // RLCA                    // Point DE at the entry in the screen buffer address
@@ -3360,7 +3455,7 @@ bool KONGBEAST() {
     uint16_t sprite_id = ((CLOCK & 32) | 64);
     // LD C,0                  // Draw the Kong Beast to the screen buffer at 24576
     // CALL DRWFIX
-    DRWFIX(&GGDATA[sprite_id], addr, 0)
+    DRWFIX(&GGDATA[sprite_id], addr, 0);
 
     // LD HL,33836             // Add 100 to the score
     // CALL INCSCORE_0
@@ -3768,7 +3863,7 @@ bool PLAYTUNE() {
     // LD A,(IY+0)             // Pick up the next byte of tune data from the table at THEMETUNE
     // CP 255                  // Has the tune finished?
     // RET Z                   // Return (with the zero flag set) if so
-    uint8_t note[] = THEMETUNE[i];
+    uint8_t *note = THEMETUNE[i];
 
     // NOTE: `duration` used directly in the loop below -MRC-
     // LD C,A                  // Copy the first byte of data for this note (which determines the duration) to C
@@ -3781,23 +3876,25 @@ bool PLAYTUNE() {
     // LD A,D                  // Copy it to A
     freq1 = note[1];
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
-    addr = PIANOKEY(freq1)
+    addr = PIANOKEY(freq1);
 
     // LD (HL),80              // Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1)
     MEM[addr] = 80;
 
     // LD E,(IY+2)             // Pick up the third byte of data for this note
-    // LD A,E                  // Copy it to A
     freq2 = note[2];
+    // LD A,E                  // Copy it to A
+    uint8_t pitch = freq2;
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
-    addr = PIANOKEY(freq2)
+    addr = PIANOKEY(freq2);
 
     // LD (HL),40              // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0)
     MEM[addr] = 40;
 
     // PLAYTUNE_0:
-    for (duration = note[0]; duration > 0; duration--) {
-      OUT (254),A             // Produce a sound based on the frequency parameters
+    for (uint8_t d = note[0]; d > 0; d--) {
+      // OUT (254),A             // Produce a sound based on the frequency parameters
+      MEM[254] = pitch;
 
       // DEC D                   // in the second and third bytes of data for this note
       freq1--;
@@ -3805,8 +3902,9 @@ bool PLAYTUNE() {
       if (freq1 == 0) {
         // LD D,(IY+1)
         freq1 = note[1];
+
         // XOR 24
-        freq1 ^= 24;
+        pitch ^= 24;
       }
 
       // PLAYTUNE_1:
@@ -3816,8 +3914,9 @@ bool PLAYTUNE() {
       if (freq2 == 0) {
         // LD E,(IY+2)
         freq2 = note[2];
+
         // XOR 24
-        freq2 ^= 24;
+        pitch ^= 24;
       }
 
       // FIXME: reg B is initialized to 0, but never set anywhere else, so this code is obsolete...?
@@ -3836,14 +3935,14 @@ bool PLAYTUNE() {
 
     // LD A,(IY+1)             // Pick up the second byte of data for this note
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
-    addr = PIANOKEY(note[1])
+    addr = PIANOKEY(note[1]);
 
     // LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
     MEM[addr] = 56;
 
     // LD A,(IY+2)             // Pick up the third byte of data for this note
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
-    addr = PIANOKEY(note[2])
+    addr = PIANOKEY(note[2]);
 
     // LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
     MEM[addr] = 56;

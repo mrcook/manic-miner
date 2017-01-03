@@ -2,6 +2,8 @@
 
 // Cross Platform Helper Functions for Manic Miner
 
+#include "headers.h"
+
 // Sleep for the given number of milliseconds
 void millisleep(int milliseconds) {
     #ifdef _WIN32

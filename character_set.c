@@ -1,3 +1,5 @@
+#include "headers.h"
+
 uint8_t character_set[96][8] = {
   {0,0,0,0,0,0,0,0},             // $20 - character: ' '   CHR$(32)
   {0,16,16,16,16,0,16,0},        // $21 - character: '!'   CHR$(33)
