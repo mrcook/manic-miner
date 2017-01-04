@@ -1,4 +1,4 @@
-// Manic Miner C Port Copyright 2016 Michael R. Cook
+// Manic Miner C Port Copyright 2017 Michael R. Cook
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
 // globals.c
@@ -137,6 +137,23 @@ uint16_t PIANOKEY(uint8_t frequency);
 bool CHECKENTER();
 
 void initialize_cavern0();
+
+
+// emulator.c
+uint8_t MEM[1024 * 64];
+uint8_t regA;
+uint8_t regB;
+uint8_t regC;
+uint8_t regD;
+uint8_t regE;
+uint8_t regH;
+uint8_t regL;
+uint16_t regBC;
+uint16_t regDE;
+uint16_t regHL;
+uint8_t IN(uint16_t addr);
+void OUT(uint8_t value);
+
 
 // helpers.c
 void millisleep(int milliseconds);

@@ -13,11 +13,11 @@ set(SOURCE_FILES
         src/headers.h
         src/externs.h
         src/main.c
+        src/emulator.c
         src/helpers.c
         src/globals.c
         src/character_set.c
-        src/data.c
-)
+        src/data.c)
 
 add_executable(manic_miner ${SOURCE_FILES})
 

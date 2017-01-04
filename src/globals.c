@@ -1,4 +1,4 @@
-// Manic Miner C Port Copyright 2016 Michael R. Cook
+// Manic Miner C Port Copyright 2017 Michael R. Cook
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
 #include "headers.h"

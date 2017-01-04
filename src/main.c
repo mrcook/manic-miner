@@ -1,50 +1,12 @@
-// Manic Miner disassembly
-// http://skoolkit.ca/
-//
+// Manic Miner C Port Copyright 2017 Michael R. Cook
 // Copyright 1983 Bug-Byte Ltd (Manic Miner)
-// Copyright 2010, 2012-2016 Richard Dymond (this disassembly)
+
+// Manic Miner disassembly
+// Copyright 2010, 2012-2016 Richard Dymond
+// http://skoolkit.ca/
 
 #include "headers.h"
 #include "externs.h"
-
-// ---------------------------SPECCY EMULATOR--------------------------------
-
-// Memory Layout
-//   | ROM | Screen File | Attributes  | Printer Buf | System vars | MD, CHANS, PROGS, etc.
-//   ^     ^             ^             ^             ^             ^
-//   0   16384         22528         23296         23552         23734
-//             (6144)         (768)         (256)         (182)
-//
-// Keyboard
-// IN 65278 reads the half row CAPS SHIFT to V
-// IN 65022 reads the half row A to G
-// IN 64510 reads the half row Q to T
-// IN 63486 reads the half row 1 to 5
-// IN 61438 reads the half row O to 6
-// IN 57342 reads the half row P to 7
-// IN 49150 reads the half row ENTER to H
-// IN 32766 reads the half row SPACE to B
-
-// OUT(254) border/sound output.
-
-// Initialize a 64K block of memory, for general use
-// Holds memory for Screen, Attributes, input, sound, etc.
-// The emulator may tap into these for IO.
-uint8_t MEM[1024 * 64] = {};
-
-uint8_t regA;
-uint8_t regB;
-uint8_t regC;
-uint8_t regD;
-uint8_t regE;
-uint8_t regH;
-uint8_t regL;
-
-uint16_t regBC;
-uint16_t regDE;
-uint16_t regHL;
-
-// ==========================================================================
 
 
 // ORG 32765
@@ -226,7 +188,7 @@ int main() {
       // AND 1                   // Keep only bit 0 of the result (ENTER)
       // CP 1                    // Is ENTER being pressed?
       // JR NZ,STARTGAME         // If so, start the game
-      if (((MEM[49150] & 0xFF) & 1) == 1) {
+      if (((IN(49150) & 0xFF) & 1) == 1) {
         goto STARTGAME;
       }
 
@@ -574,13 +536,13 @@ int main() {
     // LD BC,65278             // Read keys SHIFT-Z-X-C-V
     // IN A,(C)
     // LD E,A                  // Save the result in E
-    regE = (uint8_t) (MEM[65278] & 0xFF);
+    regE = (uint8_t) (IN(65278) & 0xFF);
 
     regC = 65278 & 0xFF;
     // LD B,127                // Read keys B-N-M-SS-SPACE
     regBC = (uint8_t) ((127 << 8) | regC);
     // IN A,(C)
-    regA = (uint8_t) (MEM[regBC] & 0xFF);
+    regA = (uint8_t) (IN(regBC) & 0xFF);
     // OR E                    // Combine the results
     regA = regA | regE;
     // AND 1                   // Are SHIFT and SPACE being pressed?
@@ -594,7 +556,7 @@ int main() {
     // LD B,253                // Read keys A-S-D-F-G
     regBC = (uint8_t) ((253 << 8) | regC);
     // IN A,(C)
-    regA = (uint8_t) (MEM[regBC] & 0xFF);
+    regA = (uint8_t) (IN(regBC) & 0xFF);
     // AND 31                  // Are any of these keys being pressed?
     // CP 31
     // JR Z,LOOP_7             // Jump if not
@@ -604,7 +566,7 @@ int main() {
         // LD B,2                  // Read every half-row of keys except A-S-D-F-G
         regBC = (uint8_t) ((2 << 8) | regC);
         // IN A,(C)
-        regA = (uint8_t) (MEM[regBC] & 0xFF);
+        regA = (uint8_t) (IN(regBC) & 0xFF);
         // AND 31                  // Are any of these keys being pressed?
         // CP 31
         // JR Z,LOOP_6             // Jump back if not (the game is still paused)
@@ -627,7 +589,7 @@ int main() {
     // AND 31                  // Are any of these keys being pressed?
     // CP 31
     // JR Z,LOOP_8             // Jump if not
-    if (((MEM[49150] & 0xFF) & 31) == 31) {
+    if (((IN(49150) & 0xFF) & 31) == 31) {
       // BIT 0,(HL)              // Were any of these keys being pressed the last time we checked?
       // JR NZ,LOOP_9            // Jump if so
       if (((MUSICFLAGS >> 0) & 1) == 0) {
@@ -713,7 +675,7 @@ int main() {
       // AND 31                  // Are any keys being pressed?
       // CP 31
       // JP NZ,START             // If so, return to the title screen
-      if (((MEM[254] & 0xFF) & 31) == 31) {
+      if (((IN(254) & 0xFF) & 31) == 31) {
         // goto START;
         continue;
       }
@@ -845,7 +807,7 @@ INCCHT:
       // TM21:
       for (int d = 0; d < duration; d++) {
         // OUT(254), A             // Produce a short note whose pitch is determined by D
-        MEM[254] = border;
+        OUT(border);
         // XOR 24                  // and whose duration is determined by C
         border ^= 24;
 
@@ -968,7 +930,7 @@ INCCHT:
       // TM111:
       for (int i = 0; i < 64; i++) {
         // OUT(254), A             // Produce a short note whose pitch is determined by E
-        MEM[254] = border;
+        OUT(border);
         // XOR 24
         border ^= 24;
 
@@ -1436,7 +1398,7 @@ bool MOVEWILLY() {
   // MOVEWILLY_5:
   for (int i = 0; i < 32; i++) {
     // OUT(254), A             // Make a falling sound effect
-    MEM[254] = border;
+    OUT(border);
     // XOR 24
     border ^= 24;
 
@@ -1633,7 +1595,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // OR 32
   // AND E                   // Reset bit 0 if the conveyor is moving right, or bit 1 if it's moving left
   // LD E,A                  // Save the result in E
-  input = (uint8_t)(((MEM[57342] & 31) | 32) & input);
+  input = (uint8_t)(((IN(57342) & 31) | 32) & input);
 
   // LD BC,64510             // Read keys Q-W-E-R-T (left, right, left, right,
   // IN A,(C)                // left) into bits 0-4 of A
@@ -1642,7 +1604,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // OR 1
   // AND E                   // Merge this keyboard reading into bits 1-5 of E
   // LD E,A
-  input = (uint8_t)(((MEM[64510] << 1) | 1) & input);
+  input = (uint8_t)(((IN(64510) << 1) | 1) & input);
 
   // LD B,247                // Read keys 1-2-3-4-5 ('5' is left) into bits 0-4 of
   // IN A,(C)                // A
@@ -1650,14 +1612,14 @@ bool MOVEWILLY2(uint16_t addr) {
   // OR 247                  // this ignores every key except '5' (left)
   // AND E                   // Merge this reading of the '5' key into bit 3 of E
   // LD E,A
-  input = (uint8_t)(((MEM[63486] >> 1) | 247) & input);
+  input = (uint8_t)(((IN(63486) >> 1) | 247) & input);
 
   // LD B,239                // Read keys 0-9-8-7-6 ('8' is right) into bits 0-4 of
   // IN A,(C)                // A
   // OR 251                  // Set bits 0, 1 and 3-7; this ignores every key except '8' (right)
   // AND E                   // Merge this reading of the '8' key into bit 2 of E
   // LD E,A
-  input = (uint8_t)((MEM[61438] | 251) & input);
+  input = (uint8_t)((IN(61438) | 251) & input);
 
   // LD A,(KEMP)             // Collect the Kempston joystick indicator from KEMP
   // OR A                    // Is the joystick connected?
@@ -1729,14 +1691,14 @@ bool MOVEWILLY2(uint16_t addr) {
   // IN A,(C)
   // BIT 4,A                 // Is the fire button being pressed?
   // JR Z,MOVEWILLY2_6       // Jump if not
-  if ((MEM[32510] & 31) != 31) {
+  if ((IN(32510) & 31) != 31) {
     // NOOP
     // jump to MOVEWILLY2_5
-  } else if ((MEM[61438] & 9) != 9) {
+  } else if ((IN(61438) & 9) != 9) {
     // NOOP
     // jump to MOVEWILLY2_5
   } else if (KEMP != 0) {
-    if (((MEM[31] >> 4) & 1) == 0) {
+    if (((IN(31) >> 4) & 1) == 0) {
       MOVEWILLY2_6();
       return false;
     }
@@ -3095,7 +3057,7 @@ bool NXSHEET() {
     for (int i = 0; i < duration; i++) {
       // LD A, 0                  // Produce a short note
       // OUT(254), A
-      MEM[254] = 0;
+      OUT(0);
 
       // LD B, D
       // NXSHEET_8:
@@ -3104,7 +3066,7 @@ bool NXSHEET() {
 
       // LD A, 24
       // OUT(254), A
-      MEM[254] = 24;
+      OUT(24);
 
       // LD B, D
       // NXSHEET_9:
@@ -4010,7 +3972,7 @@ bool CHECKENTER() {
   // CHECKENTER_0:
   // LD BC,49150             // Read keys H-J-K-L-ENTER
   // IN A,(C)
-  uint8_t key = MEM[49150];
+  uint8_t key = IN(49150);
   // AND 1                   // Keep only bit 0 of the result (ENTER)
   // CP 1                    // Reset the zero flag if ENTER is being pressed
   // RET

@@ -1,3 +1,5 @@
+// Manic Miner C Port Copyright 2017 Michael R. Cook
+
 #include "headers.h"
 
 uint8_t character_set[96][8] = {
