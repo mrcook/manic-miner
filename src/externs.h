@@ -137,7 +137,18 @@ uint16_t PIANOKEY(uint8_t frequency);
 bool CHECKENTER();
 
 void initialize_cavern0();
+void tick();
 
+// curses.c
+void initialize_curses();
+void restore_terminal();
+void clear_screen();
+void clear_to_bottom_from(int row);
+void redraw_screen();
+void put_tile(char ch, int row, int col);
+bool check_enter_keypress();
+void byte_to_bits(uint8_t byte, uint8_t *bits);
+void memory_dump_to_buffer();
 
 // emulator.c
 uint8_t MEM[1024 * 64];
@@ -157,5 +168,6 @@ void OUT(uint8_t value);
 
 // helpers.c
 void millisleep(int milliseconds);
+int timediff(clock_t t1, clock_t t2);
 void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb);
 uint16_t build_address(uint8_t msb, uint8_t lsb);

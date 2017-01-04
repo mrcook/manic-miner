@@ -8,6 +8,13 @@
 #include "headers.h"
 #include "externs.h"
 
+const int FRAMES_PER_SECOND = 25;
+const int SKIP_TICKS = 1000 / FRAMES_PER_SECOND;
+
+// returns the current number of clock ticks
+// that have elapsed since the system was started
+clock_t current_time;
+
 
 // ORG 32765
 // JP BEGIN
@@ -32,8 +39,33 @@
 // -----------------------------------------------------
 
 
+// Tick the world over.
+// Call this whenever the display needs updating or FPS syncing.
+void tick() {
+  if (check_enter_keypress()) {
+    restore_terminal();
+  }
+  redraw_screen();
+
+  clock_t last_tick = clock();
+  int sleep_time = SKIP_TICKS - timediff(current_time, last_tick);
+
+  if ( sleep_time > 0 ) {
+    usleep( (useconds_t)sleep_time * 1000 );
+    current_time = clock();
+  }
+  else {
+    // Shit, we are running behind!
+  }
+}
+
 // IMPORTANT: this function closes before the "source code remnants" and "cavern data" starts -MRC-
 int main() {
+  initialize_curses();
+
+  // Set initial clock tick value - for calculating FSP.
+  current_time = clock();
+
   // Display the title screen and play the theme tune
   //
   // Used by the routines at BEGIN, LOOP and ENDGAM.
@@ -67,7 +99,7 @@ int main() {
     // SET 0,(HL)
     MUSICFLAGS |= 1 << 0;
 
-// Next, prepare the screen.
+    // Next, prepare the screen.
 
     // Clear the entire display file
     // LD HL,16384
@@ -84,8 +116,11 @@ int main() {
     // LD DE,16384
     // LD BC,4096
     // LDIR
-    for (int i = 0; i < 4096; i++) {
+    for (int i = 0; i < 2048; i++) {
       MEM[16384 + i] = TITLESCR1[i];
+    }
+    for (int i = 0; i < 2048; i++) {
+      MEM[16384 + 2048 + i] = TITLESCR2[i];
     }
 
     // LD HL,18493             // Draw Willy at (9,29)
@@ -110,6 +145,7 @@ int main() {
       MEM[22528 + 256 + i] = LOWERATTRS[i];
     }
 
+    tick();
 
     // Now check whether there is a joystick connected.
     //   LD BC,31                // B=0, C=31 (joystick port)
@@ -182,6 +218,7 @@ int main() {
       //   DEC C
       //   JR NZ,START_3
       millisleep(100);
+      tick();
 
       // LD BC,49150             // Read keys H-J-K-L-ENTER
       // IN A,(C)
@@ -218,6 +255,7 @@ int main() {
     // LD (HL),48
     current_score = 0;
     // LDIR
+    tick();
 
 // This entry point is used by the routines at LOOP (when teleporting into a cavern
 // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
@@ -241,6 +279,7 @@ int main() {
     // LD BC,512               // game status buffer at 32768
     // LDIR
     initialize_cavern0();
+    tick();
 
     // Draw the current cavern to the screen buffer at 28672
     // CALL DRAWSHEET
@@ -295,6 +334,7 @@ int main() {
       // CP 86                   // Have we drawn all four rows of pixels in the air bar yet?
       // JR NZ,STARTGAME_0       // If not, jump back to draw the next one
     }
+    tick();
 
     // Print 'High Score 000000   Score 000000' (see MESSHSSC) at (19,0)
     // LD IX,MESSHSSC
@@ -306,7 +346,7 @@ int main() {
     // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
     // LD C,254                // Set the border colour
     // OUT (C),A
-    MEM[254] = BORDER;
+    OUT(BORDER);
 
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Are we in demo mode?
@@ -326,7 +366,9 @@ int main() {
 //
 // The first thing to do is check whether there are any remaining lives to draw
 // at the bottom of the screen.
-    LOOP:
+LOOP:
+    tick();
+
     // LD A,(NOMEN)            // Pick up the number of lives remaining from NOMEN
     // LD HL,20640             // Set HL to the display file address at which to draw the first Willy sprite
     regHL = 20640;
@@ -355,7 +397,7 @@ int main() {
       // POP HL
       // INC HL                  // Move HL along to the location at which to draw the
       // INC HL                  // next Willy sprite
-      regHL += 2;
+      regHL += 1;
       // DJNZ LOOP_0             // Jump back to draw any remaining sprites
     }
 
@@ -388,6 +430,7 @@ int main() {
     for (int i = 0; i < 4096; i++) {
       MEM[24576 + i] = MEM[28672 + i];
     }
+    tick();
 
     // CALL MOVEHG             // Move the horizontal guardians in the current cavern
     MOVEHG();
@@ -462,14 +505,14 @@ int main() {
     }
 
 // This entry point is used by the routine at SKYLABS.
-    LOOP_3:
+LOOP_3:
     // CALL CHKPORTAL          // Draw the portal, or move to the next cavern if Willy has entered it
     if (CHKPORTAL()) {
       goto NEWSHT;
     }
 
 // This entry point is used by the routine at KILLWILLY.
-    LOOP_4:
+LOOP_4:
     // LD HL,24576             // Copy the contents of the screen buffer at 24576 to
     // LD DE,16384             // the display file
     // LD BC,4096
@@ -477,6 +520,7 @@ int main() {
     for (int i = 0; i < 4096; i++) {
       MEM[16384 + i] = MEM[24576 + i];
     }
+    tick();
 
     // LD A,(FLASH)            // Pick up the screen flash counter from FLASH
     // OR A                    // Is it zero?
@@ -502,6 +546,8 @@ int main() {
       }
     }
 
+    tick();
+
     // LOOP_5:
     // LD HL,23552             // Copy the contents of the attribute buffer at 23552
     // LD DE,22528             // to the attribute file
@@ -524,6 +570,8 @@ int main() {
     // CALL PMESS
     PMESS(&HGHSCOR, 20587, 6);
 
+    tick();
+
     // Decrease the air remaining in the current cavern
     // Jump if there's no air left
     // CALL DECAIR
@@ -531,6 +579,8 @@ int main() {
     if (!DECAIR()) {
       goto MANDEAD;
     }
+
+    restore_terminal();
 
     // Now check whether SHIFT and SPACE are being pressed.
     // LD BC,65278             // Read keys SHIFT-Z-X-C-V
@@ -608,7 +658,7 @@ int main() {
     // LOOP_9:
     // BIT 1,(HL)              // Has the in-game music been switched off?
     // JR NZ,NONOTE4           // Jump if so
-    if (((MUSICFLAGS >> 1) & 1) == 0) {
+    if (((MUSICFLAGS >> 1) & 1) != 0) {
       // The next section of code plays a note of the in-game music.
 
       // Increment the in-game music note index at NOTEINDEX
@@ -633,7 +683,7 @@ int main() {
       // TM51:
       for (int i = 0; i < 3; i++) {
         // OUT (254),A             // Produce a note of the in-game music
-        MEM[254] = note;
+        OUT(note);
 
         // SEE37708:
         // DEC E
@@ -783,6 +833,8 @@ INCCHT:
         MEM[22528 + i] = attr;
       }
 
+      tick();
+
       // LD E,A                  // Save the attribute byte (64-71) in E for later retrieval
 
       // CPL                     // D=63-8*(E AND 7); this value determines the pitch
@@ -871,9 +923,10 @@ INCCHT:
       highscore = current_score;
       memcpy(HGHSCOR, SCORBUF, sizeof(&SCORBUF));
     }
+    tick();
 
 // Now prepare the screen for the game over sequence.
-    FEET:
+FEET:
     // Clear the top two-thirds of the display file
     // LD HL,16384
     // LD DE,16385
@@ -883,6 +936,7 @@ INCCHT:
     for (int i = 0; i <= 4096; i++) {
       MEM[16384 + i] = 0;
     }
+    tick();
 
     // XOR A                   // Initialise the game status buffer variable at
     // LD (EUGHGT),A           // EUGHGT; this variable will determine the distance of the boot from the top of the screen
@@ -899,6 +953,8 @@ INCCHT:
     // LD C,0
     // CALL DRWFIX
     DRWFIX(&PLINTH, 18639, 0);
+
+    tick();
 
     // The following loop draws the boot's descent onto the plinth that supports Willy.
     // LOOPFT:
@@ -961,6 +1017,7 @@ INCCHT:
       // LD (EUGHGT),A
       // CP 196                  // Has the boot met the plinth yet?
       // JR NZ,LOOPFT            // Jump back if not
+      tick();
     }
 
     // Now print the "Game Over" message, just to drive the point home.
@@ -978,6 +1035,8 @@ INCCHT:
     // LD DE,16594
     // CALL PMESS
     DRWFIX(&MESSO, 16594, 4);
+
+    tick();
 
     // LD BC,0                 // Prepare the delay counters for the following loop;
     // LD D,6                  // the counter in C will also determine the INK colours to use for the "Game Over" message
@@ -1025,6 +1084,7 @@ INCCHT:
 
         // IMPORTANT: haha, and you think this is correct? -MRC-
         MEM[22730 + a] = (uint8_t) (((d + a) & 7) | 64);
+        tick();
       }
 
       // DEC C                   // Decrement the counter in C
@@ -1036,6 +1096,8 @@ INCCHT:
     // Display the title screen and play the theme tune
     // JP START
   } // end of START loop
+
+  return 0;
 } // NOTE: end of main() function!
 
 
@@ -3010,6 +3072,7 @@ bool NXSHEET() {
 
     // DEC A                   // Decrement the attribute value in A
     // JR NZ,NXSHEET_4         // Jump back until we've gone through all attribute values from 63 down to 1
+    tick();
   }
 
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
