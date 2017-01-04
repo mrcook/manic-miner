@@ -68,6 +68,7 @@ extern uint8_t character_set[96][8];
 
 // data.c
 
+extern uint8_t WILLYDATA[256];
 extern uint8_t MANDAT[64];
 extern uint8_t WILLYR2[32];
 extern uint8_t WILLYR3[160];

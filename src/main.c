@@ -167,16 +167,16 @@ int main() {
     // LD IY,THEMETUNE         // Point IY at the theme tune data at THEMETUNE
     // CALL PLAYTUNE           // Play the theme tune
     // JP NZ,STARTGAME         // Start the game if ENTER or the fire button was pressed
-    // IMPORTANT: there is only one THEMETUNE, so PLAYTUNE can just access it directly -MRC-
-    if (PLAYTUNE()) {
-      goto STARTGAME;
-    }
+
+    // FIXME: no need to run the tune, just yet :)
+    // if (PLAYTUNE()) {
+    //   goto STARTGAME;
+    // }
 
     // Initialise the game status buffer variable at EUGHGT;
     // this will be used as an index for the message scrolled across the screen
     // XOR A
     // LD (EUGHGT),A
-    EUGHGT = 0;
 
     for (EUGHGT = 0; EUGHGT < 224; EUGHGT++) {
       // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
@@ -198,12 +198,10 @@ int main() {
       // RRCA
       // RRCA
       // RRCA
-      uint8_t anim_frame = (uint8_t) ((EUGHGT & 6) >> 3);
-
       // Point DE at the graphic data for Willy's sprite (MANDAT+A)
       // LD E,A
       // LD D,130
-      uint8_t *mandat_sprite_ptr = &MANDAT[anim_frame];
+      uint8_t *mandat_sprite_ptr = &WILLYDATA[(EUGHGT & 6) * 32];
 
       // Draw Willy at (9,29)
       // LD HL,18493
@@ -217,7 +215,7 @@ int main() {
       //   DJNZ START_3
       //   DEC C
       //   JR NZ,START_3
-      millisleep(100);
+      millisleep(50);
 
       // LD BC,49150             // Read keys H-J-K-L-ENTER
       // IN A,(C)
@@ -3979,7 +3977,7 @@ bool PLAYTUNE() {
     // PLAYTUNE_0:
     for (uint8_t d = note[0]; d > 0; d--) {
       // OUT (254),A             // Produce a sound based on the frequency parameters
-      MEM[254] = pitch;
+      OUT(pitch);
 
       // DEC D                   // in the second and third bytes of data for this note
       freq1--;
@@ -4007,6 +4005,7 @@ bool PLAYTUNE() {
       // FIXME: reg B is initialized to 0, but never set anywhere else, so this code is obsolete...?
       // PLAYTUNE_2:
       // DJNZ PLAYTUNE_0
+      millisleep(1);
 
       // DEC C
       // JR NZ,PLAYTUNE_0
@@ -4088,7 +4087,7 @@ bool CHECKENTER() {
   // AND 1                   // Keep only bit 0 of the result (ENTER)
   // CP 1                    // Reset the zero flag if ENTER is being pressed
   // RET
-  if (key & 1) {
+  if ( check_enter_keypress() || key & 1) {
     return true;
   } else {
     return false;
