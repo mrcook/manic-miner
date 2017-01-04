@@ -21,7 +21,7 @@ int8_t last_refresh;
 void initialize_curses() {
   initscr();
 
-  // Check we have enough screen. -CJS-
+  // Check we have enough screen characters available
 //  if (LINES < 192 || COLS < 256) {
 //    printf("Screen too small to play Curses Miner.\n");
 //    exit(1);
@@ -117,6 +117,54 @@ bool check_enter_keypress() {
     return true;
   }
   return false;
+}
+
+bool check_left_keypress() {
+  int input = getch();
+  if (input == KEY_LEFT) {
+    return true;
+  }
+  return false;
+}
+
+bool check_right_keypress() {
+  int input = getch();
+  if (input == KEY_RIGHT) {
+    return true;
+  }
+  return false;
+}
+
+bool check_jump_keypress() {
+  int input = getch();
+  if (input == ' ' || input == KEY_UP) {
+    return true;
+  }
+  return false;
+}
+
+bool check_quit_keypress() {
+  int input = getch();
+  if (input == 'Q') {
+    return true;
+  }
+  return false;
+}
+
+bool check_exit_keypress() {
+  int input = getch();
+  if (input == KEY_EXIT || input == 27) {
+    return true;
+  }
+  return false;
+}
+
+bool check_pause_keypress() {
+  int input = getch();
+  if (input == 'P' || input == 'p') {
+    return true;
+  }
+ return false;
 }
 
 void byte_to_bits(uint8_t byte, uint8_t *bits) {

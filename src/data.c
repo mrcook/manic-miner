@@ -6,6 +6,15 @@
 
 // Willy sprite graphic data
 //
+// 32 bytes per frame (16x16 pixels)
+// Each pair of bytes is a row of pixels.
+//
+// MANDAT  ( 0-31): Walk Right frame 1
+// MANDAT  (32-63): Walk Right frame 2
+// WILLYR2 ( 0-31): Walk Right frame 3
+// WILLYR3 ( 0-31): Walk Right frame 4
+// WILLYR3 (32...): Walk Left  frames 1 - 4
+//
 // Used by the routines at START, LOOP and DRAWWILLY.
 uint8_t MANDAT[64] = {
   6,0,62,0,124,0,52,0,62,0,60,0,24,0,60,0,
@@ -13,12 +22,10 @@ uint8_t MANDAT[64] = {
   1,128,15,128,31,0,13,0,15,128,15,0,6,0,15,0,
   27,128,27,128,27,128,29,128,15,0,6,0,6,0,7,0,
 };
-
 uint8_t WILLYR2[32] = {
   0,96,3,224,7,192,3,64,3,224,3,192,1,128,3,192,
   7,224,7,224,15,112,15,176,3,192,7,96,6,224,7,112,
 };
-
 uint8_t WILLYR3[160] = {
   0,24,0,248,1,240,0,208,0,248,0,240,0,96,0,240,
   1,248,3,252,7,254,6,246,0,248,1,218,3,14,3,132,

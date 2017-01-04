@@ -149,6 +149,12 @@ void put_tile(char ch, int row, int col);
 bool check_enter_keypress();
 void byte_to_bits(uint8_t byte, uint8_t *bits);
 void memory_dump_to_buffer();
+bool check_left_keypress();
+bool check_right_keypress();
+bool check_jump_keypress();
+bool check_quit_keypress();
+bool check_exit_keypress();
+bool check_pause_keypress();
 
 // emulator.c
 uint8_t MEM[1024 * 64];
