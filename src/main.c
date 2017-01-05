@@ -39,25 +39,6 @@ clock_t current_time;
 // -----------------------------------------------------
 
 
-// Tick the world over.
-// Call this whenever the display needs updating or FPS syncing.
-void tick() {
-  if (check_exit_keypress()) {
-    restore_terminal();
-  }
-  redraw_screen();
-
-  clock_t last_tick = clock();
-  int sleep_time = SKIP_TICKS - timediff(current_time, last_tick);
-
-  if ( sleep_time > 0 ) {
-    usleep( (useconds_t)sleep_time * 1000 );
-    current_time = clock();
-  }
-  else {
-    // Shit, we are running behind!
-  }
-}
 
 // IMPORTANT: this function closes before the "source code remnants" and "cavern data" starts -MRC-
 int main() {
@@ -179,6 +160,8 @@ int main() {
     // LD (EUGHGT),A
 
     for (EUGHGT = 0; EUGHGT < 224; EUGHGT++) {
+      continue; // FIXME: disable to speed up testing rest of game
+
       // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
 
       // Point IX at the corresponding location in the message at MESSINTRO
@@ -238,13 +221,13 @@ int main() {
     // LD A,64
     // LD (DEMO),A
     DEMO = 64;
-// This routine continues into the one at STARTGAME.
+    // This routine continues into the one at STARTGAME.
 
 
 // Start the game (or demo mode)
 //
 // Used by the routine at START.
-    STARTGAME:
+STARTGAME:
     // IMPORTANT: Probably better to have custom SCORE/SCORBUF/HGHSCOR updating and printing. -MRC-
     // Initialise the score at SCORE
     // LD HL,SCORE
@@ -256,7 +239,7 @@ int main() {
 
 // This entry point is used by the routines at LOOP (when teleporting into a cavern
 // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
-    NEWSHT:
+NEWSHT:
     // IMPORTANT: only using the first cavern, CAVERN0, while porting -MRC-
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // SLA A                   // Point HL at the first byte of the cavern definition
@@ -281,6 +264,7 @@ int main() {
     // Draw the current cavern to the screen buffer at 28672
     // CALL DRAWSHEET
     DRAWSHEET();
+    tick();
 
     // LD HL,20480             // Clear the bottom third of the display file
     // LD DE,20481
@@ -288,7 +272,7 @@ int main() {
     // LD (HL),0
     // LDIR
     for (int i = 0; i < 2048; i++) {
-      MEM[20481 + i] = 0;
+      MEM[20480 + i] = 0;
     }
 
     // Print the cavern name (see CAVERNNAME) at (16,0)
@@ -296,7 +280,7 @@ int main() {
     // LD C,32
     // LD DE,20480
     // CALL PMESS
-    PMESS(&CAVERNNAME, 20480, 32);
+    PMESS(CAVERNNAME, 20480, 32);
 
     // Print 'AIR' (see MESSAIR) at (17,0)
     // LD IX,MESSAIR
@@ -313,7 +297,7 @@ int main() {
       // LD D,A                  // the air bar
       // LD L,36
       // LD E,37
-      uint16_t addr = build_address(a, 37);
+      uint16_t addr = build_address(a, 36);
 
       // LD B,A                  // Save the display file address MSB in B briefly
       // LD A,(AIR)              // Pick up the value of the initial air supply from AIR
@@ -364,51 +348,8 @@ int main() {
 // The first thing to do is check whether there are any remaining lives to draw
 // at the bottom of the screen.
 LOOP:
-    tick();
-
-    // LD A,(NOMEN)            // Pick up the number of lives remaining from NOMEN
-    // LD HL,20640             // Set HL to the display file address at which to draw the first Willy sprite
-    regHL = 20640;
-    // OR A                    // Are there any lives remaining?
-    // JR Z,LOOP_1             // Jump if not
-    // LD B,A                  // Initialise B to the number of lives remaining
-    // The following loop draws the remaining lives at the bottom of the screen.
-    // LOOP_0:
-    for (int i = 0; i < NOMEN; i++) {
-      // LD C,0                  // C=0; this tells the sprite-drawing routine at DRWFIX to overwrite any existing graphics
-      // PUSH HL                 // Save HL and BC briefly
-      // PUSH BC
-      // LD A,(NOTEINDEX)        // Pick up the in-game music note index from NOTEINDEX; this will determine the animation frame for the Willy sprites
-      // RLCA                    // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96
-      // RLCA                    // (frame 3)
-      // RLCA
-      // AND 96
-      uint8_t anim_frame = (uint8_t) ((NOTEINDEX << 3) & 96);
-      // LD E,A                  // Point DE at the corresponding Willy sprite (at
-      // LD D,130                // MANDAT+A)
-      uint8_t *mandat_sprite_ptr = &MANDAT[anim_frame];
-      // CALL DRWFIX             // Draw the Willy sprite on the screen
-      DRWFIX(mandat_sprite_ptr, regHL, 0);
-
-      // POP BC                  // Restore HL and BC
-      // POP HL
-      // INC HL                  // Move HL along to the location at which to draw the
-      // INC HL                  // next Willy sprite
-      regHL += 2;
-      // DJNZ LOOP_0             // Jump back to draw any remaining sprites
-    }
-
-    // Now draw a boot if cheat mode has been activated.
-    // LOOP_1:
-    // LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
-    // CP 7                    // Has 6031769 been keyed in yet?
-    // JR NZ,LOOP_2            // Jump if not
-    if (CHEAT == 7) {
-      // LD DE,BOOT              // Point DE at the graphic data for the boot (at BOOT)
-      // LD C,0                  // C=0 (overwrite mode)
-      // CALL DRWFIX             // Draw the boot at the bottom of the screen next to the remaining lives
-      DRWFIX(&BOOT, regHL, 0);
-    }
+    // IMPORTANT: moved code for drawing the remaining lives to its own function.
+    draw_remaining_lives();
 
     // Next, prepare the screen and attribute buffers for drawing to the screen.
     // LOOP_2:
@@ -427,10 +368,11 @@ LOOP:
     for (int i = 0; i < 4096; i++) {
       MEM[24576 + i] = MEM[28672 + i];
     }
-    tick();
 
     // CALL MOVEHG             // Move the horizontal guardians in the current cavern
     MOVEHG();
+
+    tick();
 
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Are we in demo mode?
@@ -457,6 +399,8 @@ LOOP:
     // CALL DRAWITEMS          // Draw the items in the current cavern and collect any that Willy is touching
     DRAWITEMS();
 
+    tick();
+
     switch (SHEET) {
       case 4:
         // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
@@ -465,6 +409,7 @@ LOOP:
         if (EUGENE()) {
           goto LOOP_4; // Willy has died!
         }
+        break;
       case 13:
         // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
         // CP 13                   // Are we in Skylab Landing Bay?
@@ -472,6 +417,8 @@ LOOP:
         if (SKYLABS()) {
           goto LOOP_4; // Willy has died!
         }
+        // NOTE: else { goto LOOP_3 }
+        break;
       case 8:
         // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
         // CP 8                    // Are we in Wacky Amoebatrons or beyond?
@@ -479,6 +426,7 @@ LOOP:
         if (VGUARDIANS()) {
           goto LOOP_4; // Willy has died!
         }
+        break;
       case 7:
         // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
         // CP 7                    // Are we in Miner Willy meets the Kong Beast?
@@ -486,6 +434,7 @@ LOOP:
         if (KONGBEAST()) {
           goto LOOP_4; // Willy has died!
         }
+        break;
       case 11:
         // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
         // CP 11                   // Are we in Return of the Alien Kong Beast?
@@ -493,16 +442,19 @@ LOOP:
         if (KONGBEAST()) {
           goto LOOP_4; // Willy has died!
         }
+        break;
       case 18:
         // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
         // CP 18                   // Are we in Solar Power Generator?
         // CALL Z,LIGHTBEAM        // If so, move and draw the light beam
         LIGHTBEAM();
-      default:; // NOOP
+        break;
+      default:
+        ; // NOOP
     }
 
-// This entry point is used by the routine at SKYLABS.
-LOOP_3:
+    // This entry point is used by the routine at SKYLABS.
+    // LOOP_3:
     // CALL CHKPORTAL          // Draw the portal, or move to the next cavern if Willy has entered it
     if (CHKPORTAL()) {
       goto NEWSHT;
@@ -543,8 +495,6 @@ LOOP_4:
       }
     }
 
-    tick();
-
     // LOOP_5:
     // LD HL,23552             // Copy the contents of the attribute buffer at 23552
     // LD DE,22528             // to the attribute file
@@ -573,11 +523,11 @@ LOOP_4:
     // Jump if there's no air left
     // CALL DECAIR
     // JP Z,MANDEAD
-    if (!DECAIR()) {
+    if ( DECAIR() ) {
       goto MANDEAD;
     }
 
-    restore_terminal();
+    tick();
 
     // Now check whether SHIFT and SPACE are being pressed.
     // LD BC,65278             // Read keys SHIFT-Z-X-C-V
@@ -594,7 +544,11 @@ LOOP_4:
     regA = regA | regE;
     // AND 1                   // Are SHIFT and SPACE being pressed?
     // JP Z,START              // If so, quit the game
-    if ( check_quit_keypress() || (regA & 1) == 0) {
+//    if ( (regA & 1) == 0) {
+//      // goto START;
+//      continue;
+//    }
+    if ( check_quit_keypress() ) {
       // goto START;
       continue;
     }
@@ -607,7 +561,7 @@ LOOP_4:
     // AND 31                  // Are any of these keys being pressed?
     // CP 31
     // JR Z,LOOP_7             // Jump if not
-    if ( check_pause_keypress() || (regA & 31) == 31) {
+    if ( check_pause_keypress() ) { // (regA & 31) == 31
       // LOOP_6:
       do {
         // LD B,2                  // Read every half-row of keys except A-S-D-F-G
@@ -617,7 +571,9 @@ LOOP_4:
         // AND 31                  // Are any of these keys being pressed?
         // CP 31
         // JR Z,LOOP_6             // Jump back if not (the game is still paused)
-      } while ( !check_pause_keypress() || (regA & 31) != 31);
+
+        millisleep(50); // keep the FPS under control
+      } while ( !check_pause_keypress() ); // (regA & 31) != 31
     }
 
     // Here we check whether Willy has had a fatal accident.
@@ -625,7 +581,7 @@ LOOP_4:
     // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
     // CP 255                  // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
     // JP Z,MANDEAD            // Jump if so
-    if (AIRBORNE == 255) {
+    if (AIRBORNE != 255) {
       goto MANDEAD;
     }
 
@@ -700,29 +656,31 @@ LOOP_4:
       }
     }
 
+    tick();
+
     // If we're in demo mode, check the keyboard and joystick and return to the
     // title screen if there's any input.
     // NONOTE4:
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Are we in demo mode?
     // JR Z,NODEM1             // Jump if not
-    if (DEMO != 0) {
+    if (DEMO > 0) {
       // We're in demo mode; is it time to show the next cavern?
 
       // DEC A
+      DEMO--;
       // JP Z,MANDEAD            // Jump if so
-      if (DEMO - 1 == 0) {
+      if (DEMO == 0) {
         goto MANDEAD;
       }
       // LD (DEMO),A             // Update the game mode indicator at DEMO
-      DEMO--;
 
       // LD BC,254               // Read every row of keys on the keyboard
       // IN A,(C)
       // AND 31                  // Are any keys being pressed?
       // CP 31
       // JP NZ,START             // If so, return to the title screen
-      if (((IN(254) & 0xFF) & 31) == 31) {
+      if ( check_any_keypress() ) { // ((IN(254) & 0xFF) & 31) == 31)
         // goto START;
         continue;
       }
@@ -738,6 +696,8 @@ LOOP_4:
         */
       }
     }
+
+    tick();
 
 // IMPORTANT: not handling cheat codes just yet -MRC-
 /* TODO
@@ -798,13 +758,15 @@ INCCHT:
   LD A,(CHEAT)            // Increment the 6031769 key counter at CHEAT (the
   INC A                   // next key in the sequence is being pressed)
   LD (CHEAT),A
-  JP LOOP                 // Jump back to the start of the main loop
 */
+  // JP LOOP                 // Jump back to the start of the main loop
+  tick();
+  goto LOOP;
 
 
 // The air in the cavern has run out, or Willy has had a fatal accident, or it's
 // demo mode and it's time to show the next cavern.
-    MANDEAD:
+MANDEAD:
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Is it demo mode?
     // JP NZ,NXSHEET           // If so, move to the next cavern
@@ -883,220 +845,231 @@ INCCHT:
     if (NOMEN == 0) {
       // If not, display the game over sequence
       // JP Z,ENDGAM
-      goto ENDGAM;
+      ENDGAM();
+      continue;
     } else {
       // Decrease the number of lives remaining by one
       // DEC (HL)
       NOMEN--;
     }
 
+    tick();
+
     // Jump back to reinitialise the current cavern
     // JP NEWSHT
     goto NEWSHT;
 
+    tick();
+  } // end of START loop
+
+  restore_terminal();
+  return 0;
+} // NOTE: end of main() function!
 
 
 // Display the game over sequence
 //
 // Used by the routine at LOOP. First check whether we have a new high score.
-    ENDGAM:
-    //   LD HL,HGHSCOR           // Point HL at the high score at HGHSCOR
-    //   LD DE,SCORBUF           // Point DE at the current score at SCORBUF
-    //   LD B,6                  // There are 6 digits to compare
-    // LPHGH:
-    //   LD A,(DE)               // Pick up a digit of the current score
-    //   CP (HL)                 // Compare it with the corresponding digit of the high score
-    //   JP C,FEET               // Jump if it's less than the corresponding digit of the high score
-    //   JP NZ,NEWHGH            // Jump if it's greater than the corresponding digit of the high score
-    //   INC HL                  // Point HL at the next digit of the high score
-    //   INC DE                  // Point DE at the next digit of the current score
-    //   DJNZ LPHGH              // Jump back to compare the next pair of digits
-    // NEWHGH:
-    //   LD HL,SCORBUF           // Replace the high score with the current score
-    //   LD DE,HGHSCOR
-    //   LD BC,6
-    //   LDIR
-    if (current_score > highscore) {
-      highscore = current_score;
-      memcpy(HGHSCOR, SCORBUF, sizeof(&SCORBUF));
+void ENDGAM() {
+  //   LD HL,HGHSCOR           // Point HL at the high score at HGHSCOR
+  //   LD DE,SCORBUF           // Point DE at the current score at SCORBUF
+  //   LD B,6                  // There are 6 digits to compare
+  // LPHGH:
+  //   LD A,(DE)               // Pick up a digit of the current score
+  //   CP (HL)                 // Compare it with the corresponding digit of the high score
+  //   JP C,FEET               // Jump if it's less than the corresponding digit of the high score
+  //   JP NZ,NEWHGH            // Jump if it's greater than the corresponding digit of the high score
+  //   INC HL                  // Point HL at the next digit of the high score
+  //   INC DE                  // Point DE at the next digit of the current score
+  //   DJNZ LPHGH              // Jump back to compare the next pair of digits
+  // NEWHGH:
+  //   LD HL,SCORBUF           // Replace the high score with the current score
+  //   LD DE,HGHSCOR
+  //   LD BC,6
+  //   LDIR
+  if (current_score > highscore) {
+    highscore = current_score;
+    memcpy(HGHSCOR, SCORBUF, sizeof(&SCORBUF));
+  }
+
+  tick();
+
+  // Now prepare the screen for the game over sequence.
+  // FEET:
+  // Clear the top two-thirds of the display file
+  // LD HL,16384
+  // LD DE,16385
+  // LD BC,4095
+  // LD (HL),0
+  // LDIR
+  for (int i = 0; i <= 4096; i++) {
+    MEM[16384 + i] = 0;
+  }
+
+  tick();
+
+  // XOR A                   // Initialise the game status buffer variable at
+  // LD (EUGHGT),A           // EUGHGT; this variable will determine the distance of the boot from the top of the screen
+  EUGHGT = 0;
+
+  // LD DE,WILLYR2           // Draw Willy at (12,15)
+  // LD HL,18575
+  // LD C,0
+  // CALL DRWFIX
+  DRWFIX(&WILLYR2, 18575, 0);
+
+  // LD DE,PLINTH            // Draw the plinth (see PLINTH) underneath Willy at
+  // LD HL,18639             // (14,15)
+  // LD C,0
+  // CALL DRWFIX
+  DRWFIX(&PLINTH, 18639, 0);
+
+  tick();
+
+  // The following loop draws the boot's descent onto the plinth that supports Willy.
+  // LOOPFT:
+  for (EUGHGT = 0; EUGHGT < 196; EUGHGT += 4) {
+    // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
+    // LD C,A                  // Point BC at the corresponding entry in the screen
+    // LD B,131                // buffer address lookup table at SBUFADDRS
+    // LD A,(BC)               // Point HL at the corresponding location in the
+    // OR 15                   // display file
+    // LD L,A
+    // INC BC
+    // LD A,(BC)
+    // SUB 32
+    // LD H,A
+    // LD DE,BOOT              // Draw the boot (see BOOT) at this location, without
+    // LD C,0                  // erasing the boot at the previous location; this
+    // CALL DRWFIX             // leaves the portion of the boot sprite that's above the ankle in place, and makes the boot appear as if it's at the end of a long, extending trouser leg
+    DRWFIX(&BOOT, MEM[SBUFADDRS[EUGHGT]], 0); // FIXME: this IS wrong, fix it! -MRC-
+
+    tick();
+
+    // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
+    // CPL                     // A=255-A
+    uint8_t distance = ~EUGHGT;
+    // LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
+    uint8_t pitch = distance;
+    // XOR A                   // A=0 (black border)
+    uint8_t border = 0;
+    // LD BC,64                // C=64; this value determines the duration of the sound effect
+
+    // TM111:
+    for (int i = 0; i < 64; i++) {
+      // OUT(254), A             // Produce a short note whose pitch is determined by E
+      OUT(border);
+      // XOR 24
+      border ^= 24;
+
+      // LD B, E
+      // TM112:
+      // DJNZ TM112
+      millisleep(1);
+
+      // DEC C
+      // JR NZ, TM111
     }
-    tick();
 
-// Now prepare the screen for the game over sequence.
-FEET:
-    // Clear the top two-thirds of the display file
-    // LD HL,16384
-    // LD DE,16385
-    // LD BC,4095
-    // LD (HL),0
-    // LDIR
-    for (int i = 0; i <= 4096; i++) {
-      MEM[16384 + i] = 0;
+    // LD HL,22528             // Prepare BC, DE and HL for setting the attribute
+    // LD DE,22529             // bytes in the top two-thirds of the screen
+    // LD BC,511
+    // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
+    // AND 12                  // Keep only bits 2 and 3
+    // RLCA                    // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3
+    // OR 71                   // Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
+    // LD (HL),A               // Copy this attribute value into the top two-thirds
+    // LDIR                    // of the screen
+    for (int i = 0; i <= 512; i++) {
+      MEM[22528 + i] = (uint8_t) (((EUGHGT & 12) << 1) | 71);
     }
-    tick();
 
-    // XOR A                   // Initialise the game status buffer variable at
-    // LD (EUGHGT),A           // EUGHGT; this variable will determine the distance of the boot from the top of the screen
-    EUGHGT = 0;
-
-    // LD DE,WILLYR2           // Draw Willy at (12,15)
-    // LD HL,18575
-    // LD C,0
-    // CALL DRWFIX
-    DRWFIX(&WILLYR2, 18575, 0);
-
-    // LD DE,PLINTH            // Draw the plinth (see PLINTH) underneath Willy at
-    // LD HL,18639             // (14,15)
-    // LD C,0
-    // CALL DRWFIX
-    DRWFIX(&PLINTH, 18639, 0);
+    // LD A,(EUGHGT)           // Add 4 to the distance variable at EUGHGT; this will
+    // ADD A,4                 // move the boot sprite down two pixel rows
+    // LD (EUGHGT),A
+    // CP 196                  // Has the boot met the plinth yet?
+    // JR NZ,LOOPFT            // Jump back if not
 
     tick();
+  }
 
-    // The following loop draws the boot's descent onto the plinth that supports Willy.
-    // LOOPFT:
-    for (EUGHGT = 0; EUGHGT < 196; EUGHGT += 4) {
-      // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
-      // LD C,A                  // Point BC at the corresponding entry in the screen
-      // LD B,131                // buffer address lookup table at SBUFADDRS
-      // LD A,(BC)               // Point HL at the corresponding location in the
-      // OR 15                   // display file
-      // LD L,A
-      // INC BC
-      // LD A,(BC)
-      // SUB 32
-      // LD H,A
-      // LD DE,BOOT              // Draw the boot (see BOOT) at this location, without
-      // LD C,0                  // erasing the boot at the previous location; this
-      // CALL DRWFIX             // leaves the portion of the boot sprite that's above the ankle in place, and makes the boot appear as if it's at the end of a long, extending trouser leg
-      DRWFIX(&BOOT, MEM[SBUFADDRS[EUGHGT]], 0); // FIXME: this IS wrong, fix it! -MRC-
+  // Now print the "Game Over" message, just to drive the point home.
 
-      // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
-      // CPL                     // A=255-A
-      uint8_t distance = ~EUGHGT;
-      // LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
-      pitch = distance;
-      // XOR A                   // A=0 (black border)
-      uint8_t border = 0;
-      // LD BC,64                // C=64; this value determines the duration of the sound effect
+  // Print "Game" (see MESSG) at (6,10)
+  // LD IX,MESSG
+  // LD C,4
+  // LD DE,16586
+  // CALL PMESS
+  DRWFIX(&MESSG, 16586, 4);
 
-      // TM111:
-      for (int i = 0; i < 64; i++) {
-        // OUT(254), A             // Produce a short note whose pitch is determined by E
-        OUT(border);
-        // XOR 24
-        border ^= 24;
+  // Print "Over" (see MESSO) at (6,18)
+  // LD IX,MESSO
+  // LD C,4
+  // LD DE,16594
+  // CALL PMESS
+  DRWFIX(&MESSO, 16594, 4);
 
-        // LD B, E
-        // TM112:
-        // DJNZ TM112
-        millisleep(1);
+  tick();
 
-        // DEC C
-        // JR NZ, TM111
-      }
+  // LD BC,0                 // Prepare the delay counters for the following loop;
+  // LD D,6                  // the counter in C will also determine the INK colours to use for the "Game Over" message
 
-      // LD HL,22528             // Prepare BC, DE and HL for setting the attribute
-      // LD DE,22529             // bytes in the top two-thirds of the screen
-      // LD BC,511
-      // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
-      // AND 12                  // Keep only bits 2 and 3
-      // RLCA                    // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3
-      // OR 71                   // Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
-      // LD (HL),A               // Copy this attribute value into the top two-thirds
-      // LDIR                    // of the screen
-      for (int i = 0; i <= 512; i++) {
-        MEM[22528 + i] = (uint8_t) (((EUGHGT & 12) << 1) | 71);
-      }
+  // The following loop makes the "Game Over" message glisten for about 1.57s.
+  // TM91:
+  for (int d = 6; d > 0; d--) {
+    // Delay for about a millisecond
+    // DJNZ TM91
+    millisleep(1);
 
-      // LD A,(EUGHGT)           // Add 4 to the distance variable at EUGHGT; this will
-      // ADD A,4                 // move the boot sprite down two pixel rows
-      // LD (EUGHGT),A
-      // CP 196                  // Has the boot met the plinth yet?
-      // JR NZ,LOOPFT            // Jump back if not
+    for (int a = 0; a < 8; a++) {
+      // LD A,C                  // Change the INK colour of the "G" in "Game" at
+      // AND 7                   // (6,10)
+      // OR 64
+      // LD (22730),A
+      // INC A                   // Change the INK colour of the "a" in "Game" at
+      // AND 7                   // (6,11)
+      // OR 64
+      // LD (22731),A
+      // INC A                   // Change the INK colour of the "m" in "Game" at
+      // AND 7                   // (6,12)
+      // OR 64
+      // LD (22732),A
+      // INC A                   // Change the INK colour of the "e" in "Game" at
+      // AND 7                   // (6,13)
+      // OR 64
+      // LD (22733),A
+      // INC A                   // Change the INK colour of the "O" in "Over" at
+      // AND 7                   // (6,18)
+      // OR 64
+      // LD (22738),A
+      // INC A                   // Change the INK colour of the "v" in "Over" at
+      // AND 7                   // (6,19)
+      // OR 64
+      // LD (22739),A
+      // INC A                   // Change the INK colour of the "e" in "Over" at
+      // AND 7                   // (6,20)
+      // OR 64
+      // LD (22740),A
+      // INC A                   // Change the INK colour of the "r" in "Over" at
+      // AND 7                   // (6,21)
+      // OR 64
+      // LD (22741),A
+
+      // IMPORTANT: haha, and you think this is correct? -MRC-
+      MEM[22730 + a] = (uint8_t) (((d + a) & 7) | 64);
       tick();
     }
 
-    // Now print the "Game Over" message, just to drive the point home.
+    // DEC C                   // Decrement the counter in C
+    // JR NZ,TM91              // Jump back unless it's zero
+    // DEC D                   // Decrement the counter in D (initially 6)
+    // JR NZ,TM91              // Jump back unless it's zero
+  }
 
-    // Print "Game" (see MESSG) at (6,10)
-    // LD IX,MESSG
-    // LD C,4
-    // LD DE,16586
-    // CALL PMESS
-    DRWFIX(&MESSG, 16586, 4);
-
-    // Print "Over" (see MESSO) at (6,18)
-    // LD IX,MESSO
-    // LD C,4
-    // LD DE,16594
-    // CALL PMESS
-    DRWFIX(&MESSO, 16594, 4);
-
-    tick();
-
-    // LD BC,0                 // Prepare the delay counters for the following loop;
-    // LD D,6                  // the counter in C will also determine the INK colours to use for the "Game Over" message
-
-    // The following loop makes the "Game Over" message glisten for about 1.57s.
-    // TM91:
-    for (int d = 6; d > 0; d--) {
-      // Delay for about a millisecond
-      // DJNZ TM91
-      millisleep(1);
-
-      for (int a = 0; a < 8; a++) {
-        // LD A,C                  // Change the INK colour of the "G" in "Game" at
-        // AND 7                   // (6,10)
-        // OR 64
-        // LD (22730),A
-        // INC A                   // Change the INK colour of the "a" in "Game" at
-        // AND 7                   // (6,11)
-        // OR 64
-        // LD (22731),A
-        // INC A                   // Change the INK colour of the "m" in "Game" at
-        // AND 7                   // (6,12)
-        // OR 64
-        // LD (22732),A
-        // INC A                   // Change the INK colour of the "e" in "Game" at
-        // AND 7                   // (6,13)
-        // OR 64
-        // LD (22733),A
-        // INC A                   // Change the INK colour of the "O" in "Over" at
-        // AND 7                   // (6,18)
-        // OR 64
-        // LD (22738),A
-        // INC A                   // Change the INK colour of the "v" in "Over" at
-        // AND 7                   // (6,19)
-        // OR 64
-        // LD (22739),A
-        // INC A                   // Change the INK colour of the "e" in "Over" at
-        // AND 7                   // (6,20)
-        // OR 64
-        // LD (22740),A
-        // INC A                   // Change the INK colour of the "r" in "Over" at
-        // AND 7                   // (6,21)
-        // OR 64
-        // LD (22741),A
-
-        // IMPORTANT: haha, and you think this is correct? -MRC-
-        MEM[22730 + a] = (uint8_t) (((d + a) & 7) | 64);
-        tick();
-      }
-
-      // DEC C                   // Decrement the counter in C
-      // JR NZ,TM91              // Jump back unless it's zero
-      // DEC D                   // Decrement the counter in D (initially 6)
-      // JR NZ,TM91              // Jump back unless it's zero
-    }
-
-    // Display the title screen and play the theme tune
-    // JP START
-  } // end of START loop
-
-  return 0;
-} // NOTE: end of main() function!
-
+  // Display the title screen and play the theme tune
+  // JP START
+  // IMPORTANT: caller must return to START
+}
 
 
 
@@ -1108,11 +1081,10 @@ bool DECAIR() {
   // LD A,(CLOCK)            // Update the game clock at CLOCK
   // SUB 4
   // LD (CLOCK),A
-  CLOCK -= 4;
 
   // CP 252                  // Was it just decreased from zero?
   // JR NZ,DECAIR_0          // Jump if not
-  if (CLOCK >= 0) {
+  if (CLOCK == 0) {
     // LD A,(AIR)              // Pick up the value of the remaining air supply from AIR
     // CP 36
     // Has the air supply run out?
@@ -1126,6 +1098,8 @@ bool DECAIR() {
     AIR--;
 
     // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
+  } else {
+     CLOCK -= 4;
   }
 
   // DECAIR_0:
@@ -1156,10 +1130,10 @@ bool DECAIR() {
   // LD H,82                 // the top row of pixels in the cell at the right end of the air bar
   // LD B,4                  // There are four rows of pixels to draw
   // DECAIR_3:
-  for (uint8_t i = 0; i < 4; i++) {
+  for (uint8_t msb = 82; msb < 86; msb++) {
     // Draw the four rows of pixels at the right end of the air bar
     // LD (HL),E
-    MEM[build_address((uint8_t)(82 + i), AIR)] = pixels;
+    MEM[build_address(msb, AIR)] = pixels;
     // INC H
     // DJNZ DECAIR_3
   }
@@ -2047,7 +2021,7 @@ void MOVEHG() {
     // RRCA                    // the main loop) to bit 7 and clear all the other
     // RRCA                    // bits
     // RRCA
-    current_clock = current_clock >> 3;
+    current_clock = current_clock >> 3; // * 32 ???
 
     // AND (IY+0)              // Combine this bit with bit 7 of the first byte of the guardian definition, which specifies the guardian's animation speed: 0=normal, 1=slow
     // JR NZ,MOVEHG_6          // Jump to consider the next guardian if this one is not due to be moved on this pass
@@ -2084,7 +2058,7 @@ void MOVEHG() {
 
       // CP (IY+6)               // Has the guardian reached the rightmost point in its path?
       // JR NZ,MOVEHG_3          // Jump if not
-      if (lsb == guardian[5]) {
+      if (lsb != guardian[5]) {
         // LD (IY+4),7             // Set the animation frame to 7 (turning the guardian round to face left)
         guardian[3] = 7;
         // JR MOVEHG_6             // Jump forward to consider the next guardian
@@ -2107,7 +2081,7 @@ void MOVEHG() {
 
     // CP (IY+5)               // Has the guardian reached the leftmost point in its path?
     // JR NZ,MOVEHG_5          // Jump if not
-    if (lsb == guardian[4]) {
+    if (lsb != guardian[4]) {
       // LD (IY+4),0             // Set the animation frame to 0 (turning the guardian round to face right)
       guardian[3] = 0;
       // JR MOVEHG_6             // Jump forward to consider the next guardian
@@ -2212,7 +2186,7 @@ bool DRAWHG() {
     // CP 255                  // Have we dealt with all the guardians yet?
     // RET Z                   // Return if so
 
-    uint16_t *guardian = &HGUARDS[i];
+    uint16_t *guardian = HGUARDS[i];
 
     // OR A                    // Is this guardian definition blank?
     // JR Z,DRAWHG_2           // If so, skip it and consider the next one
@@ -2221,17 +2195,12 @@ bool DRAWHG() {
     }
 
     // LD DE,31                // Prepare DE for addition
-    uint8_t next_frame_id = 31;
 
     // LD L,(IY+1)             // Point HL at the address of the guardian's location
     // LD H,(IY+2)             // in the attribute buffer at 23552
-    split_address(guardian[1], &msb, &lsb);
-    msb += 1;
-    lsb += 2;
-    addr = build_address(msb, lsb);
+    addr = guardian[1];
 
     uint8_t attr = (uint8_t)guardian[0];
-
     // AND 127                 // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
     attr &= 127;
     // LD (HL),A               // Set the attribute bytes for the guardian in the
@@ -2585,7 +2554,7 @@ bool VGUARDIANS() {
     // CP 255                  // Have we dealt with all the guardians yet?
     // RET Z                   // Return if so
 
-    uint8_t *guardian = &VGUARDS[i];
+    uint8_t *guardian = VGUARDS[i];
 
     // INC (IY+1)              // Increment the guardian's animation frame
     // RES 2,(IY+1)            // Reset the animation frame to 0 if it overflowed to 4
@@ -3176,7 +3145,7 @@ bool NXSHEET() {
   // NXSHEET_6:
   for (;;) {
     // CALL DECAIR             // Decrease the air remaining in the current cavern
-    if (!DECAIR()) {
+    if ( DECAIR() ) {
       // JP Z,NEWSHT             // Move to the next cavern if the air supply is now gone
 
       // goto NEWSHT; // FIXME: remove this and let callers handle it.
@@ -3378,7 +3347,6 @@ void MVCONVEYOR() {
     e++;
     row_de = build_address(d, e);
 
-    // decrementing register B -MRC-
     // DJNZ MVCONVEYOR_0
   }
 }
@@ -4136,7 +4104,6 @@ bool CHECKENTER() {
 }
 
 
-
 // ----------------------------------------------
 //   NOTE: source code remnants has been deleted
 // ----------------------------------------------
@@ -4145,3 +4112,74 @@ bool CHECKENTER() {
 // ----------------------------------------------------------
 //   NOTE: data from here has been moved to the data.c file.
 // ----------------------------------------------------------
+
+
+// The following functions have been created by extracting code from other places, in particular main()
+
+
+// Tick the world over.
+// Call this whenever the display needs updating or FPS syncing.
+void tick() {
+  if (check_exit_keypress()) {
+    restore_terminal();
+  }
+  redraw_screen();
+
+  clock_t last_tick = clock();
+  int sleep_time = SKIP_TICKS - timediff(current_time, last_tick);
+
+  if ( sleep_time > 0 ) {
+    usleep( (useconds_t)sleep_time * 1000 );
+    current_time = clock();
+  }
+  else {
+    // Shit, we are running behind!
+  }
+}
+
+
+void draw_remaining_lives() {
+  // LD A,(NOMEN)            // Pick up the number of lives remaining from NOMEN
+  // LD HL,20640             // Set HL to the display file address at which to draw the first Willy sprite
+  regHL = 20640;
+  // OR A                    // Are there any lives remaining?
+  // JR Z,LOOP_1             // Jump if not
+  // LD B,A                  // Initialise B to the number of lives remaining
+  // The following loop draws the remaining lives at the bottom of the screen.
+  // LOOP_0:
+  for (int i = 0; i < NOMEN; i++) {
+    // LD C,0                  // C=0; this tells the sprite-drawing routine at DRWFIX to overwrite any existing graphics
+    // PUSH HL                 // Save HL and BC briefly
+    // PUSH BC
+    // LD A,(NOTEINDEX)        // Pick up the in-game music note index from NOTEINDEX; this will determine the animation frame for the Willy sprites
+    // RLCA                    // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96
+    // RLCA                    // (frame 3)
+    // RLCA
+    // AND 96
+    uint8_t anim_frame = (uint8_t) ((NOTEINDEX << 3) & 96);
+    // LD E,A                  // Point DE at the corresponding Willy sprite (at
+    // LD D,130                // MANDAT+A)
+    uint8_t *mandat_sprite_ptr = &MANDAT[anim_frame];
+    // CALL DRWFIX             // Draw the Willy sprite on the screen
+    DRWFIX(mandat_sprite_ptr, regHL, 0);
+
+    // POP BC                  // Restore HL and BC
+    // POP HL
+    // INC HL                  // Move HL along to the location at which to draw the
+    // INC HL                  // next Willy sprite
+    regHL += 2;
+    // DJNZ LOOP_0             // Jump back to draw any remaining sprites
+  }
+
+  // Now draw a boot if cheat mode has been activated.
+  // LOOP_1:
+  // LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
+  // CP 7                    // Has 6031769 been keyed in yet?
+  // JR NZ,LOOP_2            // Jump if not
+  if (CHEAT == 7) {
+    // LD DE,BOOT              // Point DE at the graphic data for the boot (at BOOT)
+    // LD C,0                  // C=0 (overwrite mode)
+    // CALL DRWFIX             // Draw the boot at the bottom of the screen next to the remaining lives
+    DRWFIX(&BOOT, regHL, 0);
+  }
+}

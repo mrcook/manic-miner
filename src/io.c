@@ -111,6 +111,13 @@ void put_tile(char ch, int row, int col) {
   mvaddch(row, col, ch);
 }
 
+bool check_any_keypress() {
+  if (getch() == ERR) {
+    return false;
+  }
+  return true;
+}
+
 bool check_enter_keypress() {
   int input = getch();
   if (input == KEY_ENTER || input == 10 || input == 13) {

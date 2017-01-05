@@ -94,6 +94,7 @@ extern uint8_t CAVERN19[512];
 
 
 // functions
+void ENDGAM();
 bool DECAIR();
 void DRAWSHEET();
 bool MOVEWILLY();
@@ -137,6 +138,7 @@ uint16_t PIANOKEY(uint8_t frequency);
 bool CHECKENTER();
 
 void initialize_cavern0();
+void draw_remaining_lives();
 void tick();
 
 // curses.c
@@ -146,9 +148,10 @@ void clear_screen();
 void clear_to_bottom_from(int row);
 void redraw_screen();
 void put_tile(char ch, int row, int col);
-bool check_enter_keypress();
 void byte_to_bits(uint8_t byte, uint8_t *bits);
 void memory_dump_to_buffer();
+bool check_any_keypress();
+bool check_enter_keypress();
 bool check_left_keypress();
 bool check_right_keypress();
 bool check_jump_keypress();
