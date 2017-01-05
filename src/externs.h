@@ -96,7 +96,6 @@ extern uint8_t CAVERN19[512];
 // functions
 bool DECAIR();
 void DRAWSHEET();
-void DRAWSHEET_0(uint16_t addr);
 bool MOVEWILLY();
 void MOVEWILLY_7(uint8_t y_coord);
 void MOVEWILLY_8();
