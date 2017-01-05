@@ -79,7 +79,7 @@ extern int CHEATDT[16];
 extern uint8_t THEMETUNE[95][3];
 extern uint8_t GAMETUNE[64];
 
-extern char MESSINTRO[];
+extern char *MESSINTRO;
 
 extern uint8_t LOWERATTRS[512];
 extern uint8_t TITLESCR1[2048];

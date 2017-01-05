@@ -341,9 +341,9 @@ uint8_t GAMETUNE[64] = {
 // '...MANIC MINER . . © BUG-BYTE ltd. 1983...'
 //
 // Used by the routine at START.
-char MESSINTRO[] =
+char *MESSINTRO =
   ".  .  .  .  .  .  .  .  .  .  . MANIC MINER . . "
-  "© BUG-BYTE ltd. 1983 . . By Matthew Smith . . . " // IMPORTANT: will this © symbol work? -MRC-
+  "© BUG-BYTE ltd. 1983 . . By Matthew Smith . . . "
   "Q to P = Left & Right . . Bottom row = Jump . . "
   "A to G = Pause . . H to L = Tune On/Off . . . "
   "Guide Miner Willy through 20 lethal caverns"

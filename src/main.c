@@ -215,7 +215,7 @@ int main() {
       //   DJNZ START_3
       //   DEC C
       //   JR NZ,START_3
-      millisleep(50);
+      millisleep(53);
 
       // LD BC,49150             // Read keys H-J-K-L-ENTER
       // IN A,(C)
