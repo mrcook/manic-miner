@@ -94,6 +94,7 @@ extern uint8_t CAVERN19[512];
 
 
 // functions
+bool play_new_cavern();
 bool MANDEAD();
 void ENDGAM();
 bool DECAIR();
