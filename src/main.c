@@ -53,291 +53,288 @@ int main() {
   //
   // The first thing this routine does is initialise some game status buffer
   // variables in preparation for the next game.
-  // START:
-  bool START = true;
-  while (START) {
-    // XOR A                   // A=0
-    // LD (SHEET),A            // Initialise the current cavern number at SHEET
-    SHEET = 0;
+START:
+  // XOR A                   // A=0
+  // LD (SHEET),A            // Initialise the current cavern number at SHEET
+  SHEET = 0;
 
-    // LD (KEMP),A             // Initialise the Kempston joystick indicator at KEMP
-    KEMP = 0;
+  // LD (KEMP),A             // Initialise the Kempston joystick indicator at KEMP
+  KEMP = 0;
 
-    // LD (DEMO),A             // Initialise the game mode indicator at DEMO
-    DEMO = 0;
+  // LD (DEMO),A             // Initialise the game mode indicator at DEMO
+  DEMO = 0;
 
-    // LD (NOTEINDEX),A        // Initialise the in-game music note index at NOTEINDEX
-    NOTEINDEX = 0;
+  // LD (NOTEINDEX),A        // Initialise the in-game music note index at NOTEINDEX
+  NOTEINDEX = 0;
 
-    // LD (FLASH),A            // Initialise the screen flash counter at FLASH
-    FLASH = 0;
+  // LD (FLASH),A            // Initialise the screen flash counter at FLASH
+  FLASH = 0;
 
-    // LD A,2                  // Initialise the number of lives remaining at NOMEN
-    // LD (NOMEN),A
-    NOMEN = 2;
+  // LD A,2                  // Initialise the number of lives remaining at NOMEN
+  // LD (NOMEN),A
+  NOMEN = 2;
 
-    // LD HL,MUSICFLAGS        // Initialise the keypress flag in bit 0 at MUSICFLAGS
-    // SET 0,(HL)
-    MUSICFLAGS |= 1 << 0;
+  // LD HL,MUSICFLAGS        // Initialise the keypress flag in bit 0 at MUSICFLAGS
+  // SET 0,(HL)
+  MUSICFLAGS |= 1 << 0;
 
-    // Next, prepare the screen.
+  // Next, prepare the screen.
 
-    // Clear the entire display file
-    // LD HL,16384
-    // LD DE,16385
-    // LD BC,6143
-    // LD (HL),0
-    // LDIR
-    for (int i = 0; i <= 6143; i++) {
-      MEM[16384 + i] = 0;
-    }
+  // Clear the entire display file
+  // LD HL,16384
+  // LD DE,16385
+  // LD BC,6143
+  // LD (HL),0
+  // LDIR
+  for (int i = 0; i <= 6143; i++) {
+    MEM[16384 + i] = 0;
+  }
 
-    // Copy the graphic data at TITLESCR1 to the top two-thirds of the display file
-    // LD HL,TITLESCR1
-    // LD DE,16384
-    // LD BC,4096
-    // LDIR
-    for (int i = 0; i < 2048; i++) {
-      MEM[16384 + i] = TITLESCR1[i];
-    }
-    for (int i = 0; i < 2048; i++) {
-      MEM[16384 + 2048 + i] = TITLESCR2[i];
-    }
+  // Copy the graphic data at TITLESCR1 to the top two-thirds of the display file
+  // LD HL,TITLESCR1
+  // LD DE,16384
+  // LD BC,4096
+  // LDIR
+  for (int i = 0; i < 2048; i++) {
+    MEM[16384 + i] = TITLESCR1[i];
+  }
+  for (int i = 0; i < 2048; i++) {
+    MEM[16384 + 2048 + i] = TITLESCR2[i];
+  }
 
-    // LD HL,18493             // Draw Willy at (9,29)
-    // LD DE,WILLYR2
+  // LD HL,18493             // Draw Willy at (9,29)
+  // LD DE,WILLYR2
+  // LD C,0
+  // CALL DRWFIX
+  DRWFIX(&WILLYR2, 18493, 0);
+
+  // LD HL,CAVERN19          // Copy the attribute bytes from CAVERN19 to the top
+  // LD DE,22528             // third of the attribute file
+  // LD BC,256
+  // LDIR
+  for (int i = 0; i < 256; i++) {
+    MEM[22528 + i] = CAVERN19[i];
+  }
+
+  // Copy the attribute bytes from LOWERATTRS to the bottom two-thirds of the attribute file
+  // LD HL,LOWERATTRS
+  // LD BC,512
+  // LDIR
+  for (int i = 0; i < 512; i++) {
+    MEM[22528 + 256 + i] = LOWERATTRS[i];
+  }
+
+  tick();
+
+  // Now check whether there is a joystick connected.
+  //   LD BC,31                // B=0, C=31 (joystick port)
+  //   DI                      // Disable interrupts (which are already disabled)
+  //   XOR A                   // A=0
+  // START_0:
+  //   IN E,(C)                // Combine 256 readings of the joystick port in A; if
+  //   OR E                    // no joystick is connected, some of these readings
+  //   DJNZ START_0            // will have bit 5 set
+  //   AND 32                  // Is a joystick connected (bit 5 reset)?
+  //   JR NZ,START_1           // Jump if not
+  //   LD A,1                  // Set the Kempston joystick indicator at KEMP to 1
+  //   LD (KEMP),A
+  KEMP = 0; // IMPORTANT: no joystick support just yet! -MRC-
+
+  // And finally, play the theme tune and check for keypresses.
+
+  // START_1: // label only used in the KEMP detection routine above.
+  // LD IY,THEMETUNE         // Point IY at the theme tune data at THEMETUNE
+  // CALL PLAYTUNE           // Play the theme tune
+  // JP NZ,STARTGAME         // Start the game if ENTER or the fire button was pressed
+
+  // FIXME: no need to run the tune, just yet :)
+  // if (PLAYTUNE()) {
+  //   goto STARTGAME;
+  // }
+
+  // Initialise the game status buffer variable at EUGHGT;
+  // this will be used as an index for the message scrolled across the screen
+  // XOR A
+  // LD (EUGHGT),A
+
+  for (EUGHGT = 0; EUGHGT < 224; EUGHGT++) {
+    continue; // FIXME: disable to speed up testing rest of game
+
+    // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
+
+    // Point IX at the corresponding location in the message at MESSINTRO
+    // Print 32 characters of the message at (19,0)
+    // LD IX,MESSINTRO
+    // LD IXl,A
+    // LD DE,20576
+    // LD C,32
+    // CALL PMESS
+    PMESS(&MESSINTRO[EUGHGT], 20576, 32);
+
+    // Pick up the message index from EUGHGT
+    // Keep only bits 1 and 2, and move them into bits 6 and 7, so that A holds 0, 64, 128 or 192;
+    // this value determines the animation frame to use for Willy
+    // LD A,(EUGHGT)
+    // AND 6
+    // RRCA
+    // RRCA
+    // RRCA
+    // Point DE at the graphic data for Willy's sprite (MANDAT+A)
+    // LD E,A
+    // LD D,130
+    uint8_t *mandat_sprite_ptr = &WILLYDATA[(EUGHGT & 6) * 32];
+
+    // Draw Willy at (9,29)
+    // LD HL,18493
     // LD C,0
     // CALL DRWFIX
-    DRWFIX(&WILLYR2, 18493, 0);
+    DRWFIX(mandat_sprite_ptr, 18493, 0);
 
-    // LD HL,CAVERN19          // Copy the attribute bytes from CAVERN19 to the top
-    // LD DE,22528             // third of the attribute file
-    // LD BC,256
-    // LDIR
-    for (int i = 0; i < 256; i++) {
-      MEM[22528 + i] = CAVERN19[i];
+    // Pause for about 0.1s
+    //   LD BC,100
+    // START_3:
+    //   DJNZ START_3
+    //   DEC C
+    //   JR NZ,START_3
+    millisleep(53);
+
+    // LD BC,49150             // Read keys H-J-K-L-ENTER
+    // IN A,(C)
+    // AND 1                   // Keep only bit 0 of the result (ENTER)
+    // CP 1                    // Is ENTER being pressed?
+    // JR NZ,STARTGAME         // If so, start the game
+    if ( check_enter_keypress() || ((IN(49150) & 0xFF) & 1) == 1) {
+      goto STARTGAME;
     }
 
-    // Copy the attribute bytes from LOWERATTRS to the bottom two-thirds of the attribute file
-    // LD HL,LOWERATTRS
-    // LD BC,512
-    // LDIR
-    for (int i = 0; i < 512; i++) {
-      MEM[22528 + 256 + i] = LOWERATTRS[i];
-    }
-
+    // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
+    // INC A                   // Increment it
+    // CP 224                  // Set the zero flag if we've reached the end of the message
+    // LD (EUGHGT),A           // Store the new message index at EUGHGT
+    // JR NZ,START_2           // Jump back unless we've finished scrolling the message across the screen
     tick();
+  }
 
-    // Now check whether there is a joystick connected.
-    //   LD BC,31                // B=0, C=31 (joystick port)
-    //   DI                      // Disable interrupts (which are already disabled)
-    //   XOR A                   // A=0
-    // START_0:
-    //   IN E,(C)                // Combine 256 readings of the joystick port in A; if
-    //   OR E                    // no joystick is connected, some of these readings
-    //   DJNZ START_0            // will have bit 5 set
-    //   AND 32                  // Is a joystick connected (bit 5 reset)?
-    //   JR NZ,START_1           // Jump if not
-    //   LD A,1                  // Set the Kempston joystick indicator at KEMP to 1
-    //   LD (KEMP),A
-    KEMP = 0; // IMPORTANT: no joystick support just yet! -MRC-
-
-    // And finally, play the theme tune and check for keypresses.
-
-    // START_1: // label only used in the KEMP detection routine above.
-    // LD IY,THEMETUNE         // Point IY at the theme tune data at THEMETUNE
-    // CALL PLAYTUNE           // Play the theme tune
-    // JP NZ,STARTGAME         // Start the game if ENTER or the fire button was pressed
-
-    // FIXME: no need to run the tune, just yet :)
-    // if (PLAYTUNE()) {
-    //   goto STARTGAME;
-    // }
-
-    // Initialise the game status buffer variable at EUGHGT;
-    // this will be used as an index for the message scrolled across the screen
-    // XOR A
-    // LD (EUGHGT),A
-
-    for (EUGHGT = 0; EUGHGT < 224; EUGHGT++) {
-      continue; // FIXME: disable to speed up testing rest of game
-
-      // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-
-      // Point IX at the corresponding location in the message at MESSINTRO
-      // Print 32 characters of the message at (19,0)
-      // LD IX,MESSINTRO
-      // LD IXl,A
-      // LD DE,20576
-      // LD C,32
-      // CALL PMESS
-      PMESS(&MESSINTRO[EUGHGT], 20576, 32);
-
-      // Pick up the message index from EUGHGT
-      // Keep only bits 1 and 2, and move them into bits 6 and 7, so that A holds 0, 64, 128 or 192;
-      // this value determines the animation frame to use for Willy
-      // LD A,(EUGHGT)
-      // AND 6
-      // RRCA
-      // RRCA
-      // RRCA
-      // Point DE at the graphic data for Willy's sprite (MANDAT+A)
-      // LD E,A
-      // LD D,130
-      uint8_t *mandat_sprite_ptr = &WILLYDATA[(EUGHGT & 6) * 32];
-
-      // Draw Willy at (9,29)
-      // LD HL,18493
-      // LD C,0
-      // CALL DRWFIX
-      DRWFIX(mandat_sprite_ptr, 18493, 0);
-
-      // Pause for about 0.1s
-      //   LD BC,100
-      // START_3:
-      //   DJNZ START_3
-      //   DEC C
-      //   JR NZ,START_3
-      millisleep(53);
-
-      // LD BC,49150             // Read keys H-J-K-L-ENTER
-      // IN A,(C)
-      // AND 1                   // Keep only bit 0 of the result (ENTER)
-      // CP 1                    // Is ENTER being pressed?
-      // JR NZ,STARTGAME         // If so, start the game
-      if ( check_enter_keypress() || ((IN(49150) & 0xFF) & 1) == 1) {
-        goto STARTGAME;
-      }
-
-      // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-      // INC A                   // Increment it
-      // CP 224                  // Set the zero flag if we've reached the end of the message
-      // LD (EUGHGT),A           // Store the new message index at EUGHGT
-      // JR NZ,START_2           // Jump back unless we've finished scrolling the message across the screen
-      tick();
-    }
-
-    // Initialise the game mode indicator at DEMO to 64: demo mode
-    // LD A,64
-    // LD (DEMO),A
-    DEMO = 64;
-    // This routine continues into the one at STARTGAME.
-
+  // Initialise the game mode indicator at DEMO to 64: demo mode
+  // LD A,64
+  // LD (DEMO),A
+  DEMO = 64;
+  // This routine continues into the one at STARTGAME.
 
 // Start the game (or demo mode)
 //
 // Used by the routine at START.
 STARTGAME:
-    // IMPORTANT: Probably better to have custom SCORE/SCORBUF/HGHSCOR updating and printing. -MRC-
-    // Initialise the score at SCORE
-    // LD HL,SCORE
-    // LD DE,33830
-    // LD BC,9
-    // LD (HL),48
-    current_score = 0;
-    // LDIR
+  // IMPORTANT: Probably better to have custom SCORE/SCORBUF/HGHSCOR updating and printing. -MRC-
+  // Initialise the score at SCORE
+  // LD HL,SCORE
+  // LD DE,33830
+  // LD BC,9
+  // LD (HL),48
+  current_score = 0;
+  // LDIR
 
 // This entry point is used by the routines at LOOP (when teleporting into a cavern
 // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
 NEWSHT:
-    // IMPORTANT: only using the first cavern, CAVERN0, while porting -MRC-
-    // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-    // SLA A                   // Point HL at the first byte of the cavern definition
-    // SLA A
-    // ADD A,176
-    // LD H,A
-    // LD L,0
-    // LD DE,24064             // Copy the cavern's attribute bytes into the buffer
-    // LD BC,512               // at 24064
+  // IMPORTANT: only using the first cavern, CAVERN0, while porting -MRC-
+  // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+  // SLA A                   // Point HL at the first byte of the cavern definition
+  // SLA A
+  // ADD A,176
+  // LD H,A
+  // LD L,0
+  // LD DE,24064             // Copy the cavern's attribute bytes into the buffer
+  // LD BC,512               // at 24064
+  // LDIR
+  for (int i = 0; i < 512; i++) {
+    MEM[24064 + i] = CAVERN0[i];
+  }
+
+  // IMPORTANT: initialize_cavern0() doesn't currently copy data to: game status buffer at 32768 -MRC-
+  // LD DE,CAVERNNAME        // Copy the rest of the cavern definition into the
+  // LD BC,512               // game status buffer at 32768
+  // LDIR
+  initialize_cavern0();
+  tick();
+
+  // Draw the current cavern to the screen buffer at 28672
+  // CALL DRAWSHEET
+  DRAWSHEET();
+  tick();
+
+  // LD HL,20480             // Clear the bottom third of the display file
+  // LD DE,20481
+  // LD BC,2047
+  // LD (HL),0
+  // LDIR
+  for (int i = 0; i < 2048; i++) {
+    MEM[20480 + i] = 0;
+  }
+
+  // Print the cavern name (see CAVERNNAME) at (16,0)
+  // LD IX,CAVERNNAME
+  // LD C,32
+  // LD DE,20480
+  // CALL PMESS
+  PMESS(CAVERNNAME, 20480, 32);
+
+  // Print 'AIR' (see MESSAIR) at (17,0)
+  // LD IX,MESSAIR
+  // LD C,3
+  // LD DE,20512
+  // CALL PMESS
+  PMESS(&MESSAIR, 20512, 3);
+
+  // Initialise A to 82; this is the MSB of the display file address at which to start drawing the bar that represents the air supply
+  // LD A,82
+  // STARTGAME_0:
+  for (uint8_t a = 82; a < 86; a++) {
+    // LD H,A                  // Prepare HL and DE for drawing a row of pixels in
+    // LD D,A                  // the air bar
+    // LD L,36
+    // LD E,37
+    uint16_t addr = build_address(a, 36);
+
+    // LD B,A                  // Save the display file address MSB in B briefly
+    // LD A,(AIR)              // Pick up the value of the initial air supply from AIR
+    // SUB 36                  // Now C determines the length of the air bar (in cell
+    // LD C,A                  // widths)
+    // LD A,B                  // Restore the display file address MSB to A
+    // LD B,0                  // Now BC determines the length of the air bar (in cell widths)
+    // LD (HL),255             // Draw a single row of pixels across C cells
     // LDIR
-    for (int i = 0; i < 512; i++) {
-      MEM[24064 + i] = CAVERN0[i];
+    for (uint16_t i = 0; i < AIR - 36; i++) {
+      MEM[addr + i] = 255;
     }
 
-    // IMPORTANT: initialize_cavern0() doesn't currently copy data to: game status buffer at 32768 -MRC-
-    // LD DE,CAVERNNAME        // Copy the rest of the cavern definition into the
-    // LD BC,512               // game status buffer at 32768
-    // LDIR
-    initialize_cavern0();
-    tick();
+    // INC A                   // Increment the display file address MSB in A (moving down to the next row of pixels)
+    // CP 86                   // Have we drawn all four rows of pixels in the air bar yet?
+    // JR NZ,STARTGAME_0       // If not, jump back to draw the next one
+  }
+  tick();
 
-    // Draw the current cavern to the screen buffer at 28672
-    // CALL DRAWSHEET
-    DRAWSHEET();
-    tick();
+  // Print 'High Score 000000   Score 000000' (see MESSHSSC) at (19,0)
+  // LD IX,MESSHSSC
+  // LD DE,20576
+  // LD C,32
+  // CALL PMESS
+  PMESS(&MESSHSSC, 20576, 32);
 
-    // LD HL,20480             // Clear the bottom third of the display file
-    // LD DE,20481
-    // LD BC,2047
-    // LD (HL),0
-    // LDIR
-    for (int i = 0; i < 2048; i++) {
-      MEM[20480 + i] = 0;
-    }
+  // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
+  // LD C,254                // Set the border colour
+  // OUT (C),A
+  OUT(BORDER);
 
-    // Print the cavern name (see CAVERNNAME) at (16,0)
-    // LD IX,CAVERNNAME
-    // LD C,32
-    // LD DE,20480
-    // CALL PMESS
-    PMESS(CAVERNNAME, 20480, 32);
-
-    // Print 'AIR' (see MESSAIR) at (17,0)
-    // LD IX,MESSAIR
-    // LD C,3
-    // LD DE,20512
-    // CALL PMESS
-    PMESS(&MESSAIR, 20512, 3);
-
-    // Initialise A to 82; this is the MSB of the display file address at which to start drawing the bar that represents the air supply
-    // LD A,82
-    // STARTGAME_0:
-    for (uint8_t a = 82; a < 86; a++) {
-      // LD H,A                  // Prepare HL and DE for drawing a row of pixels in
-      // LD D,A                  // the air bar
-      // LD L,36
-      // LD E,37
-      uint16_t addr = build_address(a, 36);
-
-      // LD B,A                  // Save the display file address MSB in B briefly
-      // LD A,(AIR)              // Pick up the value of the initial air supply from AIR
-      // SUB 36                  // Now C determines the length of the air bar (in cell
-      // LD C,A                  // widths)
-      // LD A,B                  // Restore the display file address MSB to A
-      // LD B,0                  // Now BC determines the length of the air bar (in cell widths)
-      // LD (HL),255             // Draw a single row of pixels across C cells
-      // LDIR
-      for (uint16_t i = 0; i < AIR - 36; i++) {
-        MEM[addr + i] = 255;
-      }
-
-      // INC A                   // Increment the display file address MSB in A (moving down to the next row of pixels)
-      // CP 86                   // Have we drawn all four rows of pixels in the air bar yet?
-      // JR NZ,STARTGAME_0       // If not, jump back to draw the next one
-    }
-    tick();
-
-    // Print 'High Score 000000   Score 000000' (see MESSHSSC) at (19,0)
-    // LD IX,MESSHSSC
-    // LD DE,20576
-    // LD C,32
-    // CALL PMESS
-    PMESS(&MESSHSSC, 20576, 32);
-
-    // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-    // LD C,254                // Set the border colour
-    // OUT (C),A
-    OUT(BORDER);
-
-    // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
-    // OR A                    // Are we in demo mode?
-    // JR Z,LOOP               // If not, enter the main loop now
-    if (DEMO == 0) {
-      // Reset the game mode indicator at DEMO to 64 (we're in demo mode)
-      // LD A,64
-      // LD (DEMO),A
-      DEMO = 64;
-    }
+  // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
+  // OR A                    // Are we in demo mode?
+  // JR Z,LOOP               // If not, enter the main loop now
+  if (DEMO == 0) {
+    // Reset the game mode indicator at DEMO to 64 (we're in demo mode)
+    // LD A,64
+    // LD (DEMO),A
+    DEMO = 64;
+  }
 // This routine continues into the main loop at LOOP.
 
 
@@ -348,356 +345,353 @@ NEWSHT:
 // The first thing to do is check whether there are any remaining lives to draw
 // at the bottom of the screen.
 LOOP:
-    // IMPORTANT: moved code for drawing the remaining lives to its own function.
-    draw_remaining_lives();
+  // IMPORTANT: moved code for drawing the remaining lives to its own function.
+  draw_remaining_lives();
 
-    // Next, prepare the screen and attribute buffers for drawing to the screen.
-    // LOOP_2:
-    // LD HL,24064             // Copy the contents of the attribute buffer at 24064
-    // LD DE,23552             // (the attributes for the empty cavern) into the
-    // LD BC,512               // attribute buffer at 23552
-    // LDIR
-    for (int i = 0; i < 512; i++) {
-      MEM[23552 + i] = MEM[24064 + i];
+  // Next, prepare the screen and attribute buffers for drawing to the screen.
+  // LOOP_2:
+  // LD HL,24064             // Copy the contents of the attribute buffer at 24064
+  // LD DE,23552             // (the attributes for the empty cavern) into the
+  // LD BC,512               // attribute buffer at 23552
+  // LDIR
+  for (int i = 0; i < 512; i++) {
+    MEM[23552 + i] = MEM[24064 + i];
+  }
+
+  // LD HL,28672             // Copy the contents of the screen buffer at 28672
+  // LD DE,24576             // (the tiles for the empty cavern) into the screen
+  // LD BC,4096              // buffer at 24576
+  // LDIR
+  for (int i = 0; i < 4096; i++) {
+    MEM[24576 + i] = MEM[28672 + i];
+  }
+
+  // CALL MOVEHG             // Move the horizontal guardians in the current cavern
+  MOVEHG();
+
+  tick();
+
+  // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
+  // OR A                    // Are we in demo mode?
+  // CALL Z,MOVEWILLY        // If not, move Willy
+  if (DEMO == 0) {
+    if (MOVEWILLY()) {
+      goto LOOP_4; // Willy has died!
     }
+  }
 
-    // LD HL,28672             // Copy the contents of the screen buffer at 28672
-    // LD DE,24576             // (the tiles for the empty cavern) into the screen
-    // LD BC,4096              // buffer at 24576
-    // LDIR
-    for (int i = 0; i < 4096; i++) {
-      MEM[24576 + i] = MEM[28672 + i];
+  // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
+  // OR A                    // Are we in demo mode?
+  // CALL Z,WILLYATTRS       // If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
+  if (DEMO == 0) {
+    if (WILLYATTRS()) {
+      goto LOOP_4; // Willy has died!
     }
+  }
 
-    // CALL MOVEHG             // Move the horizontal guardians in the current cavern
-    MOVEHG();
+  // CALL DRAWHG             // Draw the horizontal guardians in the current cavern
+  DRAWHG();
+  // CALL MVCONVEYOR         // Move the conveyor in the current cavern
+  MVCONVEYOR();
+  // CALL DRAWITEMS          // Draw the items in the current cavern and collect any that Willy is touching
+  DRAWITEMS();
 
-    tick();
+  tick();
 
-    // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
-    // OR A                    // Are we in demo mode?
-    // CALL Z,MOVEWILLY        // If not, move Willy
-    if (DEMO == 0) {
-      if (MOVEWILLY()) {
+  switch (SHEET) {
+    case 4:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 4                    // Are we in Eugene's Lair?
+      // CALL Z,EUGENE           // If so, move and draw Eugene
+      if (EUGENE()) {
         goto LOOP_4; // Willy has died!
       }
-    }
-
-    // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
-    // OR A                    // Are we in demo mode?
-    // CALL Z,WILLYATTRS       // If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
-    if (DEMO == 0) {
-      if (WILLYATTRS()) {
+      break;
+    case 13:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 13                   // Are we in Skylab Landing Bay?
+      // JP Z,SKYLABS            // If so, move and draw the Skylabs
+      if (SKYLABS()) {
         goto LOOP_4; // Willy has died!
       }
-    }
+      // NOTE: else { goto LOOP_3 }
+      break;
+    case 8:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 8                    // Are we in Wacky Amoebatrons or beyond?
+      // CALL NC,VGUARDIANS      // If so, move and draw the vertical guardians
+      if (VGUARDIANS()) {
+        goto LOOP_4; // Willy has died!
+      }
+      break;
+    case 7:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 7                    // Are we in Miner Willy meets the Kong Beast?
+      // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
+      if (KONGBEAST()) {
+        goto LOOP_4; // Willy has died!
+      }
+      break;
+    case 11:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 11                   // Are we in Return of the Alien Kong Beast?
+      // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
+      if (KONGBEAST()) {
+        goto LOOP_4; // Willy has died!
+      }
+      break;
+    case 18:
+      // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
+      // CP 18                   // Are we in Solar Power Generator?
+      // CALL Z,LIGHTBEAM        // If so, move and draw the light beam
+      LIGHTBEAM();
+      break;
+    default:
+      ; // NOOP
+  }
 
-    // CALL DRAWHG             // Draw the horizontal guardians in the current cavern
-    DRAWHG();
-    // CALL MVCONVEYOR         // Move the conveyor in the current cavern
-    MVCONVEYOR();
-    // CALL DRAWITEMS          // Draw the items in the current cavern and collect any that Willy is touching
-    DRAWITEMS();
-
-    tick();
-
-    switch (SHEET) {
-      case 4:
-        // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-        // CP 4                    // Are we in Eugene's Lair?
-        // CALL Z,EUGENE           // If so, move and draw Eugene
-        if (EUGENE()) {
-          goto LOOP_4; // Willy has died!
-        }
-        break;
-      case 13:
-        // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-        // CP 13                   // Are we in Skylab Landing Bay?
-        // JP Z,SKYLABS            // If so, move and draw the Skylabs
-        if (SKYLABS()) {
-          goto LOOP_4; // Willy has died!
-        }
-        // NOTE: else { goto LOOP_3 }
-        break;
-      case 8:
-        // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-        // CP 8                    // Are we in Wacky Amoebatrons or beyond?
-        // CALL NC,VGUARDIANS      // If so, move and draw the vertical guardians
-        if (VGUARDIANS()) {
-          goto LOOP_4; // Willy has died!
-        }
-        break;
-      case 7:
-        // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-        // CP 7                    // Are we in Miner Willy meets the Kong Beast?
-        // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
-        if (KONGBEAST()) {
-          goto LOOP_4; // Willy has died!
-        }
-        break;
-      case 11:
-        // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-        // CP 11                   // Are we in Return of the Alien Kong Beast?
-        // CALL Z,KONGBEAST        // If so, move and draw the Kong Beast
-        if (KONGBEAST()) {
-          goto LOOP_4; // Willy has died!
-        }
-        break;
-      case 18:
-        // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
-        // CP 18                   // Are we in Solar Power Generator?
-        // CALL Z,LIGHTBEAM        // If so, move and draw the light beam
-        LIGHTBEAM();
-        break;
-      default:
-        ; // NOOP
-    }
-
-    // This entry point is used by the routine at SKYLABS.
-    // LOOP_3:
-    // CALL CHKPORTAL          // Draw the portal, or move to the next cavern if Willy has entered it
-    if (CHKPORTAL()) {
-      goto NEWSHT;
-    }
+  // This entry point is used by the routine at SKYLABS.
+  // LOOP_3:
+  // CALL CHKPORTAL          // Draw the portal, or move to the next cavern if Willy has entered it
+  if (CHKPORTAL()) {
+    goto NEWSHT;
+  }
 
 // This entry point is used by the routine at KILLWILLY.
 LOOP_4:
-    // LD HL,24576             // Copy the contents of the screen buffer at 24576 to
-    // LD DE,16384             // the display file
-    // LD BC,4096
-    // LDIR
-    for (int i = 0; i < 4096; i++) {
-      MEM[16384 + i] = MEM[24576 + i];
-    }
-    tick();
+  // LD HL,24576             // Copy the contents of the screen buffer at 24576 to
+  // LD DE,16384             // the display file
+  // LD BC,4096
+  // LDIR
+  for (int i = 0; i < 4096; i++) {
+    MEM[16384 + i] = MEM[24576 + i];
+  }
+  tick();
 
-    // LD A,(FLASH)            // Pick up the screen flash counter from FLASH
-    // OR A                    // Is it zero?
-    // JR Z,LOOP_5             // Jump if so
-    if (FLASH != 0) {
-      // Decrement the screen flash counter at FLASH
-      // DEC A
-      // LD (FLASH),A
-      FLASH--;
+  // LD A,(FLASH)            // Pick up the screen flash counter from FLASH
+  // OR A                    // Is it zero?
+  // JR Z,LOOP_5             // Jump if so
+  if (FLASH != 0) {
+    // Decrement the screen flash counter at FLASH
+    // DEC A
+    // LD (FLASH),A
+    FLASH--;
 
-      // RLCA                    // Move bits 0-2 into bits 3-5 and clear all the other
-      // RLCA                    // bits
-      // RLCA
-      // AND 56
-      uint8_t new_flash_value = (uint8_t) ((FLASH << 3) & 56);
-      // LD HL,23552             // Set every attribute byte in the buffer at 23552 to
-      // LD DE,23553             // this value
-      // LD BC,511
-      // LD (HL),A
-      // LDIR
-      for (int i = 0; i < 512; i++) {
-        MEM[23552 + i] = new_flash_value;
-      }
-    }
-
-    // LOOP_5:
-    // LD HL,23552             // Copy the contents of the attribute buffer at 23552
-    // LD DE,22528             // to the attribute file
-    // LD BC,512
+    // RLCA                    // Move bits 0-2 into bits 3-5 and clear all the other
+    // RLCA                    // bits
+    // RLCA
+    // AND 56
+    uint8_t new_flash_value = (uint8_t) ((FLASH << 3) & 56);
+    // LD HL,23552             // Set every attribute byte in the buffer at 23552 to
+    // LD DE,23553             // this value
+    // LD BC,511
+    // LD (HL),A
     // LDIR
     for (int i = 0; i < 512; i++) {
-      MEM[22528 + i] = MEM[23552 + i];
+      MEM[23552 + i] = new_flash_value;
     }
+  }
 
-    // Print the score (see SCORBUF) at (19,26)
-    // LD IX,SCORBUF
-    // LD DE,20602
-    // LD C,6
-    // CALL PMESS
-    PMESS(&SCORBUF, 20602, 6);
+  // LOOP_5:
+  // LD HL,23552             // Copy the contents of the attribute buffer at 23552
+  // LD DE,22528             // to the attribute file
+  // LD BC,512
+  // LDIR
+  for (int i = 0; i < 512; i++) {
+    MEM[22528 + i] = MEM[23552 + i];
+  }
 
-    // LD IX,HGHSCOR           // Print the high score (see HGHSCOR) at (19,11)
-    // LD DE,20587
-    // LD C,6
-    // CALL PMESS
-    PMESS(&HGHSCOR, 20587, 6);
+  // Print the score (see SCORBUF) at (19,26)
+  // LD IX,SCORBUF
+  // LD DE,20602
+  // LD C,6
+  // CALL PMESS
+  PMESS(&SCORBUF, 20602, 6);
 
-    tick();
+  // LD IX,HGHSCOR           // Print the high score (see HGHSCOR) at (19,11)
+  // LD DE,20587
+  // LD C,6
+  // CALL PMESS
+  PMESS(&HGHSCOR, 20587, 6);
 
-    // Decrease the air remaining in the current cavern
-    // Jump if there's no air left
-    // CALL DECAIR
-    // JP Z,MANDEAD
-    if ( DECAIR() ) {
-      goto MANDEAD;
-    }
+  tick();
 
-    tick();
+  // Decrease the air remaining in the current cavern
+  // Jump if there's no air left
+  // CALL DECAIR
+  // JP Z,MANDEAD
+  if ( DECAIR() ) {
+    goto MANDEAD;
+  }
 
-    // Now check whether SHIFT and SPACE are being pressed.
-    // LD BC,65278             // Read keys SHIFT-Z-X-C-V
-    // IN A,(C)
-    // LD E,A                  // Save the result in E
-    regE = (uint8_t) (IN(65278) & 0xFF);
+  tick();
 
-    regC = 65278 & 0xFF;
-    // LD B,127                // Read keys B-N-M-SS-SPACE
-    regBC = (uint8_t) ((127 << 8) | regC);
-    // IN A,(C)
-    regA = (uint8_t) (IN(regBC) & 0xFF);
-    // OR E                    // Combine the results
-    regA = regA | regE;
-    // AND 1                   // Are SHIFT and SPACE being pressed?
-    // JP Z,START              // If so, quit the game
+  // Now check whether SHIFT and SPACE are being pressed.
+  // LD BC,65278             // Read keys SHIFT-Z-X-C-V
+  // IN A,(C)
+  // LD E,A                  // Save the result in E
+  regE = (uint8_t) (IN(65278) & 0xFF);
+
+  regC = 65278 & 0xFF;
+  // LD B,127                // Read keys B-N-M-SS-SPACE
+  regBC = (uint8_t) ((127 << 8) | regC);
+  // IN A,(C)
+  regA = (uint8_t) (IN(regBC) & 0xFF);
+  // OR E                    // Combine the results
+  regA = regA | regE;
+  // AND 1                   // Are SHIFT and SPACE being pressed?
+  // JP Z,START              // If so, quit the game
 //    if ( (regA & 1) == 0) {
-//      // goto START;
-//      continue;
+//      goto START;
 //    }
-    if ( check_quit_keypress() ) {
-      // goto START;
-      continue;
+  if ( check_quit_keypress() ) {
+    goto START;
+  }
+
+  // Now read the keys A, S, D, F and G (which pause the game).
+  // LD B,253                // Read keys A-S-D-F-G
+  regBC = (uint8_t) ((253 << 8) | regC);
+  // IN A,(C)
+  regA = (uint8_t) (IN(regBC) & 0xFF);
+  // AND 31                  // Are any of these keys being pressed?
+  // CP 31
+  // JR Z,LOOP_7             // Jump if not
+  if ( check_pause_keypress() ) { // (regA & 31) == 31
+    // LOOP_6:
+    do {
+      // LD B,2                  // Read every half-row of keys except A-S-D-F-G
+      regBC = (uint8_t) ((2 << 8) | regC);
+      // IN A,(C)
+      regA = (uint8_t) (IN(regBC) & 0xFF);
+      // AND 31                  // Are any of these keys being pressed?
+      // CP 31
+      // JR Z,LOOP_6             // Jump back if not (the game is still paused)
+
+      millisleep(50); // keep the FPS under control
+    } while ( !check_pause_keypress() ); // (regA & 31) != 31
+  }
+
+  // Here we check whether Willy has had a fatal accident.
+  // LOOP_7:
+  // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
+  // CP 255                  // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
+  // JP Z,MANDEAD            // Jump if so
+  if (AIRBORNE != 255) {
+    goto MANDEAD;
+  }
+
+  // Now read the keys H, J, K, L and ENTER (which toggle the in-game music).
+  // LD B,191                // Prepare B for reading keys H-J-K-L-ENTER
+  // LD HL,MUSICFLAGS        // Point HL at the music flags at MUSICFLAGS
+  // IN A,(C)                // Read keys H-J-K-L-ENTER
+  // AND 31                  // Are any of these keys being pressed?
+  // CP 31
+  // JR Z,LOOP_8             // Jump if not
+  if (((IN(49150) & 0xFF) & 31) == 31) {
+    // BIT 0,(HL)              // Were any of these keys being pressed the last time we checked?
+    // JR NZ,LOOP_9            // Jump if so
+    if (((MUSICFLAGS >> 0) & 1) == 0) {
+      // LD A,(HL)               // Set bit 0 (the keypress flag) and flip bit 1 (the
+      // XOR 3                   // in-game music flag) at MUSICFLAGS
+      // LD (HL),A
+      MUSICFLAGS ^= 3;
+      // JR LOOP_9
     }
+  } else {
+    // LOOP_8:
+    // RES 0,(HL)              // Reset bit 0 (the keypress flag) at MUSICFLAGS
+    MUSICFLAGS &= ~(1 << 0);
+  }
 
-    // Now read the keys A, S, D, F and G (which pause the game).
-    // LD B,253                // Read keys A-S-D-F-G
-    regBC = (uint8_t) ((253 << 8) | regC);
-    // IN A,(C)
-    regA = (uint8_t) (IN(regBC) & 0xFF);
-    // AND 31                  // Are any of these keys being pressed?
-    // CP 31
-    // JR Z,LOOP_7             // Jump if not
-    if ( check_pause_keypress() ) { // (regA & 31) == 31
-      // LOOP_6:
-      do {
-        // LD B,2                  // Read every half-row of keys except A-S-D-F-G
-        regBC = (uint8_t) ((2 << 8) | regC);
-        // IN A,(C)
-        regA = (uint8_t) (IN(regBC) & 0xFF);
-        // AND 31                  // Are any of these keys being pressed?
-        // CP 31
-        // JR Z,LOOP_6             // Jump back if not (the game is still paused)
+  // LOOP_9:
+  // BIT 1,(HL)              // Has the in-game music been switched off?
+  // JR NZ,NONOTE4           // Jump if so
+  if (((MUSICFLAGS >> 1) & 1) != 0) {
+    // The next section of code plays a note of the in-game music.
 
-        millisleep(50); // keep the FPS under control
-      } while ( !check_pause_keypress() ); // (regA & 31) != 31
+    // Increment the in-game music note index at NOTEINDEX
+    // LD A,(NOTEINDEX)
+    // INC A
+    // LD (NOTEINDEX),A
+    NOTEINDEX++;
+
+    // AND 126                 // Point HL at the appropriate entry in the tune data
+    // RRCA                    // table at GAMETUNE
+    NOTEINDEX = (uint8_t) ((NOTEINDEX & 126) >> 1);
+    // LD E,A
+    // LD D,0
+    // LD HL,GAMETUNE
+    //  ADD HL,DE
+    //  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
+    uint8_t note = BORDER;
+    //  LD E,(HL)               // Initialise the pitch delay counter in E
+    uint8_t pitch_delay_counter = GAMETUNE[NOTEINDEX];
+    //  LD BC,3                 // Initialise the duration delay counters in B (0) and C (3)
+
+    // TM51:
+    for (int i = 0; i < 3; i++) {
+      // OUT (254),A             // Produce a note of the in-game music
+      OUT(note);
+
+      // SEE37708:
+      // DEC E
+      pitch_delay_counter--;
+      // JR NZ,NOFLP6
+      if (pitch_delay_counter > 0) {
+        // LD E,(HL)
+        pitch_delay_counter = GAMETUNE[NOTEINDEX];
+        // XOR 24
+        note ^= 24;
+      }
+
+      // NOFLP6:
+      // DJNZ TM51
+      // DEC C
+      // JR NZ,TM51
     }
+  }
 
-    // Here we check whether Willy has had a fatal accident.
-    // LOOP_7:
-    // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
-    // CP 255                  // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
+  tick();
+
+  // If we're in demo mode, check the keyboard and joystick and return to the
+  // title screen if there's any input.
+  // NONOTE4:
+  // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
+  // OR A                    // Are we in demo mode?
+  // JR Z,NODEM1             // Jump if not
+  if (DEMO > 0) {
+    // We're in demo mode; is it time to show the next cavern?
+
+    // DEC A
+    DEMO--;
     // JP Z,MANDEAD            // Jump if so
-    if (AIRBORNE != 255) {
+    if (DEMO == 0) {
       goto MANDEAD;
     }
+    // LD (DEMO),A             // Update the game mode indicator at DEMO
 
-    // Now read the keys H, J, K, L and ENTER (which toggle the in-game music).
-    // LD B,191                // Prepare B for reading keys H-J-K-L-ENTER
-    // LD HL,MUSICFLAGS        // Point HL at the music flags at MUSICFLAGS
-    // IN A,(C)                // Read keys H-J-K-L-ENTER
-    // AND 31                  // Are any of these keys being pressed?
+    // LD BC,254               // Read every row of keys on the keyboard
+    // IN A,(C)
+    // AND 31                  // Are any keys being pressed?
     // CP 31
-    // JR Z,LOOP_8             // Jump if not
-    if (((IN(49150) & 0xFF) & 31) == 31) {
-      // BIT 0,(HL)              // Were any of these keys being pressed the last time we checked?
-      // JR NZ,LOOP_9            // Jump if so
-      if (((MUSICFLAGS >> 0) & 1) == 0) {
-        // LD A,(HL)               // Set bit 0 (the keypress flag) and flip bit 1 (the
-        // XOR 3                   // in-game music flag) at MUSICFLAGS
-        // LD (HL),A
-        MUSICFLAGS ^= 3;
-        // JR LOOP_9
-      }
-    } else {
-      // LOOP_8:
-      // RES 0,(HL)              // Reset bit 0 (the keypress flag) at MUSICFLAGS
-      MUSICFLAGS &= ~(1 << 0);
+    // JP NZ,START             // If so, return to the title screen
+    if ( check_any_keypress() ) { // ((IN(254) & 0xFF) & 31) == 31)
+      goto START;
     }
 
-    // LOOP_9:
-    // BIT 1,(HL)              // Has the in-game music been switched off?
-    // JR NZ,NONOTE4           // Jump if so
-    if (((MUSICFLAGS >> 1) & 1) != 0) {
-      // The next section of code plays a note of the in-game music.
-
-      // Increment the in-game music note index at NOTEINDEX
-      // LD A,(NOTEINDEX)
-      // INC A
-      // LD (NOTEINDEX),A
-      NOTEINDEX++;
-
-      // AND 126                 // Point HL at the appropriate entry in the tune data
-      // RRCA                    // table at GAMETUNE
-      NOTEINDEX = (uint8_t) ((NOTEINDEX & 126) >> 1);
-      // LD E,A
-      // LD D,0
-      // LD HL,GAMETUNE
-      //  ADD HL,DE
-      //  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-      uint8_t note = BORDER;
-      //  LD E,(HL)               // Initialise the pitch delay counter in E
-      uint8_t pitch_delay_counter = GAMETUNE[NOTEINDEX];
-      //  LD BC,3                 // Initialise the duration delay counters in B (0) and C (3)
-
-      // TM51:
-      for (int i = 0; i < 3; i++) {
-        // OUT (254),A             // Produce a note of the in-game music
-        OUT(note);
-
-        // SEE37708:
-        // DEC E
-        pitch_delay_counter--;
-        // JR NZ,NOFLP6
-        if (pitch_delay_counter > 0) {
-          // LD E,(HL)
-          pitch_delay_counter = GAMETUNE[NOTEINDEX];
-          // XOR 24
-          note ^= 24;
-        }
-
-        // NOFLP6:
-        // DJNZ TM51
-        // DEC C
-        // JR NZ,TM51
-      }
-    }
-
-    tick();
-
-    // If we're in demo mode, check the keyboard and joystick and return to the
-    // title screen if there's any input.
-    // NONOTE4:
-    // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
-    // OR A                    // Are we in demo mode?
+    // LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
+    // OR A                    // Is there a joystick connected?
     // JR Z,NODEM1             // Jump if not
-    if (DEMO > 0) {
-      // We're in demo mode; is it time to show the next cavern?
-
-      // DEC A
-      DEMO--;
-      // JP Z,MANDEAD            // Jump if so
-      if (DEMO == 0) {
-        goto MANDEAD;
-      }
-      // LD (DEMO),A             // Update the game mode indicator at DEMO
-
-      // LD BC,254               // Read every row of keys on the keyboard
-      // IN A,(C)
-      // AND 31                  // Are any keys being pressed?
-      // CP 31
-      // JP NZ,START             // If so, return to the title screen
-      if ( check_any_keypress() ) { // ((IN(254) & 0xFF) & 31) == 31)
-        // goto START;
-        continue;
-      }
-
-      // LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
-      // OR A                    // Is there a joystick connected?
-      // JR Z,NODEM1             // Jump if not
-      if (KEMP != 0) {
-        /* TODO
-          IN A,(31)               // Collect input from the joystick
-          OR A                    // Is the joystick being moved or the fire button being pressed?
-          JP NZ,START             // If so, return to the title screen
-        */
-      }
+    if (KEMP != 0) {
+      /* TODO
+        IN A,(31)               // Collect input from the joystick
+        OR A                    // Is the joystick being moved or the fire button being pressed?
+        JP NZ,START             // If so, return to the title screen
+      */
     }
+  }
 
-    tick();
+  tick();
 
 // IMPORTANT: not handling cheat codes just yet -MRC-
 /* TODO
@@ -767,101 +761,99 @@ INCCHT:
 // The air in the cavern has run out, or Willy has had a fatal accident, or it's
 // demo mode and it's time to show the next cavern.
 MANDEAD:
-    // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
-    // OR A                    // Is it demo mode?
-    // JP NZ,NXSHEET           // If so, move to the next cavern
-    if (DEMO != 0) {
-      // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` -MRC-
-      NXSHEET();
-      goto NEWSHT;
-    }
-
-    uint8_t pitch, duration;
-    // LD A,71                 // A=71 (INK 7: PAPER 0: BRIGHT 1)
-
-    // The following loop fills the top two thirds of the attribute file with a
-    // single value (71 TO 64 STEP -1) and makes a sound effect.
-    // LPDEAD1:
-    for (uint8_t attr = 71; attr > 64; attr--) {
-      // LD HL,22528             // Fill the top two thirds of the attribute file with
-      // LD DE,22529             // the value in A
-      // LD BC,511
-      // LD (HL),A
-      // LDIR
-      for (int i = 0; i < 512; i++) {
-        MEM[22528 + i] = attr;
-      }
-
-      tick();
-
-      // LD E,A                  // Save the attribute byte (64-71) in E for later retrieval
-
-      // CPL                     // D=63-8*(E AND 7); this value determines the pitch
-      pitch = ~attr;
-      // AND 7                   // of the short note that will be played
-      // RLCA
-      // RLCA
-      // RLCA
-      // OR 7
-      // LD D,A
-      pitch = (uint8_t) (((pitch & 7) << 3) | 7);
-
-      // LD C,E                  // C=8+32*(E AND 7); this value determines the
-      // RRC C                   // duration of the short note that will be played
-      // RRC C
-      // RRC C
-      // OR 16                   // Set bit 4 of A (for no apparent reason)
-      duration = (uint8_t) ((attr >> 3) | 16);
-
-      // XOR A                   // Set A=0 (this will make the border black)
-      uint8_t border = 0;
-      // TM21:
-      for (int d = 0; d < duration; d++) {
-        // OUT(254), A             // Produce a short note whose pitch is determined by D
-        OUT(border);
-        // XOR 24                  // and whose duration is determined by C
-        border ^= 24;
-
-        // LD B, D
-        // TM22:
-        // DJNZ TM22
-        millisleep(1); // hmm, are we sleeping for 1ms
-
-        // DEC C
-        // JR NZ, TM21
-      }
-
-      // LD A,E                  // Restore the attribute byte (originally 71) to A
-      // DEC A                   // Decrement it (effectively decrementing the INK colour)
-      // CP 63                   // Have we used attribute value 64 (INK 0) yet?
-      // JR NZ,LPDEAD1           // If not, jump back to update the INK colour in the top two thirds of the screen and make another sound effect
-    }
-
-// Finally, check whether any lives remain.
-    // LD HL,NOMEN             // Pick up the number of lives remaining from NOMEN
-    // LD A,(HL)
-    // OR A
-    // Are there any lives remaining?
-    if (NOMEN == 0) {
-      // If not, display the game over sequence
-      // JP Z,ENDGAM
-      ENDGAM();
-      continue;
-    } else {
-      // Decrease the number of lives remaining by one
-      // DEC (HL)
-      NOMEN--;
-    }
-
-    tick();
-
-    // Jump back to reinitialise the current cavern
-    // JP NEWSHT
+  // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
+  // OR A                    // Is it demo mode?
+  // JP NZ,NXSHEET           // If so, move to the next cavern
+  if (DEMO != 0) {
+    // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` -MRC-
+    NXSHEET();
     goto NEWSHT;
+  }
+
+  uint8_t pitch, duration;
+  // LD A,71                 // A=71 (INK 7: PAPER 0: BRIGHT 1)
+
+  // The following loop fills the top two thirds of the attribute file with a
+  // single value (71 TO 64 STEP -1) and makes a sound effect.
+  // LPDEAD1:
+  for (uint8_t attr = 71; attr > 64; attr--) {
+    // LD HL,22528             // Fill the top two thirds of the attribute file with
+    // LD DE,22529             // the value in A
+    // LD BC,511
+    // LD (HL),A
+    // LDIR
+    for (int i = 0; i < 512; i++) {
+      MEM[22528 + i] = attr;
+    }
 
     tick();
-  } // end of START loop
 
+    // LD E,A                  // Save the attribute byte (64-71) in E for later retrieval
+
+    // CPL                     // D=63-8*(E AND 7); this value determines the pitch
+    pitch = ~attr;
+    // AND 7                   // of the short note that will be played
+    // RLCA
+    // RLCA
+    // RLCA
+    // OR 7
+    // LD D,A
+    pitch = (uint8_t) (((pitch & 7) << 3) | 7);
+
+    // LD C,E                  // C=8+32*(E AND 7); this value determines the
+    // RRC C                   // duration of the short note that will be played
+    // RRC C
+    // RRC C
+    // OR 16                   // Set bit 4 of A (for no apparent reason)
+    duration = (uint8_t) ((attr >> 3) | 16);
+
+    // XOR A                   // Set A=0 (this will make the border black)
+    uint8_t border = 0;
+    // TM21:
+    for (int d = 0; d < duration; d++) {
+      // OUT(254), A             // Produce a short note whose pitch is determined by D
+      OUT(border);
+      // XOR 24                  // and whose duration is determined by C
+      border ^= 24;
+
+      // LD B, D
+      // TM22:
+      // DJNZ TM22
+      millisleep(1); // hmm, are we sleeping for 1ms
+
+      // DEC C
+      // JR NZ, TM21
+    }
+
+    // LD A,E                  // Restore the attribute byte (originally 71) to A
+    // DEC A                   // Decrement it (effectively decrementing the INK colour)
+    // CP 63                   // Have we used attribute value 64 (INK 0) yet?
+    // JR NZ,LPDEAD1           // If not, jump back to update the INK colour in the top two thirds of the screen and make another sound effect
+  }
+
+  // Finally, check whether any lives remain.
+  // LD HL,NOMEN             // Pick up the number of lives remaining from NOMEN
+  // LD A,(HL)
+  // OR A
+  // Are there any lives remaining?
+  if (NOMEN == 0) {
+    // If not, display the game over sequence
+    // JP Z,ENDGAM
+    ENDGAM();
+    continue;
+  } else {
+    // Decrease the number of lives remaining by one
+    // DEC (HL)
+    NOMEN--;
+  }
+
+  tick();
+
+  // Jump back to reinitialise the current cavern
+  // JP NEWSHT
+  goto NEWSHT;
+
+  // IMPORTANT: never reached
   restore_terminal();
   return 0;
 } // NOTE: end of main() function!
