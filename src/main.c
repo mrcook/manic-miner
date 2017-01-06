@@ -521,7 +521,11 @@ LOOP_4:
   // CALL DECAIR
   // JP Z,MANDEAD
   if ( DECAIR() ) {
-    goto MANDEAD;
+    if (MANDEAD()) {
+      goto START;
+    } else {
+      goto NEWSHT;
+    }
   }
 
   tick();
@@ -545,7 +549,7 @@ LOOP_4:
 //      goto START;
 //    }
   if ( check_quit_keypress() ) {
-    goto START;
+    return 0; // IMPORTANT exit the game completely, not just restart. -MRC-
   }
 
   // Now read the keys A, S, D, F and G (which pause the game).
@@ -577,7 +581,11 @@ LOOP_4:
   // CP 255                  // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
   // JP Z,MANDEAD            // Jump if so
   if (AIRBORNE != 255) {
-    goto MANDEAD;
+    if (MANDEAD()) {
+      goto START;
+    } else {
+      goto NEWSHT;
+    }
   }
 
   // Now read the keys H, J, K, L and ENTER (which toggle the in-game music).
@@ -666,7 +674,11 @@ LOOP_4:
     DEMO--;
     // JP Z,MANDEAD            // Jump if so
     if (DEMO == 0) {
-      goto MANDEAD;
+      if (MANDEAD()) {
+        goto START;
+      } else {
+        goto NEWSHT;
+      }
     }
     // LD (DEMO),A             // Update the game mode indicator at DEMO
 
@@ -757,17 +769,23 @@ INCCHT:
   tick();
   goto LOOP;
 
+  // IMPORTANT: never reached
+  restore_terminal();
+  return 0;
+} // NOTE: end of main() function!
+
 
 // The air in the cavern has run out, or Willy has had a fatal accident, or it's
 // demo mode and it's time to show the next cavern.
-MANDEAD:
+// IMPORTANT: return TRUE is goto START, FALSE is goto NEWSHT -MRC-
+bool MANDEAD() {
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Is it demo mode?
   // JP NZ,NXSHEET           // If so, move to the next cavern
   if (DEMO != 0) {
     // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` -MRC-
     NXSHEET();
-    goto NEWSHT;
+    return false; // goto NEWSHT;
   }
 
   uint8_t pitch, duration;
@@ -840,7 +858,7 @@ MANDEAD:
     // If not, display the game over sequence
     // JP Z,ENDGAM
     ENDGAM();
-    continue;
+    return true; // goto START;
   } else {
     // Decrease the number of lives remaining by one
     // DEC (HL)
@@ -851,13 +869,8 @@ MANDEAD:
 
   // Jump back to reinitialise the current cavern
   // JP NEWSHT
-  goto NEWSHT;
-
-  // IMPORTANT: never reached
-  restore_terminal();
-  return 0;
-} // NOTE: end of main() function!
-
+  return false; // goto NEWSHT;
+}
 
 // Display the game over sequence
 //

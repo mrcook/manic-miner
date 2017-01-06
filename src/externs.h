@@ -94,6 +94,7 @@ extern uint8_t CAVERN19[512];
 
 
 // functions
+bool MANDEAD();
 void ENDGAM();
 bool DECAIR();
 void DRAWSHEET();
