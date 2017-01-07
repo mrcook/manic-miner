@@ -160,6 +160,7 @@ bool check_jump_keypress();
 bool check_quit_keypress();
 bool check_exit_keypress();
 bool check_pause_keypress();
+bool check_mute_keypress();
 
 // emulator.c
 uint8_t MEM[1024 * 64];

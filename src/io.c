@@ -174,6 +174,14 @@ bool check_pause_keypress() {
  return false;
 }
 
+bool check_mute_keypress() {
+  int input = getch();
+  if (input == 'M' || input == 'm') {
+    return true;
+  }
+  return false;
+}
+
 void byte_to_bits(uint8_t byte, uint8_t *bits) {
   for (int i = 0 ; i < 8 ; i++) {
     if (byte & (1 << i)) {

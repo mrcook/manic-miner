@@ -104,6 +104,7 @@ int main() {
     for (int i = 0; i < 2048; i++) {
       MEM[16384 + 2048 + i] = TITLESCR2[i];
     }
+    redraw_screen();
 
     // LD HL,18493             // Draw Willy at (9,29)
     // LD DE,WILLYR2
@@ -113,20 +114,20 @@ int main() {
 
     // LD HL,CAVERN19          // Copy the attribute bytes from CAVERN19 to the top
     // LD DE,22528             // third of the attribute file
+    uint16_t addr = 22528;
     // LD BC,256
     // LDIR
     for (int i = 0; i < 256; i++) {
-      MEM[22528 + i] = CAVERN19[i];
+      MEM[addr + i] = CAVERN19[i];
     }
-
     // Copy the attribute bytes from LOWERATTRS to the bottom two-thirds of the attribute file
     // LD HL,LOWERATTRS
     // LD BC,512
     // LDIR
+    addr += 256;
     for (int i = 0; i < 512; i++) {
-      MEM[22528 + 256 + i] = LOWERATTRS[i];
+      MEM[addr + i] = LOWERATTRS[i];
     }
-
     redraw_screen();
 
     // Now check whether there is a joystick connected.
@@ -180,7 +181,7 @@ int main() {
       // RRCA
       // RRCA
       // RRCA
-      uint8_t sprite_id = rotr((uint8_t)(EUGHGT & 6), 32);
+      uint8_t sprite_id = rotr((uint8_t)(EUGHGT & 6), 3);
       // Point DE at the graphic data for Willy's sprite (MANDAT+A)
       // LD E,A
       // LD D,130
@@ -198,7 +199,7 @@ int main() {
       //   DJNZ START_3
       //   DEC C
       //   JR NZ,START_3
-      millisleep(53);
+      millisleep(55);
 
       // LD BC,49150             // Read keys H-J-K-L-ENTER
       // IN A,(C)
@@ -240,6 +241,7 @@ int main() {
     // LD (HL),48
     current_score = 0;
     // LDIR
+    tick();
 
     if (play_new_cavern()) {
       break; // aka QUIT!
@@ -270,6 +272,7 @@ NEWSHT:
   for (int i = 0; i < 512; i++) {
     MEM[24064 + i] = CAVERN0[i];
   }
+  redraw_screen();
 
   // IMPORTANT: initialize_cavern0() doesn't currently copy data to: game status buffer at 32768 -MRC-
   // LD DE,CAVERNNAME        // Copy the rest of the cavern definition into the
@@ -281,6 +284,7 @@ NEWSHT:
   // Draw the current cavern to the screen buffer at 28672
   // CALL DRAWSHEET
   DRAWSHEET();
+  tick();
 
   // LD HL,20480             // Clear the bottom third of the display file
   // LD DE,20481
@@ -290,6 +294,7 @@ NEWSHT:
   for (int i = 0; i < 2048; i++) {
     MEM[20480 + i] = 0;
   }
+  redraw_screen();
 
   // Print the cavern name (see CAVERNNAME) at (16,0)
   // LD IX,CAVERNNAME
@@ -331,6 +336,7 @@ NEWSHT:
     // CP 86                   // Have we drawn all four rows of pixels in the air bar yet?
     // JR NZ,STARTGAME_0       // If not, jump back to draw the next one
   }
+  redraw_screen();
 
   // Print 'High Score 000000   Score 000000' (see MESSHSSC) at (19,0)
   // LD IX,MESSHSSC
@@ -388,25 +394,21 @@ NEWSHT:
     for (int i = 0; i < 4096; i++) {
       MEM[24576 + i] = MEM[28672 + i];
     }
+    redraw_screen();
 
     // CALL MOVEHG             // Move the horizontal guardians in the current cavern
     MOVEHG();
 
-    redraw_screen();
-
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Are we in demo mode?
     // CALL Z,MOVEWILLY        // If not, move Willy
-    if (DEMO == 0) {
-      if (MOVEWILLY()) {
-        goto LOOP_4; // Willy has died!
-      }
-    }
-
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Are we in demo mode?
     // CALL Z,WILLYATTRS       // If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
     if (DEMO == 0) {
+      if (MOVEWILLY()) {
+        goto LOOP_4; // Willy has died!
+      }
       if (WILLYATTRS()) {
         goto LOOP_4; // Willy has died!
       }
@@ -489,7 +491,7 @@ LOOP_4:
     for (int i = 0; i < 4096; i++) {
       MEM[16384 + i] = MEM[24576 + i];
     }
-    tick();
+    redraw_screen();
 
     // LD A,(FLASH)            // Pick up the screen flash counter from FLASH
     // OR A                    // Is it zero?
@@ -513,6 +515,7 @@ LOOP_4:
       for (int i = 0; i < 512; i++) {
         MEM[23552 + i] = new_flash_value;
       }
+      redraw_screen();
     }
 
     // LOOP_5:
@@ -523,6 +526,7 @@ LOOP_4:
     for (int i = 0; i < 512; i++) {
       MEM[22528 + i] = MEM[23552 + i];
     }
+    redraw_screen();
 
     // Print the score (see SCORBUF) at (19,26)
     // LD IX,SCORBUF
@@ -557,45 +561,31 @@ LOOP_4:
     // LD BC,65278             // Read keys SHIFT-Z-X-C-V
     // IN A,(C)
     // LD E,A                  // Save the result in E
-    regE = (uint8_t) (IN(65278) & 0xFF);
-
-    regC = 65278 & 0xFF;
     // LD B,127                // Read keys B-N-M-SS-SPACE
-    regBC = (uint8_t) ((127 << 8) | regC);
     // IN A,(C)
-    regA = (uint8_t) (IN(regBC) & 0xFF);
     // OR E                    // Combine the results
-    regA = regA | regE;
     // AND 1                   // Are SHIFT and SPACE being pressed?
     // JP Z,START              // If so, quit the game
-//    if ( (regA & 1) == 0) {
-//      goto START;
-//    }
     if (check_quit_keypress()) {
-      return true; // and make sure to quit the game!
+      return true; // goto START, and make sure to quit the game!
     }
 
     // Now read the keys A, S, D, F and G (which pause the game).
     // LD B,253                // Read keys A-S-D-F-G
-    regBC = (uint8_t) ((253 << 8) | regC);
     // IN A,(C)
-    regA = (uint8_t) (IN(regBC) & 0xFF);
     // AND 31                  // Are any of these keys being pressed?
     // CP 31
     // JR Z,LOOP_7             // Jump if not
-    if (check_pause_keypress()) { // (regA & 31) == 31
+    if (check_pause_keypress()) {
       // LOOP_6:
       do {
+        millisleep(50); // keep the FPS under control
         // LD B,2                  // Read every half-row of keys except A-S-D-F-G
-        regBC = (uint8_t) ((2 << 8) | regC);
         // IN A,(C)
-        regA = (uint8_t) (IN(regBC) & 0xFF);
         // AND 31                  // Are any of these keys being pressed?
         // CP 31
         // JR Z,LOOP_6             // Jump back if not (the game is still paused)
-
-        millisleep(50); // keep the FPS under control
-      } while (!check_pause_keypress()); // (regA & 31) != 31
+      } while (!check_pause_keypress());
     }
 
     // Here we check whether Willy has had a fatal accident.
@@ -603,13 +593,15 @@ LOOP_4:
     // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
     // CP 255                  // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
     // JP Z,MANDEAD            // Jump if so
-    if (AIRBORNE != 255) {
+    if (AIRBORNE == 255) {
       if (MANDEAD()) {
         return false; // goto START, and don't quit!
       } else {
         goto NEWSHT;
       }
     }
+
+    tick();
 
     // Now read the keys H, J, K, L and ENTER (which toggle the in-game music).
     // LD B,191                // Prepare B for reading keys H-J-K-L-ENTER
@@ -618,10 +610,10 @@ LOOP_4:
     // AND 31                  // Are any of these keys being pressed?
     // CP 31
     // JR Z,LOOP_8             // Jump if not
-    if (((IN(49150) & 0xFF) & 31) == 31) {
+    if (check_mute_keypress()) {
       // BIT 0,(HL)              // Were any of these keys being pressed the last time we checked?
       // JR NZ,LOOP_9            // Jump if so
-      if (((MUSICFLAGS >> 0) & 1) == 0) {
+      if ((MUSICFLAGS & 1) == 0) {
         // LD A,(HL)               // Set bit 0 (the keypress flag) and flip bit 1 (the
         // XOR 3                   // in-game music flag) at MUSICFLAGS
         // LD (HL),A
@@ -637,7 +629,7 @@ LOOP_4:
     // LOOP_9:
     // BIT 1,(HL)              // Has the in-game music been switched off?
     // JR NZ,NONOTE4           // Jump if so
-    if (((MUSICFLAGS >> 1) & 1) != 0) {
+    if (((MUSICFLAGS >> 1) & 1) == 0) {
       // The next section of code plays a note of the in-game music.
 
       // Increment the in-game music note index at NOTEINDEX
@@ -679,6 +671,7 @@ LOOP_4:
         // DJNZ TM51
         // DEC C
         // JR NZ,TM51
+        millisleep(1);
       }
     }
 
@@ -710,7 +703,7 @@ LOOP_4:
       // AND 31                  // Are any keys being pressed?
       // CP 31
       // JP NZ,START             // If so, return to the title screen
-      if (check_any_keypress()) { // ((IN(254) & 0xFF) & 31) == 31)
+      if (check_any_keypress()) {
         return false; // goto START, and don't quit!
       }
 
@@ -801,8 +794,8 @@ bool MANDEAD() {
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Is it demo mode?
   // JP NZ,NXSHEET           // If so, move to the next cavern
-  if (DEMO != 0) {
-    // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` -MRC-
+  if (DEMO > 0) {
+    // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` after it -MRC-
     NXSHEET();
     return false; // goto NEWSHT;
   }
@@ -823,7 +816,7 @@ bool MANDEAD() {
       MEM[22528 + i] = attr;
     }
 
-    tick();
+    redraw_screen();
 
     // LD E,A                  // Save the attribute byte (64-71) in E for later retrieval
 
@@ -834,21 +827,24 @@ bool MANDEAD() {
     // RLCA
     // RLCA
     // RLCA
+    pitch = rotl(pitch, 3);
     // OR 7
+    pitch |= 7;
     // LD D,A
-    pitch = (uint8_t)(rotl(pitch, 3) | 7);
 
     // LD C,E                  // C=8+32*(E AND 7); this value determines the
+    duration = attr;
     // RRC C                   // duration of the short note that will be played
     // RRC C
     // RRC C
+    duration = rotr(duration, 3);
     // OR 16                   // Set bit 4 of A (for no apparent reason)
-    duration = (uint8_t)(rotr(attr, 3) | 16);
+    duration |= 16;
 
     // XOR A                   // Set A=0 (this will make the border black)
     uint8_t border = 0;
     // TM21:
-    for (int d = 0; d < duration; d++) {
+    for (int d = duration; d > 0; d--) {
       // OUT(254), A             // Produce a short note whose pitch is determined by D
       OUT(border);
       // XOR 24                  // and whose duration is determined by C
@@ -857,7 +853,7 @@ bool MANDEAD() {
       // LD B, D
       // TM22:
       // DJNZ TM22
-      millisleep(1); // hmm, are we sleeping for 1ms
+      millisleep(pitch); // hmm, are we sleeping for 1ms
 
       // DEC C
       // JR NZ, TM21
@@ -873,10 +869,10 @@ bool MANDEAD() {
   // LD HL,NOMEN             // Pick up the number of lives remaining from NOMEN
   // LD A,(HL)
   // OR A
+  // JP Z,ENDGAM
   // Are there any lives remaining?
   if (NOMEN == 0) {
     // If not, display the game over sequence
-    // JP Z,ENDGAM
     ENDGAM();
     return true; // goto START;
   } else {
@@ -917,8 +913,6 @@ void ENDGAM() {
     memcpy(HGHSCOR, SCORBUF, sizeof(&SCORBUF));
   }
 
-  tick();
-
   // Now prepare the screen for the game over sequence.
   // FEET:
   // Clear the top two-thirds of the display file
@@ -927,11 +921,11 @@ void ENDGAM() {
   // LD BC,4095
   // LD (HL),0
   // LDIR
-  for (int i = 0; i <= 4096; i++) {
+  for (int i = 0; i < 4096; i++) {
     MEM[16384 + i] = 0;
   }
 
-  tick();
+  redraw_screen();
 
   // XOR A                   // Initialise the game status buffer variable at
   // LD (EUGHGT),A           // EUGHGT; this variable will determine the distance of the boot from the top of the screen
@@ -949,7 +943,9 @@ void ENDGAM() {
   // CALL DRWFIX
   DRWFIX(&PLINTH, 18639, 0);
 
-  tick();
+  redraw_screen();
+
+  uint16_t addr;
 
   // The following loop draws the boot's descent onto the plinth that supports Willy.
   // LOOPFT:
@@ -964,16 +960,18 @@ void ENDGAM() {
     // LD A,(BC)
     // SUB 32
     // LD H,A
+    addr = (uint16_t)(SBUFADDRS[EUGHGT] + 15); // center of screen
+
     // LD DE,BOOT              // Draw the boot (see BOOT) at this location, without
     // LD C,0                  // erasing the boot at the previous location; this
     // CALL DRWFIX             // leaves the portion of the boot sprite that's above the ankle in place, and makes the boot appear as if it's at the end of a long, extending trouser leg
-    DRWFIX(&BOOT, MEM[SBUFADDRS[EUGHGT]], 0); // FIXME: this IS wrong, fix it! -MRC-
+    DRWFIX(&BOOT, MEM[addr], 0);
 
     tick();
 
     // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
     // CPL                     // A=255-A
-    uint8_t distance = ~EUGHGT;
+    uint8_t distance = (uint8_t)(255 - EUGHGT);
     // LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
     uint8_t pitch = distance;
     // XOR A                   // A=0 (black border)
@@ -990,7 +988,7 @@ void ENDGAM() {
       // LD B, E
       // TM112:
       // DJNZ TM112
-      millisleep(1);
+      millisleep(pitch);
 
       // DEC C
       // JR NZ, TM111
@@ -1003,20 +1001,21 @@ void ENDGAM() {
     // AND 12                  // Keep only bits 2 and 3
     distance = (uint8_t)(EUGHGT & 12);
     // RLCA                    // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3
+    distance = rotl(distance, 1);
     // OR 71                   // Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
+    distance |= 71;
     // LD (HL),A               // Copy this attribute value into the top two-thirds
     // LDIR                    // of the screen
-    for (int i = 0; i <= 512; i++) {
-      MEM[22528 + i] = (uint8_t) (rotl(distance, 1) | 71);
+    for (int i = 0; i < 512; i++) {
+      MEM[22528 + i] = distance;
     }
+    tick();
 
     // LD A,(EUGHGT)           // Add 4 to the distance variable at EUGHGT; this will
     // ADD A,4                 // move the boot sprite down two pixel rows
     // LD (EUGHGT),A
     // CP 196                  // Has the boot met the plinth yet?
     // JR NZ,LOOPFT            // Jump back if not
-
-    tick();
   }
 
   // Now print the "Game Over" message, just to drive the point home.
@@ -1035,7 +1034,7 @@ void ENDGAM() {
   // CALL PMESS
   DRWFIX(&MESSO, 16594, 4);
 
-  tick();
+  redraw_screen();
 
   // LD BC,0                 // Prepare the delay counters for the following loop;
   // LD D,6                  // the counter in C will also determine the INK colours to use for the "Game Over" message
@@ -1107,15 +1106,13 @@ bool DECAIR() {
   // LD A,(CLOCK)            // Update the game clock at CLOCK
   // SUB 4
   // LD (CLOCK),A
-
   // CP 252                  // Was it just decreased from zero?
   // JR NZ,DECAIR_0          // Jump if not
   if (CLOCK == 0) {
     // LD A,(AIR)              // Pick up the value of the remaining air supply from AIR
-    // CP 36
-    // Has the air supply run out?
-    if (AIR == 36) {
-      // RET Z                   // Return (with the zero flag set) if so
+    // CP 36                   // Has the air supply run out?
+    // RET Z                   // Return (with the zero flag set) if so
+    if (AIR != 36) {
       return true;
     }
 
@@ -1165,6 +1162,7 @@ bool DECAIR() {
     // INC H
     // DJNZ DECAIR_3
   }
+  tick();
 
   // XOR A                   // Reset the zero flag to indicate that there is still
   // INC A                   // some air remaining; these instructions are redundant, since the zero flag is already reset at this point
@@ -1238,6 +1236,7 @@ void DRAWSHEET() {
       MEM[28672 + i] = TITLESCR1[i];
     }
   }
+  redraw_screen();
 }
 // IMPORTANT: this function has been rewritten above.
 //
@@ -1293,22 +1292,24 @@ void DRAWSHEET() {
 // Used by the routine at LOOP. This routine deals with Willy if he's jumping or falling.
 //
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
-// MOVEWILLY2 calls KILLWILLY_0, which itself returns to LOOP_4, which is very
-// close to the original CALL MOVEWILLY. -MRC-
 bool MOVEWILLY() {
   // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
   // CP 1
   // Is Willy jumping?
   // JR NZ,MOVEWILLY_3       // Jump if not
-  if (AIRBORNE == 1) {
+  if (AIRBORNE != 1) {
     // Willy is currently jumping.
     // LD A,(JUMPING)          // Pick up the jumping animation counter (0-17) from JUMPING
+    uint8_t jump = JUMPING;
     // RES 0,A                 // Now -8<=A<=8 (and A is even)
+    jump &= ~(1 << 0);
     // SUB 8
+    jump -= 8;
     // LD HL,PIXEL_Y           // Adjust Willy's pixel y-coordinate at PIXEL_Y
     // ADD A,(HL)              // depending on where Willy is in the jump
     // LD (HL),A
-    PIXEL_Y += (JUMPING & ~(1 << 0)) - 8;
+    PIXEL_Y += jump;
+
     // CALL MOVEWILLY_7        // Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate
     MOVEWILLY_7(PIXEL_Y);
 
@@ -1329,15 +1330,15 @@ bool MOVEWILLY() {
     // LD (JUMPING),A
     JUMPING++;
 
-    // FIXME: JP if P (parity sign) is NOT set after SUB. i.e. it's a POSITIVE number
-    // FIXME: I think this then converts a NEGATIVE number to POSITIVE.
     // A=J-8, where J (1-18) is the new value of the jumping animation counter
     // SUB 8
-    uint8_t anim_counter = (uint8_t)(JUMPING - 8);
     // JP P,MOVEWILLY_0        // Jump if J>=8
-    if (anim_counter < 8) {
-      // NEG                     // A=8-J (1<=J<=7, 1<=A<=7)
-      anim_counter = (uint8_t)(8 - anim_counter);
+    // NEG                     // A=8-J (1<=J<=7, 1<=A<=7)
+    uint8_t anim_counter;
+    if (JUMPING < 8) {
+      anim_counter = (uint8_t)(8 - JUMPING);
+    } else {
+      anim_counter = (uint8_t)(JUMPING - 8);
     }
 
     // MOVEWILLY_0:
@@ -1354,14 +1355,14 @@ bool MOVEWILLY() {
 
     // Pick up the border colour for the current cavern from BORDER
     // LD A,(BORDER)
-    uint8_t border_colour = BORDER;
+    uint8_t border = BORDER;
 
     // MOVEWILLY_1:
     for (int i = 32; i > 0; i--) {
       // OUT (254),A             // Make a jumping sound effect
-      MEM[254] = border_colour;
+      OUT(border);
       // XOR 24
-      border_colour ^= 24;
+      border ^= 24;
 
       // LD B,D
       // MOVEWILLY_2:
@@ -1372,7 +1373,7 @@ bool MOVEWILLY() {
       // JR NZ,MOVEWILLY_1
     }
 
-    // LD A,(JUMPING)          // Pick up the jumping animation counter (1-18) from JUMPING
+     // LD A,(JUMPING)          // Pick up the jumping animation counter (1-18) from JUMPING
     // CP 18                   // Has Willy reached the end of the jump?
     // JP Z,MOVEWILLY_8        // Jump if so
     // CP 16                   // Is the jumping animation counter now 16?
@@ -1387,10 +1388,10 @@ bool MOVEWILLY() {
       // jump to MOVEWILLY_3
       break;
     case 13:
+      break;
+    default:
       MOVEWILLY2_6();
       return false;
-    default:
-      ; // NOOP
     }
   }
 
@@ -1418,7 +1419,7 @@ bool MOVEWILLY() {
       CRUMBLE(addr);
     }
 
-    if ( memcmp(&MEM[addr], NASTY1, sizeof(NASTY1)) == 0 ) {
+    if ( memcmp(&MEM[addr], NASTY1, sizeof(NASTY1)) != 0 ) {
       // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
       // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
       // JR Z,MOVEWILLY_4        // Jump if so
@@ -1437,7 +1438,7 @@ bool MOVEWILLY() {
         CRUMBLE(addr);
       }
 
-      if ( memcmp(&MEM[addr], NASTY1, sizeof(NASTY1)) == 0 ) {
+      if ( memcmp(&MEM[addr], NASTY1, sizeof(NASTY1)) != 0 ) {
         // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
         // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
         // JR Z,MOVEWILLY_4        // Jump if so
@@ -1450,13 +1451,13 @@ bool MOVEWILLY() {
         // CP (HL)                 // Set the zero flag if the right-hand cell below Willy's sprite is empty
         // DEC HL                  // Point HL at the left-hand cell below Willy's sprite
         // JP NZ,MOVEWILLY2        // Jump if the right-hand cell below Willy's sprite is not empty
-        if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) == 0 ) {
-          return MOVEWILLY2(addr);
+        if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) != 0 ) {
+          return MOVEWILLY2((uint8_t)(addr - 1));
         }
         addr--;
         // CP (HL)                 // Is the left-hand cell below Willy's sprite empty?
         // JP NZ,MOVEWILLY2        // Jump if not
-        if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) == 0 ) {
+        if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) != 0 ) {
           return MOVEWILLY2(addr);
         }
       }
@@ -1476,6 +1477,7 @@ bool MOVEWILLY() {
   // LD HL,DMFLAGS           // Reset bit 1 at DMFLAGS: Willy is not moving left or
   // RES 1,(HL)              // right
   DMFLAGS &= ~(1 << 1);
+
   // OR A                    // Is Willy already falling?
   // JP Z,MOVEWILLY_9        // Jump if not
   if (AIRBORNE == 0) {
@@ -1491,8 +1493,8 @@ bool MOVEWILLY() {
   // RLCA                    // falling sound effect
   // RLCA
   // RLCA
-  uint8_t pitch = rotl(AIRBORNE, 4);
   // LD D,A
+  uint8_t pitch = rotl(AIRBORNE, 4);
 
   // LD C,32                 // C=32; this value determines the duration of the falling sound effect
 
@@ -1500,7 +1502,7 @@ bool MOVEWILLY() {
   uint8_t border = BORDER;
 
   // MOVEWILLY_5:
-  for (int i = 0; i < 32; i++) {
+  for (int i = 32; i > 0; i--) {
     // OUT(254), A             // Make a falling sound effect
     OUT(border);
     // XOR 24
@@ -1509,7 +1511,7 @@ bool MOVEWILLY() {
     // LD B, D
     // MOVEWILLY_6:
     // DJNZ MOVEWILLY_6
-    millisleep(1);
+    millisleep(pitch);
 
     // DEC C
     // JR NZ, MOVEWILLY_5
@@ -1526,25 +1528,35 @@ bool MOVEWILLY() {
 }
 
 void MOVEWILLY_7(uint8_t y_coord) {
-  // AND 240                 // L=16*Y, where Y is Willy's screen y-coordinate
-  y_coord &= 240;
+  uint8_t msb, lsb;
+  uint8_t x_msb, x_lsb;
 
+  // AND 240                 // L=16*Y, where Y is Willy's screen y-coordinate
   // LD L,A                  // (0-14)
-  uint8_t lsb = y_coord;
+  lsb = (uint8_t)(y_coord & 240);
 
   // XOR A                   // Clear A and the carry flag
+  msb = 0;
   // RL L                    // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8)
+  // if LSB bit 7 is set the `RL L` will set the Carry, which means we need to add one to the MSB
+  if ((lsb >> 7) & 1) {
+    msb = 1;
+  }
   lsb = lsb << 1;
+
   // ADC A,92                // H=92 or 93 (MSB of the address of Willy's location
   // LD H,A                  // in the attribute buffer)
-  uint16_t addr = build_address(92, lsb);
+  msb += 92;
 
   // LD A,(LOCATION)         // Pick up Willy's screen x-coordinate (1-29) from
+  split_address(LOCATION, &x_msb, &x_lsb);
   // AND 31                  // bits 0-4 at LOCATION
   // OR L                    // Now L holds the LSB of Willy's attribute buffer
   // LD L,A                  // address
+  x_lsb |= lsb;
+
   // LD (LOCATION),HL        // Store Willy's updated attribute buffer location at LOCATION
-  LOCATION = (uint16_t)((LOCATION & 31) | lsb );
+  LOCATION = build_address(msb, x_lsb);
 
   // RET
 }
@@ -1595,61 +1607,63 @@ void MOVEWILLY_10() {
 //
 // HL Address of the crumbling floor tile's location in the attribute buffer at 23552
 void CRUMBLE(uint16_t addr) {
+  uint8_t msb, lsb;
+
   // LD C,L                  // Point BC at the bottom row of pixels of the
   // LD A,H                  // crumbling floor tile in the screen buffer at 28672
-
-  uint8_t b;
-  uint8_t c;
-  split_address(addr, &b, &c);
+  split_address(addr, &msb, &lsb);
 
   // ADD A,27
+  msb += 27;
   // OR 7
   // LD B,A
-  b = (uint8_t)((b + 27) | 7);
+  msb = (uint8_t)(msb | 7);
 
   // CRUMBLE_0:
-  for (;;) {
+  while (true) {
     // DEC B                   // Collect the pixels from the row above in A
-    b--;
+    msb--;
+
     // LD A,(BC)
     // INC B                   // Copy these pixels into the row below it
     // LD (BC),A
-    MEM[build_address((uint8_t)(b + 1), c)] = MEM[build_address(b, c)];
     // DEC B                   // Point BC at the next row of pixels up
+    MEM[build_address(msb, lsb)] = MEM[build_address((uint8_t)(msb + 1), lsb)];
+
     // LD A,B                  // Have we dealt with the bottom seven pixel rows of
     // AND 7                   // the crumbling floor tile yet?
     // JR NZ,CRUMBLE_0         // If not, jump back to deal with the next one up
-    if (b & 7) {
+    if (msb & 7) {
       break;
     }
   }
 
   // XOR A                   // Clear the top row of pixels in the crumbling floor
   // LD (BC),A               // tile
-  MEM[build_address(b, c)] = 0;
+  MEM[build_address(msb, lsb)] = 0;
 
   // LD A,B                  // Point BC at the bottom row of pixels in the
   // ADD A,7                 // crumbling floor tile
   // LD B,A
-  b += 7;
+  msb += 7;
 
   // LD A,(BC)               // Pick up the bottom row of pixels in A
   // OR A                    // Is the bottom row clear?
-  if (MEM[build_address(b, c)] != 0) {
-    // RET NZ                  // Return if not
+  // RET NZ                  // Return if not
+  if (MEM[build_address(msb, lsb)] == 0) {
     return;
   }
 
-  // The bottom row of pixels in the crumbling floor tile is clear. Time to put a
-  // // background tile in its place.
+  // The bottom row of pixels in the crumbling floor tile is clear. Time to put a background tile in its place.
+
   // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+  split_address(addr, &msb, &lsb);
   // INC H                   // Set HL to the address of the crumbling floor tile's
   // INC H                   // location in the attribute buffer at 24064
   // LD (HL),A               // Set the attribute at this location to that of the background tile
   // DEC H                   // Set HL back to the address of the crumbling floor
   // DEC H                   // tile's location in the attribute buffer at 23552
-  split_address(addr, &b, &c);
-  memcpy(&MEM[build_address(b+2, c)], BACKGROUND, sizeof(BACKGROUND));
+  memcpy(&MEM[build_address((uint8_t)(msb + 2), lsb)], BACKGROUND, sizeof(BACKGROUND));
 
   // RET
 }
@@ -1668,7 +1682,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // JP NC,KILLWILLY_0       // If so, kill him
   if (AIRBORNE == 12) {
     KILLWILLY_0();
-    return true; // FIXME: willy is dead, return to LOOP_4!
+    return true;
   }
 
   // LD E,255                // Initialise E to 255 (all bits set); it will be used to hold keyboard and joystick readings
@@ -1691,7 +1705,6 @@ bool MOVEWILLY2(uint16_t addr) {
     // LD E,A                  // left, or 254 (bit 0 reset) if it's moving right
     input = (uint8_t)(CONVDIR - 3);
   }
-
   // MOVEWILLY2_1:
   // LD BC,57342             // Read keys P-O-I-U-Y (right, left, right, left,
   // IN A,(C)                // right) into bits 0-4 of A
@@ -1700,7 +1713,6 @@ bool MOVEWILLY2(uint16_t addr) {
   // AND E                   // Reset bit 0 if the conveyor is moving right, or bit 1 if it's moving left
   // LD E,A                  // Save the result in E
   input = (uint8_t)(((IN(57342) & 31) | 32) & input);
-
   // LD BC,64510             // Read keys Q-W-E-R-T (left, right, left, right,
   // IN A,(C)                // left) into bits 0-4 of A
   // AND 31                  // Keep only bits 0-4, shift them into bits 1-5, and
@@ -1709,7 +1721,6 @@ bool MOVEWILLY2(uint16_t addr) {
   // AND E                   // Merge this keyboard reading into bits 1-5 of E
   // LD E,A
   input = (uint8_t)((rotl(IN(64510), 1) | 1) & input);
-
   // LD B,247                // Read keys 1-2-3-4-5 ('5' is left) into bits 0-4 of
   // IN A,(C)                // A
   // RRCA                    // Rotate the result right and set bits 0-2 and 4-7;
@@ -1717,14 +1728,12 @@ bool MOVEWILLY2(uint16_t addr) {
   // AND E                   // Merge this reading of the '5' key into bit 3 of E
   // LD E,A
   input = (uint8_t)((rotr(IN(63486), 1) | 247) & input);
-
   // LD B,239                // Read keys 0-9-8-7-6 ('8' is right) into bits 0-4 of
   // IN A,(C)                // A
   // OR 251                  // Set bits 0, 1 and 3-7; this ignores every key except '8' (right)
   // AND E                   // Merge this reading of the '8' key into bit 2 of E
   // LD E,A
   input = (uint8_t)((IN(61438) | 251) & input);
-
   // LD A,(KEMP)             // Collect the Kempston joystick indicator from KEMP
   // OR A                    // Is the joystick connected?
   // JR Z,MOVEWILLY2_2       // Jump if not
@@ -1738,31 +1747,29 @@ bool MOVEWILLY2(uint16_t addr) {
         LD E,A                  // buttons into bits 0 and 1 of E
     */
   }
-
   // At this point, bits 0-5 in E indicate the direction in which Willy is being
   // moved or trying to move. If bit 0, 2 or 4 is reset, Willy is being moved or
   // trying to move right; if bit 1, 3 or 5 is reset, Willy is being moved or
   // trying to move left.
   // MOVEWILLY2_2:
   // LD C,0                  // Initialise C to 0 (no movement)
-  uint8_t movement = 0;
   // LD A,E                  // Copy the movement bits into A
   // AND 42                  // Keep only bits 1, 3 and 5 (the 'left' bits)
   // CP 42                   // Are any of these bits reset?
   // JR Z,MOVEWILLY2_3       // Jump if not
-  if ( check_left_keypress() || (input & 42) == 42) {
-    // LD C,4                  // Set bit 2 of C: Willy is moving left
-    movement = 4;
-  }
-
+  // LD C,4                  // Set bit 2 of C: Willy is moving left
   // MOVEWILLY2_3:
   // LD A,E                  // Copy the movement bits into A
   // AND 21                  // Keep only bits 0, 2 and 4 (the 'right' bits)
   // CP 21                   // Are any of these bits reset?
   // JR Z,MOVEWILLY2_4       // Jump if not
-  if ( check_right_keypress() || (input & 21) == 21) {
-    // SET 3,C                 // Set bit 3 of C: Willy is moving right
-    movement |= 1 << 3;
+  // SET 3,C                 // Set bit 3 of C: Willy is moving right
+  // FIXME: this is not yet handling the CONVDIR direction movement from above.
+  uint8_t movement = 0;
+  if (check_left_keypress()) {
+    movement = 4;
+  } else if (check_right_keypress()) {
+    movement = 8;
   }
 
   // MOVEWILLY2_4:
@@ -1796,29 +1803,16 @@ bool MOVEWILLY2(uint16_t addr) {
   // BIT 4,A                 // Is the fire button being pressed?
   // JR Z,MOVEWILLY2_6       // Jump if not
   if (check_jump_keypress()) {
-    // NOOP, we're gonna jump!
-  } else if ((IN(32510) & 31) != 31) {
-    // NOOP
-    // jump to MOVEWILLY2_5
-  } else if ((IN(61438) & 9) != 9) {
-    // NOOP
-    // jump to MOVEWILLY2_5
-  } else if (KEMP != 0) {
-    if (((IN(31) >> 4) & 1) == 0) {
-      MOVEWILLY2_6();
-      return false;
-    }
+    // A jump key or the fire button is being pressed. Time to make Willy jump.
+    // MOVEWILLY2_5:
+    // XOR A                   // Initialise the jumping animation counter at JUMPING
+    // LD (JUMPING),A
+    JUMPING = 0;
+
+    // INC A                   // Set the airborne status indicator at AIRBORNE to 1:
+    // LD (AIRBORNE),A         // Willy is jumping
+    AIRBORNE = 1;
   }
-
-  // A jump key or the fire button is being pressed. Time to make Willy jump.
-  // MOVEWILLY2_5:
-  // XOR A                   // Initialise the jumping animation counter at JUMPING
-  // LD (JUMPING),A
-  JUMPING = 0;
-
-  // INC A                   // Set the airborne status indicator at AIRBORNE to 1:
-  // LD (AIRBORNE),A         // Willy is jumping
-  AIRBORNE = 1;
 
   MOVEWILLY2_6(); // IMPORTANT: implicit function call -MRC-
   return false; // willy is not dead. -MRC-
@@ -1834,9 +1828,9 @@ void MOVEWILLY2_6() {
   }
 
   // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
-  // AND 1                   // Is Willy facing right?
+  // AND 1                   // Is Willy facing right? (0 = right, 1 = left)
   // JP Z,MOVEWILLY2_9       // Jump if so
-  if (DMFLAGS & 1) {
+  if (((DMFLAGS >> 0) & 1) == 0) {
     MOVEWILLY2_9();
     return;
   }
@@ -1877,7 +1871,7 @@ void MOVEWILLY2_7() {
   // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   // AND 15                  // Does Willy's sprite currently occupy only two rows of cells?
   // JR Z,MOVEWILLY2_8       // Jump if so
-  if ((PIXEL_Y & 15) == 0) {
+  if ((PIXEL_Y & 15) != 0) {
     // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // ADD HL,DE               // Point HL at the cell at (x-1,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
@@ -1885,12 +1879,15 @@ void MOVEWILLY2_7() {
     if ( memcmp(&MEM[addr + 32], WALL, sizeof(WALL)) == 0 ) {
       return;
     }
+
+    // FIXME: does this Carry flag get used anywhere?
     // OR A                    // Clear the carry flag for subtraction
     // SBC HL,DE               // Point HL at the cell at (x-1,y+1)
   }
 
   // MOVEWILLY2_8:
   // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
+  // FIXME: does this Carry flag get used anywhere?
   // OR A                    // Clear the carry flag for subtraction
   // SBC HL,DE               // Point HL at the cell at (x-1,y)
   addr -= 32;
@@ -1947,7 +1944,7 @@ void MOVEWILLY2_10() {
   // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   // AND 15                  // Does Willy's sprite currently occupy only two rows of cells?
   // JR Z,MOVEWILLY2_11      // Jump if so
-  if ((PIXEL_Y & 15) == 0) {
+  if ((PIXEL_Y & 15) != 0) {
     // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // ADD HL,DE               // Point HL at the cell at (x+2,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
@@ -1988,7 +1985,6 @@ void MOVEWILLY2_10() {
 // Used by the routine at WILLYATTR when Willy hits a nasty.
 bool KILLWILLY() {
   // POP HL                  // Drop the return address from the stack
-
   return KILLWILLY_0();
 }
 
@@ -1999,7 +1995,6 @@ bool KILLWILLY() {
 // collides with the Kong Beast).
 bool KILLWILLY_0() {
   // POP HL                  // Drop the return address from the stack
-
   return KILLWILLY_1();
 }
 
@@ -2010,10 +2005,6 @@ bool KILLWILLY_1() {
   AIRBORNE = 255;
 
   // JP LOOP_4               // Jump back into the main loop
-
-  // IMPORTANT: the callers of KILLWILLY will need to handle the `true` return
-  // value - Willy is dead! - all the way back to the main LOOP, so that they
-  // jump to the LOOP_4 label.
   return true;
 }
 
@@ -2053,7 +2044,8 @@ void MOVEHG() {
     // RRCA
     current_clock = rotr(current_clock, 3);
 
-    // AND (IY+0)              // Combine this bit with bit 7 of the first byte of the guardian definition, which specifies the guardian's animation speed: 0=normal, 1=slow
+    // AND (IY+0)              // Combine this bit with bit 7 of the first byte of the guardian definition,]
+                               // which specifies the guardian's animation speed: 0=normal, 1=slow
     // JR NZ,MOVEHG_6          // Jump to consider the next guardian if this one is not due to be moved on this pass
     if ((current_clock & guardian[0]) != 0) {
         continue;
@@ -2068,15 +2060,15 @@ void MOVEHG() {
       // JR Z,MOVEHG_4           // Jump if so to move the guardian left across a cell boundary or turn it round
       if (guardian[3] != 4) {
         // JR NC,MOVEHG_1          // Jump if the animation frame is 5, 6 or 7
-        if (guardian[3] != 5 && guardian[3] != 6 && guardian[3] != 7) {
-          // INC (IY+4)              // Increment the animation frame (this guardian is moving right)
-          guardian[3]++;
-          // JR MOVEHG_6             // Jump forward to consider the next guardian
-          continue;
-        } else {
+        if (guardian[3] == 5 || guardian[3] == 6 || guardian[3] == 7) {
           // MOVEHG_1:
           // DEC (IY+4)              // Decrement the animation frame (this guardian is moving left)
           guardian[3]--;
+          // JR MOVEHG_6             // Jump forward to consider the next guardian
+          continue;
+        } else {
+          // INC (IY+4)              // Increment the animation frame (this guardian is moving right)
+          guardian[3]++;
           // JR MOVEHG_6             // Jump forward to consider the next guardian
           continue;
         }
@@ -2088,7 +2080,7 @@ void MOVEHG() {
 
       // CP (IY+6)               // Has the guardian reached the rightmost point in its path?
       // JR NZ,MOVEHG_3          // Jump if not
-      if (lsb != guardian[5]) {
+      if (lsb == guardian[5]) {
         // LD (IY+4),7             // Set the animation frame to 7 (turning the guardian round to face left)
         guardian[3] = 7;
         // JR MOVEHG_6             // Jump forward to consider the next guardian
@@ -2111,7 +2103,7 @@ void MOVEHG() {
 
     // CP (IY+5)               // Has the guardian reached the leftmost point in its path?
     // JR NZ,MOVEHG_5          // Jump if not
-    if (lsb != guardian[4]) {
+    if (lsb == guardian[4]) {
       // LD (IY+4),0             // Set the animation frame to 0 (turning the guardian round to face right)
       guardian[3] = 0;
       // JR MOVEHG_6             // Jump forward to consider the next guardian
@@ -2141,11 +2133,11 @@ void LIGHTBEAM() {
   uint16_t addr = 23575;
 
   // LD DE,32                // Prepare DE for addition (the beam travels vertically downwards to start with)
-  uint8_t dir = 32;
+  int8_t dir = 32; // gets toggled between 32 and -1.
 
   // The beam-drawing loop begins here.
   // LIGHTBEAM_0:
-  for (;;) {
+  while (true) {
     // LD A,(FLOOR)            // Pick up the attribute byte of the floor tile for the cavern from FLOOR
     // CP (HL)                 // Does HL point at a floor tile?
     // RET Z                   // Return if so (the light beam stops here)
@@ -2176,13 +2168,13 @@ void LIGHTBEAM() {
       // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the cavern from BACKGROUND
       // CP (HL)                 // Does HL point at a background tile?
       // JR Z,LIGHTBEAM_2        // Jump if so (the light beam will not be reflected at this point)
-      if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) != 0 ) {
+      if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) == 0 ) {
         // LD A,E                  // Toggle the value in DE between 32 and -1 (and
         // XOR 223                 // therefore the direction of the light beam between
         dir ^= 223;
         // LD E,A                  // vertically downwards and horizontally to the left):
         // LD A,D                  // the light beam has hit a guardian
-        // CPL   // NOTE: CPL just inverts all bits.
+        // CPL
         // LD D,A
         dir = ~dir;
       }
@@ -2266,7 +2258,9 @@ bool DRAWHG() {
     // JR Z,DRAWHG_1           // Jump if so
     // CP 15                   // Are we in The Sixteenth Cavern?
     // JR Z,DRAWHG_1           // Jump if so
-    if (SHEET != 7 && SHEET != 9 && SHEET != 15) {
+    if (SHEET == 7 || SHEET == 9 || SHEET == 15) {
+      // jump to DRAWHG_1
+    } else {
       // SET 7,E                 // Add 128 to E (the horizontal guardians in this cavern use frames 4-7 only)
       anim_frame |= (1 << 7);
     }
@@ -2277,11 +2271,12 @@ bool DRAWHG() {
     // LD H,(IY+3)             // in the screen buffer at 24576
     split_address(guardian[1], &msb, &lsb);
     addr = build_address((uint8_t)guardian[2], lsb);
+
     // CALL DRWFIX             // Draw the guardian to the screen buffer at 24576
     bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);
 
+    // JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
     if (kill_willy) {
-      // JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
       KILLWILLY_0();
       return true;
     }
@@ -2308,12 +2303,12 @@ bool EUGENE() {
   // LD A,(EUGDIR)           // Pick up Eugene's direction from EUGDIR
   // OR A                    // Is Eugene moving downwards?
   // JR Z,EUGENE_0           // Jump if so
-  if (ITEMATTR != 0 || EUGDIR != 1) {
+  if (ITEMATTR != 0 && EUGDIR != 0) {
     // LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
     // DEC A                   // Decrement it (moving Eugene up)
     // JR Z,EUGENE_1           // Jump if Eugene has reached the top of the cavern
     if (EUGHGT - 1 == 0) {
-      EUGDIR = !EUGDIR;
+      EUGDIR = (uint8_t)!EUGDIR;
     } else {
       // LD (EUGHGT),A           // Update Eugene's pixel y-coordinate at EUGHGT
       EUGHGT--;
@@ -2326,7 +2321,7 @@ bool EUGENE() {
     // CP 88                   // Has Eugene reached the portal yet?
     // JR Z,EUGENE_1           // Jump if so
     if (EUGHGT + 1 == 88) {
-      EUGDIR = !EUGDIR;
+      EUGDIR = (uint8_t)!EUGDIR;
     } else {
       // LD (EUGHGT),A           // Update Eugene's pixel y-coordinate at EUGHGT
       EUGHGT++;
@@ -2334,36 +2329,48 @@ bool EUGENE() {
     }
   }
 
-  // IMPORTANT: this toggle has been inlided in the if statement above.
+  // IMPORTANT: this toggle has been inlined in the if statement above.
   // EUGENE_1:
   // LD A,(EUGDIR)           // Toggle Eugene's direction at EUGDIR
   // XOR 1
   // LD (EUGDIR),A
 
+  uint8_t msb, lsb;
+  uint8_t x_msb, x_lsb;
+  uint16_t addr;
+
   // Now that Eugene's movement has been dealt with, it's time to draw him.
   // EUGENE_2:
   // LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
   // AND 127                 // Point DE at the entry in the screen buffer address
+  uint8_t y_coord = (uint8_t)(EUGHGT & 127);
   // RLCA                    // lookup table at SBUFADDRS that corresponds to
+  y_coord = rotl(y_coord, 1);
   // LD E,A                  // Eugene's y-coordinate
   // LD D,131
-  uint8_t y_coord = (uint8_t)((EUGHGT & 127) << 1);
+
   // LD A,(DE)               // Point HL at the address of Eugene's location in the
+  addr = SBUFADDRS[y_coord];
   // OR 15                   // screen buffer at 24576
+  addr |= 15;
+
+  split_address(addr, &msb, &lsb);
   // LD L,A
   // INC DE
+  y_coord++;
   // LD A,(DE)
+  addr = SBUFADDRS[y_coord];
+  split_address(addr, &x_msb, &x_lsb);
   // LD H,A
-  uint16_t addr = (uint8_t)(SBUFADDRS[y_coord] | 15);
+  addr = build_address(x_msb, lsb);
+
   // LD DE,32992             // Draw Eugene to the screen buffer at 24576
   // LD C,1
   // CALL DRWFIX
-
-  // IMPORTANT: calculations for addr above are wrong :/ -MRC-
   bool kill_willy = DRWFIX(&EUGENEG, addr, 1);
 
+  // JP NZ,KILLWILLY_0       // Kill Willy if Eugene collided with him
   if (kill_willy) {
-    // JP NZ,KILLWILLY_0       // Kill Willy if Eugene collided with him
     KILLWILLY_0();
     return true;
   }
@@ -2375,33 +2382,37 @@ bool EUGENE() {
   // RLCA                    // attribute buffer at 23552
   y_coord = rotl(y_coord, 1);
   // OR 7
-  y_coord = (uint8_t)(y_coord | 7);
+  y_coord |= 7;
 
-  // IMPORTANT: SCF should set the carry flag, and the following RL loads that into bit 1 -MRC-
+  // IMPORTANT: SCF should set the carry flag, and the following RL loads that into bit 0 -MRC-
   // SCF
-  y_coord |= 1 << 7; // set bit 7, so the `rotl` below imitates `RL A` instead of `RLCA` -MRC-
   // RL A
+  msb = 0;
+  if ((y_coord >> 7) & 1) {
+    msb = 1;
+  }
   y_coord = rotl(y_coord, 1);
-
+  y_coord |= 1 << 0;
   // LD L,A
+
   // LD A,0
   // ADC A,92
+  msb += 92;
   // LD H,A
-  addr = build_address(92, y_coord);
+  addr = build_address(msb, y_coord);
 
   // LD A,(ITEMATTR)         // Pick up the attribute of the last item drawn from ITEMATTR
   // OR A                    // Set the zero flag if all the items have been collected
   // LD A,7                  // Assume we will draw Eugene with white INK
   uint8_t ink_color = 7;
   // JR NZ,EUGENE_3          // Jump if there are items remaining to be collected
-  if (ITEMATTR != 0) {
+  if (ITEMATTR == 0) {
     // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
     // RRCA                    // Move bits 2-4 into bits 0-2 and clear the other
     // RRCA                    // bits; this value (which decreases by one on each
     // AND 7                   // pass through the main loop) will be Eugene's INK colour
     ink_color = (uint8_t)(rotr(CLOCK, 2) & 7);
   }
-
   EUGENE_3(addr, ink_color); // IMPORTANT: implicit jump -MRC-
 
   return false;
