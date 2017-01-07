@@ -1329,10 +1329,11 @@ bool MOVEWILLY() {
     // LD (JUMPING),A
     JUMPING++;
 
+    // FIXME: JP if P (parity sign) is NOT set after SUB. i.e. it's a POSITIVE number
+    // FIXME: I think this then converts a NEGATIVE number to POSITIVE.
     // A=J-8, where J (1-18) is the new value of the jumping animation counter
     // SUB 8
     uint8_t anim_counter = (uint8_t)(JUMPING - 8);
-
     // JP P,MOVEWILLY_0        // Jump if J>=8
     if (anim_counter < 8) {
       // NEG                     // A=8-J (1<=J<=7, 1<=A<=7)
@@ -2603,6 +2604,7 @@ bool VGUARDIANS() {
     uint16_t y_coord = guardian[2] + guardian[4];
 
     // CP (IY+5)               // Has the guardian reached the highest point of its path (minimum y-coordinate)?
+    // FIXME: JR if C(arry) is set
     // JR C,VGUARDIANS_1       // If so, jump to change its direction of movement
     // CP (IY+6)               // Has the guardian reached the lowest point of its path (maximum y-coordinate)?
     // JR NC,VGUARDIANS_1      // If so, jump to change its direction of movement
