@@ -89,7 +89,7 @@ int main() {
     // LD BC,6143
     // LD (HL),0
     // LDIR
-    for (int i = 0; i <= 6143; i++) {
+    for (int i = 0; i < 6144; i++) {
       MEM[16384 + i] = 0;
     }
 
@@ -127,7 +127,7 @@ int main() {
       MEM[22528 + 256 + i] = LOWERATTRS[i];
     }
 
-    tick();
+    redraw_screen();
 
     // Now check whether there is a joystick connected.
     //   LD BC,31                // B=0, C=31 (joystick port)
@@ -149,7 +149,6 @@ int main() {
     // LD IY,THEMETUNE         // Point IY at the theme tune data at THEMETUNE
     // CALL PLAYTUNE           // Play the theme tune
     // JP NZ,STARTGAME         // Start the game if ENTER or the fire button was pressed
-
     // FIXME: no need to run the tune, just yet :)
     // if (PLAYTUNE()) {
     //   goto STARTGAME;
@@ -159,9 +158,8 @@ int main() {
     // this will be used as an index for the message scrolled across the screen
     // XOR A
     // LD (EUGHGT),A
-
     for (EUGHGT = 0; EUGHGT < 224; EUGHGT++) {
-//      continue; // FIXME: disable to speed up testing rest of game
+      continue; // FIXME: disable title screen to speed up testing rest of game
 
       // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
 
@@ -182,16 +180,17 @@ int main() {
       // RRCA
       // RRCA
       // RRCA
+      uint8_t sprite_id = rotr((uint8_t)(EUGHGT & 6), 32);
       // Point DE at the graphic data for Willy's sprite (MANDAT+A)
       // LD E,A
       // LD D,130
-      uint8_t *mandat_sprite_ptr = &WILLYDATA[(EUGHGT & 6) * 32];
+      uint8_t *sprite = &WILLYDATA[sprite_id];
 
       // Draw Willy at (9,29)
       // LD HL,18493
       // LD C,0
       // CALL DRWFIX
-      DRWFIX(mandat_sprite_ptr, 18493, 0);
+      DRWFIX(sprite, 18493, 0);
 
       // Pause for about 0.1s
       //   LD BC,100
@@ -206,7 +205,7 @@ int main() {
       // AND 1                   // Keep only bit 0 of the result (ENTER)
       // CP 1                    // Is ENTER being pressed?
       // JR NZ,STARTGAME         // If so, start the game
-      if (check_enter_keypress() || ((IN(49150) & 0xFF) & 1) == 1) {
+      if (check_enter_keypress()) { // ((IN(49150) & 0xFF) & 1) == 1)
         // IMPORTANT: disable demo mode so we can just break this loop rather than using a `goto`
         // goto STARTGAME;
         DEMO = 0;
@@ -218,7 +217,7 @@ int main() {
       // CP 224                  // Set the zero flag if we've reached the end of the message
       // LD (EUGHGT),A           // Store the new message index at EUGHGT
       // JR NZ,START_2           // Jump back unless we've finished scrolling the message across the screen
-      tick();
+      redraw_screen();
     }
 
     // IMPORTANT: not need now that DEMO is enabled by default.
@@ -277,12 +276,11 @@ NEWSHT:
   // LD BC,512               // game status buffer at 32768
   // LDIR
   initialize_cavern0();
-  tick();
+  tick(); // required here after initialization
 
   // Draw the current cavern to the screen buffer at 28672
   // CALL DRAWSHEET
   DRAWSHEET();
-  tick();
 
   // LD HL,20480             // Clear the bottom third of the display file
   // LD DE,20481
@@ -333,7 +331,6 @@ NEWSHT:
     // CP 86                   // Have we drawn all four rows of pixels in the air bar yet?
     // JR NZ,STARTGAME_0       // If not, jump back to draw the next one
   }
-  tick();
 
   // Print 'High Score 000000   Score 000000' (see MESSHSSC) at (19,0)
   // LD IX,MESSHSSC
@@ -347,10 +344,12 @@ NEWSHT:
   // OUT (C),A
   OUT(BORDER);
 
+  redraw_screen();
+
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Are we in demo mode?
   // JR Z,LOOP               // If not, enter the main loop now
-  if (DEMO == 0) {
+  if (DEMO > 0) {
     // Reset the game mode indicator at DEMO to 64 (we're in demo mode)
     // LD A,64
     // LD (DEMO),A
@@ -393,7 +392,7 @@ NEWSHT:
     // CALL MOVEHG             // Move the horizontal guardians in the current cavern
     MOVEHG();
 
-    tick();
+    redraw_screen();
 
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Are we in demo mode?
@@ -505,7 +504,7 @@ LOOP_4:
       // RLCA                    // bits
       // RLCA
       // AND 56
-      uint8_t new_flash_value = (uint8_t) ((FLASH << 3) & 56);
+      uint8_t new_flash_value = (uint8_t) (rotl(FLASH, 3) & 56);
       // LD HL,23552             // Set every attribute byte in the buffer at 23552 to
       // LD DE,23553             // this value
       // LD BC,511
@@ -649,7 +648,7 @@ LOOP_4:
 
       // AND 126                 // Point HL at the appropriate entry in the tune data
       // RRCA                    // table at GAMETUNE
-      NOTEINDEX = (uint8_t) ((NOTEINDEX & 126) >> 1);
+      uint8_t index = rotr((uint8_t)(NOTEINDEX & 126), 1);
       // LD E,A
       // LD D,0
       // LD HL,GAMETUNE
@@ -657,7 +656,7 @@ LOOP_4:
       //  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
       uint8_t note = BORDER;
       //  LD E,(HL)               // Initialise the pitch delay counter in E
-      uint8_t pitch_delay_counter = GAMETUNE[NOTEINDEX];
+      uint8_t pitch_delay_counter = GAMETUNE[index];
       //  LD BC,3                 // Initialise the duration delay counters in B (0) and C (3)
 
       // TM51:
@@ -671,7 +670,7 @@ LOOP_4:
         // JR NZ,NOFLP6
         if (pitch_delay_counter > 0) {
           // LD E,(HL)
-          pitch_delay_counter = GAMETUNE[NOTEINDEX];
+          pitch_delay_counter = GAMETUNE[index];
           // XOR 24
           note ^= 24;
         }
@@ -831,19 +830,20 @@ bool MANDEAD() {
     // CPL                     // D=63-8*(E AND 7); this value determines the pitch
     pitch = ~attr;
     // AND 7                   // of the short note that will be played
+    pitch = (uint8_t)(pitch & 7);
     // RLCA
     // RLCA
     // RLCA
     // OR 7
     // LD D,A
-    pitch = (uint8_t) (((pitch & 7) << 3) | 7);
+    pitch = (uint8_t)(rotl(pitch, 3) | 7);
 
     // LD C,E                  // C=8+32*(E AND 7); this value determines the
     // RRC C                   // duration of the short note that will be played
     // RRC C
     // RRC C
     // OR 16                   // Set bit 4 of A (for no apparent reason)
-    duration = (uint8_t) ((attr >> 3) | 16);
+    duration = (uint8_t)(rotr(attr, 3) | 16);
 
     // XOR A                   // Set A=0 (this will make the border black)
     uint8_t border = 0;
@@ -1001,12 +1001,13 @@ void ENDGAM() {
     // LD BC,511
     // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
     // AND 12                  // Keep only bits 2 and 3
+    distance = (uint8_t)(EUGHGT & 12);
     // RLCA                    // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3
     // OR 71                   // Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
     // LD (HL),A               // Copy this attribute value into the top two-thirds
     // LDIR                    // of the screen
     for (int i = 0; i <= 512; i++) {
-      MEM[22528 + i] = (uint8_t) (((EUGHGT & 12) << 1) | 71);
+      MEM[22528 + i] = (uint8_t) (rotl(distance, 1) | 71);
     }
 
     // LD A,(EUGHGT)           // Add 4 to the distance variable at EUGHGT; this will
@@ -1124,15 +1125,17 @@ bool DECAIR() {
 
     // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
   } else {
+    // IMPORTANT: `SUB 4` here instead of above -MRC-
      CLOCK -= 4;
   }
 
   // DECAIR_0:
   // AND 224                 // A=INT(A/32); this value specifies how many pixels
+  uint8_t count = (uint8_t)(CLOCK & 224);
   // RLCA                    // to draw from left to right in the cell at the right
   // RLCA                    // end of the air bar
   // RLCA
-  uint8_t count = (uint8_t)((CLOCK & 224) << 3);
+  count = rotl(count, 3);
   // LD E,0                  // Initialise E to 0 (all bits reset)
   uint8_t pixels = 0;
   // OR A                    // Do we need to draw any pixels in the cell at the right end of the air bar?
@@ -1142,7 +1145,7 @@ bool DECAIR() {
     // DECAIR_1:
     for (int i = count; i > 0; i--) {
       // RRC E                   // Set this many bits in E (from bit 7 towards bit 0)
-      pixels = pixels >> 1;
+      pixels = rotr(pixels, 1);
       // SET 7,E
       pixels |= 1 << 7;
       // DJNZ DECAIR_1
@@ -1338,10 +1341,11 @@ bool MOVEWILLY() {
 
     // MOVEWILLY_0:
     // INC A                   // A=1+ABS(J-8)
+    anim_counter++;
     // RLCA                    // D=8*(1+ABS(J-8)); this value determines the pitch
     // RLCA                    // of the jumping sound effect (rising as Willy rises,
     // RLCA                    // falling as Willy falls)
-    anim_counter = (uint8_t)((anim_counter + 1) << 3);
+    anim_counter = rotl(anim_counter, 3);
 
     // LD D,A
     uint8_t delay = anim_counter;
@@ -1486,7 +1490,7 @@ bool MOVEWILLY() {
   // RLCA                    // falling sound effect
   // RLCA
   // RLCA
-  uint8_t pitch = AIRBORNE << 4;
+  uint8_t pitch = rotl(AIRBORNE, 4);
   // LD D,A
 
   // LD C,32                 // C=32; this value determines the duration of the falling sound effect
@@ -1703,7 +1707,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // OR 1
   // AND E                   // Merge this keyboard reading into bits 1-5 of E
   // LD E,A
-  input = (uint8_t)(((IN(64510) << 1) | 1) & input);
+  input = (uint8_t)((rotl(IN(64510), 1) | 1) & input);
 
   // LD B,247                // Read keys 1-2-3-4-5 ('5' is left) into bits 0-4 of
   // IN A,(C)                // A
@@ -1711,7 +1715,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // OR 247                  // this ignores every key except '5' (left)
   // AND E                   // Merge this reading of the '5' key into bit 3 of E
   // LD E,A
-  input = (uint8_t)(((IN(63486) >> 1) | 247) & input);
+  input = (uint8_t)((rotr(IN(63486), 1) | 247) & input);
 
   // LD B,239                // Read keys 0-9-8-7-6 ('8' is right) into bits 0-4 of
   // IN A,(C)                // A
@@ -2046,7 +2050,7 @@ void MOVEHG() {
     // RRCA                    // the main loop) to bit 7 and clear all the other
     // RRCA                    // bits
     // RRCA
-    current_clock = current_clock >> 3; // * 32 ???
+    current_clock = rotr(current_clock, 3);
 
     // AND (IY+0)              // Combine this bit with bit 7 of the first byte of the guardian definition, which specifies the guardian's animation speed: 0=normal, 1=slow
     // JR NZ,MOVEHG_6          // Jump to consider the next guardian if this one is not due to be moved on this pass
@@ -2252,7 +2256,7 @@ bool DRAWHG() {
     // RRCA
     // RRCA
     // LD E,A                  // Copy the result to E
-    uint8_t anim_frame = (uint8_t)(guardian[3] >> 3);
+    uint8_t anim_frame = rotr((uint8_t)guardian[3], 3);
 
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // CP 7                    // Are we in one of the first seven caverns?
@@ -2366,13 +2370,18 @@ bool EUGENE() {
 
   // LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
   // AND 120                 // Point HL at the address of Eugene's location in the
+  y_coord = (uint8_t)(EUGHGT & 120);
   // RLCA                    // attribute buffer at 23552
-  y_coord = (uint8_t)((EUGHGT & 120) << 1);
+  y_coord = rotl(y_coord, 1);
   // OR 7
   y_coord = (uint8_t)(y_coord | 7);
+
+  // IMPORTANT: SCF should set the carry flag, and the following RL loads that into bit 1 -MRC-
   // SCF
+  y_coord |= 1 << 7; // set bit 7, so the `rotl` below imitates `RL A` instead of `RLCA` -MRC-
   // RL A
-  y_coord = y_coord << 1;
+  y_coord = rotl(y_coord, 1);
+
   // LD L,A
   // LD A,0
   // ADC A,92
@@ -2389,7 +2398,7 @@ bool EUGENE() {
     // RRCA                    // Move bits 2-4 into bits 0-2 and clear the other
     // RRCA                    // bits; this value (which decreases by one on each
     // AND 7                   // pass through the main loop) will be Eugene's INK colour
-    ink_color = (uint8_t)((CLOCK >> 2) & 7);
+    ink_color = (uint8_t)(rotr(CLOCK, 2) & 7);
   }
 
   EUGENE_3(addr, ink_color); // IMPORTANT: implicit jump -MRC-
@@ -2505,7 +2514,7 @@ bool SKYLABS() {
     // RLC E                   // Point DE at the entry in the screen buffer address
     // LD D,131                // lookup table at SBUFADDRS that corresponds to the Skylab's pixel y-coordinate
     // LD A,(DE)               // Point HL at the address of the Skylab's location in
-    addr = SBUFADDRS[guardian[2] << 1];
+    addr = SBUFADDRS[rotl(guardian[2], 1)];
     // ADD A,(IY+3)            // the screen buffer at 24576
     // LD L,A
     // INC DE
@@ -2519,7 +2528,7 @@ bool SKYLABS() {
     // RRCA
     // LD E,A                  // Point DE at the graphic data for the corresponding
     // LD D,129                // Skylab sprite (at GGDATA+A)
-    uint8_t sprite_offset = guardian[1] >> 3;
+    uint8_t sprite_offset = rotr(guardian[1], 3);
     // LD C,1                  // Draw the Skylab to the screen buffer at 24576
     // CALL DRWFIX
     bool kill_willy = DRWFIX(&GGDATA[sprite_offset], addr, 1);
@@ -2535,7 +2544,7 @@ bool SKYLABS() {
     // RLCA
     // ADD A,92
     // LD H,A
-    addr = (uint16_t)(((guardian[2] & 64) << 2) + 92);
+    addr = (uint16_t)(rotl((uint8_t)(guardian[2] & 64), 2) + 92);
     split_address(addr, &msb, &lsb);
     uint8_t msb_bak = msb;
 
@@ -2543,7 +2552,7 @@ bool SKYLABS() {
     // RLCA
     // RLCA
     // AND 224
-    addr = (uint8_t)(((guardian[2]) << 2) & 224);
+    addr = (uint8_t)(rotl(guardian[2], 2) & 224);
     // OR (IY+3)
     addr |= guardian[3];
     split_address(addr, &msb, &lsb);
@@ -2618,7 +2627,7 @@ bool VGUARDIANS() {
     // RLCA                    // lookup table at SBUFADDRS that corresponds to the
     // LD E,A                  // guardian's pixel y-coordinate
     // LD D,131
-    y_coord = (uint8_t)((guardian[2] & 127) << 1);
+    y_coord = rotl((uint8_t)(guardian[2] & 127), 1);
     // LD A,(DE)               // Point HL at the address of the guardian's location
     // OR (IY+3)               // in the screen buffer at 24576
     // LD L,A
@@ -2630,7 +2639,7 @@ bool VGUARDIANS() {
     // RRCA                    // Multiply it by 32
     // RRCA
     // RRCA
-    uint8_t anim_frame = guardian[1] >> 3;
+    uint8_t anim_frame = rotr(guardian[1], 3);
     // LD E,A                  // Point DE at the graphic data for the appropriate
     // LD D,129                // guardian sprite (at GGDATA+A)
     // LD C,1                  // Draw the guardian to the screen buffer at 24576
@@ -2648,7 +2657,7 @@ bool VGUARDIANS() {
     // RLCA
     // ADD A,92
     // LD H,A
-    addr = (uint16_t)(((guardian[2] & 64) << 2) + 92);
+    addr = (uint16_t)(rotl((uint8_t)(guardian[2] & 64), 2) + 92);
     split_address(addr, &msb, &lsb);
     uint8_t msb_bak = msb;
 
@@ -2656,7 +2665,7 @@ bool VGUARDIANS() {
     // RLCA
     // RLCA
     // AND 224
-    addr = (uint16_t)(((guardian[2]) << 2) & 224);
+    addr = (uint16_t)(rotl(guardian[2], 2) & 224);
     // OR (IY+3)
     addr |= guardian[3];
     split_address(addr, &msb, &lsb);
@@ -3196,7 +3205,7 @@ bool NXSHEET() {
     // AND 63                  // sound effect (which decreases with the amount of
     // RLC A                   // air remaining)
     // LD D,A
-    uint8_t pitch = ((~AIR & 63) << 1);
+    uint8_t pitch = rotl((uint8_t)(~AIR & 63), 1);
 
     // NXSHEET_7:
     for (int i = 0; i < duration; i++) {
@@ -3314,7 +3323,7 @@ void MVCONVEYOR() {
     // LD A,(HL)               // Copy the first pixel row of the conveyor tile to A
     // RLC A                   // Rotate it left twice
     // RLC A
-    pixels_a = MEM[row_hl] << 2;
+    pixels_a = rotl(MEM[row_hl], 2);
 
     split_address(row_hl, &h, &l);
     // INC H                   // Point HL at the third pixel row of the conveyor
@@ -3325,7 +3334,7 @@ void MVCONVEYOR() {
     // LD C,(HL)               // Copy this pixel row to C
     // RRC C                   // Rotate it right twice
     // RRC C
-    pixels_c = MEM[row_hl] >> 2;
+    pixels_c = rotr(MEM[row_hl], 2);
 
     // IMPORTANT: moved MVCONVEYOR_0 below, as the `else` takes card of the needed jumps and RET.
 
@@ -3336,7 +3345,7 @@ void MVCONVEYOR() {
     // LD A,(HL)               // Copy the first pixel row of the conveyor tile to A
     // RRC A                   // Rotate it right twice
     // RRC A
-    pixels_a = MEM[row_hl] >> 2;
+    pixels_a = rotr(MEM[row_hl], 2);
 
     split_address(row_hl, &h, &l);
     // INC H                   // Point HL at the third pixel row of the conveyor
@@ -3347,7 +3356,7 @@ void MVCONVEYOR() {
     // LD C,(HL)               // Copy this pixel row to C
     // RLC C                   // Rotate it left twice
     // RLC C
-    pixels_c = MEM[row_hl] << 2;
+    pixels_c = rotl(MEM[row_hl], 2);
 
     // JR MVCONVEYOR_0         // Jump back to update the first and third pixel rows of every conveyor tile
   }
@@ -3561,7 +3570,7 @@ bool KONGBEAST() {
     // INC DE
     // LD A,(DE)
     // LD H,A
-    addr = (uint16_t)(SBUFADDRS[EUGHGT << 1] | 15);
+    addr = (uint16_t)(SBUFADDRS[rotl(EUGHGT, 1)] | 15);
     // LD D,129                // Use bit 5 of the value of the game clock at CLOCK
     // LD A,(CLOCK)            // (which is toggled once every eight passes through
     // AND 32                  // the main loop) to point DE at the graphic data for
@@ -3832,7 +3841,7 @@ void DRAWWILLY() {
   // AND 1                   // Now E=0 if Willy is facing right, or 128 if he's
   // RRCA                    // facing left
   // LD E,A
-  uint8_t id = (uint8_t)((DMFLAGS & 1) >> 1);
+  uint8_t id = rotr((uint8_t)(DMFLAGS & 1), 1);
   // LD A,(FRAME)            // Pick up Willy's animation frame (0-3) from FRAME
   // AND 3                   // Point DE at the sprite graphic data for Willy's
   // RRCA                    // current animation frame (see MANDAT)
@@ -3840,7 +3849,7 @@ void DRAWWILLY() {
   // RRCA
   // OR E
   // LD E,A
-  id = (uint8_t)(((FRAME & 3) >> 3) | id);
+  id = (uint8_t)(rotr((uint8_t)(FRAME & 3), 3) | id);
   // LD D,130
   uint8_t *sprite = &MANDAT[id];
 
@@ -4086,7 +4095,7 @@ uint16_t PIANOKEY(uint8_t frequency) {
   // RRCA                    // frequency parameter (F), and store it in bits 0-4
   // RRCA                    // of A: K=31-INT((F-8)/8)
   // RRCA
-  frequency = frequency >> 3;
+  frequency = rotr(frequency, 3);
   // CPL
   frequency = ~frequency;
   // OR 224                  // A=224+K; this is the LSB
@@ -4164,35 +4173,41 @@ void tick() {
 
 
 void draw_remaining_lives() {
-  // LD A,(NOMEN)            // Pick up the number of lives remaining from NOMEN
   // LD HL,20640             // Set HL to the display file address at which to draw the first Willy sprite
-  regHL = 20640;
+  uint16_t addr = 20640;
+
+  // LD A,(NOMEN)            // Pick up the number of lives remaining from NOMEN
   // OR A                    // Are there any lives remaining?
   // JR Z,LOOP_1             // Jump if not
   // LD B,A                  // Initialise B to the number of lives remaining
+
   // The following loop draws the remaining lives at the bottom of the screen.
   // LOOP_0:
   for (int i = 0; i < NOMEN; i++) {
     // LD C,0                  // C=0; this tells the sprite-drawing routine at DRWFIX to overwrite any existing graphics
+
     // PUSH HL                 // Save HL and BC briefly
     // PUSH BC
     // LD A,(NOTEINDEX)        // Pick up the in-game music note index from NOTEINDEX; this will determine the animation frame for the Willy sprites
-    // RLCA                    // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96
-    // RLCA                    // (frame 3)
+    // RLCA                    // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96 (frame 3)
+    // RLCA
     // RLCA
     // AND 96
-    uint8_t anim_frame = (uint8_t) ((NOTEINDEX << 3) & 96);
-    // LD E,A                  // Point DE at the corresponding Willy sprite (at
-    // LD D,130                // MANDAT+A)
-    uint8_t *mandat_sprite_ptr = &MANDAT[anim_frame];
+    uint8_t anim_frame = (uint8_t)(rotl(NOTEINDEX, 3) & 96);
+
+    // LD E,A                  // Point DE at the corresponding Willy sprite (at MANDAT+A)
+    // LD D,130
+    // IMPORTANT: swap MANDAT with new WILLYDATA, to access all anim frames -MRC-
+    uint8_t *sprite = &WILLYDATA[anim_frame];
+
     // CALL DRWFIX             // Draw the Willy sprite on the screen
-    DRWFIX(mandat_sprite_ptr, regHL, 0);
+    DRWFIX(sprite, addr, 0);
 
     // POP BC                  // Restore HL and BC
     // POP HL
     // INC HL                  // Move HL along to the location at which to draw the
     // INC HL                  // next Willy sprite
-    regHL += 2;
+    addr += 2;
     // DJNZ LOOP_0             // Jump back to draw any remaining sprites
   }
 
@@ -4205,6 +4220,6 @@ void draw_remaining_lives() {
     // LD DE,BOOT              // Point DE at the graphic data for the boot (at BOOT)
     // LD C,0                  // C=0 (overwrite mode)
     // CALL DRWFIX             // Draw the boot at the bottom of the screen next to the remaining lives
-    DRWFIX(&BOOT, regHL, 0);
+    DRWFIX(&BOOT, addr, 0);
   }
 }

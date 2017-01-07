@@ -835,7 +835,7 @@ uint16_t newHGUARDS[4][6] = {
     232,
     239,
   },
-  {255,0,0,0,0,0},      // Horizontal guardian 2 (unused)
+  {0,0,0,0,0,0},        // Horizontal guardian 2 (unused)
   {0,0,0,0,0,0},        // Horizontal guardian 3 (unused)
   {0,0,0,0,0,0},        // Horizontal guardian 4 (unused)
 };
@@ -1287,7 +1287,7 @@ uint8_t PLINTH[32] = {      // Plinth graphic data
 // // screen (see LOOPFT). It also appears at the bottom of the screen next to the
 // // remaining lives when cheat mode is activated (see LOOP_1).
 
-uint8_t BOOT[256] = {     // Boot graphic data
+uint8_t BOOT[32] = {     // Boot graphic data
   42,192,53,64,63,192,9,0,
   9,0,31,128,16,128,16,128,
   17,128,34,64,32,184,89,36,

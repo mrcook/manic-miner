@@ -87,7 +87,7 @@ extern uint8_t TITLESCR2[2048];
 
 extern uint8_t CAVERN0[512];
 extern uint8_t PLINTH[32];
-extern uint8_t BOOT[256];
+extern uint8_t BOOT[32];
 extern uint8_t EUGENEG[32];
 extern uint8_t CAVERN19[512];
 
@@ -182,3 +182,5 @@ void millisleep(int milliseconds);
 int timediff(clock_t t1, clock_t t2);
 void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb);
 uint16_t build_address(uint8_t msb, uint8_t lsb);
+uint8_t rotl (uint8_t a, uint8_t n);
+uint8_t rotr (uint8_t a, uint8_t n);
