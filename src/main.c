@@ -160,7 +160,7 @@ int main() {
     // XOR A
     // LD (EUGHGT),A
     for (EUGHGT = 0; EUGHGT < 224; EUGHGT++) {
-      continue; // FIXME: disable title screen to speed up testing rest of game
+//      continue; // FIXME: disable title screen to speed up testing rest of game
 
       // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
 
@@ -2507,9 +2507,10 @@ bool SKYLABS() {
 
         // LD A,(IY+3)             // Add 8 to the Skylab's x-coordinate (wrapping around
         // ADD A,8                 // at the right side of the screen)
+        guardian[3] += 8;
         // AND 31
         // LD (IY+3),A
-        guardian[3] = (uint8_t)((guardian[3] + 8) & 31);
+        guardian[3] &= 31;
 
         // LD (IY+1),0             // Reset the animation frame to 0
         guardian[1] = 0;
@@ -2525,14 +2526,22 @@ bool SKYLABS() {
     // LD E,(IY+2)             // Pick up the Skylab's pixel y-coordinate in E
     // RLC E                   // Point DE at the entry in the screen buffer address
     // LD D,131                // lookup table at SBUFADDRS that corresponds to the Skylab's pixel y-coordinate
+    uint8_t y_coord = rotl(guardian[2], 1);
     // LD A,(DE)               // Point HL at the address of the Skylab's location in
-    addr = SBUFADDRS[rotl(guardian[2], 1)];
+    addr = SBUFADDRS[y_coord];
     // ADD A,(IY+3)            // the screen buffer at 24576
+    addr += guardian[3];
+    split_address(addr, &msb, &lsb);
     // LD L,A
     // INC DE
+    y_coord++;
     // LD A,(DE)
+    addr = SBUFADDRS[y_coord];
+
+    uint8_t y_msb, y_lsb;
+    split_address(addr, &y_msb, &y_lsb);
     // LD H,A
-    addr += guardian[3];
+    addr = build_address(y_msb, lsb);
 
     // LD A,(IY+1)             // Pick up the animation frame (0-7)
     // RRCA                    // Multiply it by 32
@@ -2590,6 +2599,7 @@ bool SKYLABS() {
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool VGUARDIANS() {
   uint8_t msb, lsb;
+  uint8_t msb_bak, lsb_bak;
 
   // LD IY,VGUARDS           // Point IY at the first byte of the first vertical guardian definition at VGUARDS
 
@@ -2614,23 +2624,21 @@ bool VGUARDIANS() {
     // ADD A,(IY+4)            // Add the current y-coordinate increment
     uint16_t y_coord = guardian[2] + guardian[4];
 
+    // FIXME: JR based on C(arry) flag
     // CP (IY+5)               // Has the guardian reached the highest point of its path (minimum y-coordinate)?
-    // FIXME: JR if C(arry) is set
     // JR C,VGUARDIANS_1       // If so, jump to change its direction of movement
     // CP (IY+6)               // Has the guardian reached the lowest point of its path (maximum y-coordinate)?
     // JR NC,VGUARDIANS_1      // If so, jump to change its direction of movement
     if (y_coord != guardian[5] && y_coord != guardian[6]) {
       // LD (IY+2),A             // Update the guardian's pixel y-coordinate
-      guardian[2] += guardian[4];
+      guardian[2] += y_coord;
       // JR VGUARDIANS_2
     } else {
       // VGUARDIANS_1:
       // LD A,(IY+4)             // Negate the y-coordinate increment; this changes the
       // NEG                     // guardian's direction of movement
       // LD (IY+4),A
-
-      // FIXME: hmmm, our type is an unsigned int, what do we do?
-      guardian[4] = -guardian[4];
+      guardian[4] = (uint8_t)(-guardian[4]); // IMPORTANT: this of course should still be a positive number! -MRC-
     }
 
     // Now that the guardian's movement has been dealt with, time to draw it.
@@ -2638,16 +2646,23 @@ bool VGUARDIANS() {
     // LD A,(IY+2)             // Pick up the guardian's pixel y-coordinate
     // AND 127                 // Point DE at the entry in the screen buffer address
     // RLCA                    // lookup table at SBUFADDRS that corresponds to the
+    y_coord = rotl((uint8_t)(guardian[2] & 127), 1);
     // LD E,A                  // guardian's pixel y-coordinate
     // LD D,131
-    y_coord = rotl((uint8_t)(guardian[2] & 127), 1);
     // LD A,(DE)               // Point HL at the address of the guardian's location
+    uint16_t addr = SBUFADDRS[y_coord];
+    split_address(addr, &msb, &lsb);
     // OR (IY+3)               // in the screen buffer at 24576
     // LD L,A
+    lsb_bak = lsb | guardian[3];
     // INC DE
+    y_coord++;
     // LD A,(DE)
+    addr = SBUFADDRS[y_coord];
     // LD H,A
-    uint16_t addr = SBUFADDRS[y_coord] | guardian[3];
+    split_address(addr, &msb, &lsb);
+    addr = build_address(msb, lsb_bak);
+
     // LD A,(IY+1)             // Pick up the guardian's animation frame (0-3)
     // RRCA                    // Multiply it by 32
     // RRCA
@@ -2658,8 +2673,9 @@ bool VGUARDIANS() {
     // LD C,1                  // Draw the guardian to the screen buffer at 24576
     // CALL DRWFIX
     bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);
+
+    // JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
     if (kill_willy) {
-      // JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
       KILLWILLY_0();
       return true;
     }
@@ -2672,16 +2688,16 @@ bool VGUARDIANS() {
     // LD H,A
     addr = (uint16_t)(rotl((uint8_t)(guardian[2] & 64), 2) + 92);
     split_address(addr, &msb, &lsb);
-    uint8_t msb_bak = msb;
+    msb_bak = msb;
 
     // LD A,(IY+2)
     // RLCA
     // RLCA
     // AND 224
     addr = (uint16_t)(rotl(guardian[2], 2) & 224);
-    // OR (IY+3)
-    addr |= guardian[3];
     split_address(addr, &msb, &lsb);
+    // OR (IY+3)
+    lsb |= guardian[3];
     // LD L,A
     addr = build_address(msb_bak, lsb);
 
@@ -2720,7 +2736,7 @@ void DRAWITEMS() {
     // CP 255                  // Have we dealt with all the items yet?
     // JR Z,DRAWITEMS_3        // Jump if so
 
-    uint8_t *item = &ITEM[i];
+    uint16_t *item = ITEMS[i];
 
     // OR A                    // Has this item already been collected?
     // JR Z,DRAWITEMS_2        // If so, skip it and consider the next one
@@ -2731,7 +2747,6 @@ void DRAWITEMS() {
     // LD E,(IY+1)             // Point DE at the address of the item's location in
     // LD D,(IY+2)             // the attribute buffer at 23552
     addr = item[1];
-    split_address(addr, &msb, &lsb);
 
     // LD A,(DE)               // Pick up the current attribute byte at the item's location
     // AND 7                   // Is the INK white (which happens if Willy is
@@ -2769,12 +2784,13 @@ void DRAWITEMS() {
       ITEMATTR = attribute;
 
       // LD D,(IY+3)             // Point DE at the address of the item's location in the screen buffer at 24576
-      msb = item[3];
+      split_address(addr, &msb, &lsb);
+      msb = (uint8_t)item[2];
       addr = build_address(msb, lsb);
       // LD HL,ITEM              // Point HL at the item graphic for the current cavern (at ITEM)
       // LD B,8                  // There are eight pixel rows to copy
       // CALL PRINTCHAR_0        // Draw the item to the screen buffer at 24576
-      PRINTCHAR_0(&item, addr, 8);
+      PRINTCHAR_0(&ITEM, addr, 8);
     }
 
     // The current item definition has been dealt with. Time for the next one.
@@ -2809,17 +2825,24 @@ void DRAWITEMS() {
 // Used by the routine at LOOP. First check whether Willy has entered the portal.
 // IMPORTANT: the CALLers should be able to handle the `goto NEWSHT` themselves, on the return. -MRC-
 bool CHKPORTAL() {
+  uint8_t msb, lsb;
+  uint8_t w_msb, w_lsb;
+
   // LD HL,(PORTALLOC1)      // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
   uint16_t addr = PORTALLOC1;
+  split_address(addr, &msb, &lsb);
 
   // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
+  uint16_t w_addr = LOCATION;
+  split_address(w_addr, &w_msb, &w_lsb);
+
   // CP L                    // Does it match that of the portal?
   // JR NZ,CHKPORTAL_0       // Jump if not
-  if (PORTALLOC1 == LOCATION) {
+  if (lsb == w_lsb) {
     // LD A,(32877)            // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
     // CP H                    // Does it match that of the portal?
     // JR NZ,CHKPORTAL_0       // Jump if not
-    if (MEM[32877] == PORTALLOC1) {
+    if (w_msb == msb) {
       // LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
       // BIT 7,A                 // Is the portal flashing?
       // JR Z,CHKPORTAL_0        // Jump if not
@@ -3116,7 +3139,7 @@ bool NXSHEET() {
       // NXSHEET_0:
       for (int i = 0; i < 50; i++) {
         // OUT (254),A             // Produce the celebratory sound effect: Willy has
-        MEM[254] = border;
+        OUT(border);
         // XOR 24                  // escaped from the mine
         border ^= 24;
 
@@ -3176,7 +3199,7 @@ bool NXSHEET() {
 
     // DEC A                   // Decrement the attribute value in A
     // JR NZ,NXSHEET_4         // Jump back until we've gone through all attribute values from 63 down to 1
-    tick();
+    redraw_screen();
   }
 
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
@@ -3190,7 +3213,7 @@ bool NXSHEET() {
 
   // The following loop increases the score and decreases the air supply until it runs out.
   // NXSHEET_6:
-  for (;;) {
+  while (true) {
     // CALL DECAIR             // Decrease the air remaining in the current cavern
     if ( DECAIR() ) {
       // JP Z,NEWSHT             // Move to the next cavern if the air supply is now gone
@@ -3221,7 +3244,7 @@ bool NXSHEET() {
     uint8_t pitch = rotl((uint8_t)(~AIR & 63), 1);
 
     // NXSHEET_7:
-    for (int i = 0; i < duration; i++) {
+    for (int i = duration; i > 0; i--) {
       // LD A, 0                  // Produce a short note
       // OUT(254), A
       OUT(0);
@@ -3229,7 +3252,7 @@ bool NXSHEET() {
       // LD B, D
       // NXSHEET_8:
       // DJNZ NXSHEET_8
-      millisleep(1);
+      millisleep(pitch);
 
       // LD A, 24
       // OUT(254), A
@@ -3435,7 +3458,7 @@ bool KONGBEAST() {
     addr = 32625;
 
     // KONGBEAST_0:
-    for (;;) {
+    while (true) {
       split_address(addr, &msb, &lsb);
 
       // LD A,(HL)               // Pick up a pixel row
@@ -3478,6 +3501,8 @@ bool KONGBEAST() {
     memcpy(&MEM[24433], BACKGROUND, sizeof(BACKGROUND));
     // LD (24465),A            // buffer at 24064 to match the background tile (the wall there is now gone)
     memcpy(&MEM[24465], BACKGROUND, sizeof(BACKGROUND));
+
+    // FIXME: I guess we need to update HGUARD2 directly rather than this memeory address.
     // LD A,114                // Update the seventh byte of the guardian definition
     // LD (32971),A            // at HGUARD2 so that the guardian moves through the opening in the wall
     MEM[32971] = 114;
@@ -3493,12 +3518,14 @@ bool KONGBEAST() {
   // CALL CHKSWITCH          // touching it (and it hasn't already been flipped)
   // JR NZ,KONGBEAST_4       // Jump if the switch was not flipped
   if ( !CHKSWITCH(23570) ) {
-    // XOR A                   // Initialise the Kong Beast's pixel y-coordinate at
-    // LD (EUGHGT),A           // EUGHGT to 0
+    // Initialise the Kong Beast's pixel y-coordinate at EUGHGT to 0
+    // XOR A
+    // LD (EUGHGT),A
     EUGHGT = 0;
 
-    // INC A                   // Update the Kong Beast's status at EUGDIR to 1: he
-    // LD (EUGDIR),A           // is falling
+    // Update the Kong Beast's status at EUGDIR to 1: he is falling
+    // INC A
+    // LD (EUGDIR),A
     EUGDIR = 1;
 
     // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
@@ -3560,7 +3587,7 @@ bool KONGBEAST() {
     // KONGBEAST_5:
     for (int i = 0; i < 16; i++) {
       // OUT (254),A             // Make a falling sound effect
-      MEM[254] = border;
+      OUT(border);
       // XOR 24
       border ^= 24;
 
@@ -3606,10 +3633,13 @@ bool KONGBEAST() {
     lsb = (uint8_t)(EUGHGT & 120);
     msb = 23;
     addr = build_address(msb, lsb);
+
+    // FIXME: HL + HL ? what is this actually doing?
     // ADD HL,HL
     addr += addr;
     // ADD HL,HL
     addr += addr;
+
     split_address(addr, &msb, &lsb);
     // LD A,L
     // OR 15
@@ -3618,7 +3648,6 @@ bool KONGBEAST() {
     addr = build_address(msb, lsb);
 
     // LD A,6                  // The Kong Beast is drawn with yellow INK
-
     // JP EUGENE_3             // Set the attribute bytes for the Kong Beast
     EUGENE_3(addr, 6);
     // return false; // FIXME: do we need to return here?
@@ -3646,8 +3675,9 @@ bool KONGBEAST_8() {
   // LD C,1                  // at 24576
   // CALL DRWFIX
   bool kill_willy = DRWFIX(&GGDATA[sprite_id], 24591, 1);
+
+  // JP NZ,KILLWILLY_0       // Kill Willy if he collided with the Kong Beast
   if (kill_willy) {
-    // JP NZ,KILLWILLY_0       // Kill Willy if he collided with the Kong Beast
     return true;
   }
 
@@ -3674,55 +3704,55 @@ bool KONGBEAST_8() {
 // HL Address of the switch's location in the attribute buffer at 23552
 bool CHKSWITCH(uint16_t addr) {
   uint8_t msb, lsb;
+  uint16_t w_addr;
 
   uint8_t sw_msb, sw_lsb;
   split_address(addr, &sw_msb, &sw_lsb);
 
   // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
+  w_addr = LOCATION;
+  split_address(w_addr, &msb, &lsb);
   // INC A                   // Is it equal to or one less than the LSB of the
+  lsb++;
   // AND 254                 // address of the switch's location?
-  lsb = (uint8_t)((LOCATION + 1) & 254);
+  lsb &= 254;
   // CP L
   // RET NZ                  // Return (with the zero flag reset) if not
-  if (lsb == sw_lsb) {
-    return false;
-  }
-
   // LD A,(32877)            // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
-  split_address(32877, &msb, &lsb);
   // CP H                    // Does it match the MSB of the address of the switch's location?
   // RET NZ                  // Return (with the zero flag reset) if not
-  if (msb == sw_msb) {
+  if (msb == sw_msb || lsb == sw_lsb) {
     return false;
   }
 
+  // IMPORTANT: I believe 32869 should be the EXTRA[9] array. -MRC-
   // LD A,(32869)            // Pick up the sixth byte of the graphic data for the switch tile from 32869
   // LD H,117                // Point HL at the sixth row of pixels of the switch tile in the screen buffer at 28672
   sw_msb = 117;
   addr = build_address(sw_msb, sw_lsb);
   // CP (HL)                 // Has the switch already been flipped?
   // RET NZ                  // Return (with the zero flag reset) if so
-  if (MEM[addr] == MEM[32869]) {
+  if (memcpy(&MEM[addr], EXTRA, sizeof(EXTRA)) == 0) {
     return true;
   }
 
   // Willy is flipping the switch.
   // LD (HL),8               // Update the sixth, seventh and eighth rows of pixels
-  MEM[addr]  = 8;
+  MEM[addr] = 8;
 
-  split_address(32877, &sw_msb, &sw_lsb);
   // INC H                   // of the switch tile in the screen buffer at 28672 to
   sw_msb++;
+
   addr = build_address(sw_msb, sw_lsb);
   // LD (HL),6               // make it appear flipped
-  MEM[addr]  = 6;
+  MEM[addr] = 6;
 
-  split_address(32877, &sw_msb, &sw_lsb);
   // INC H
   sw_msb++;
+
   addr = build_address(sw_msb, sw_lsb);
   // LD (HL),6
-  MEM[addr]  = 6;
+  MEM[addr] = 6;
 
   // XOR A                   // Set the zero flag: Willy has flipped the switch
   // OR A                    // This instruction is redundant
@@ -3811,7 +3841,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
   // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   // CP (HL)                 // Does this cell contain a background tile?
   // JR NZ,WILLYATTR_0       // Jump if not
-  if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) != 0 ) {
+  if ( memcmp(&MEM[addr], BACKGROUND, sizeof(BACKGROUND)) == 0 ) {
     // LD A,C                  // Set the zero flag if we are going to retain the INK
     // AND 15                  // colour in this cell; this happens only if the cell is in the bottom row and Willy's sprite is confined to the top two rows
     // JR Z,WILLYATTR_0        // Jump if we are going to retain the current INK colour in this cell
@@ -3845,67 +3875,70 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
 //
 // Used by the routine at WILLYATTRS.
 void DRAWWILLY() {
+  uint8_t y, x;
+  uint8_t msb, lsb;
+
   // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   // LD IXh,131              // Point IX at the entry in the screen buffer address
   // LD IXl,A                // lookup table at SBUFADDRS that corresponds to Willy's y-coordinate
-  uint16_t y_coord = SBUFADDRS[PIXEL_Y];
+  uint16_t addr = SBUFADDRS[PIXEL_Y];
 
   // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
   // AND 1                   // Now E=0 if Willy is facing right, or 128 if he's
   // RRCA                    // facing left
   // LD E,A
-  uint8_t id = rotr((uint8_t)(DMFLAGS & 1), 1);
+  uint8_t frame = rotr((uint8_t)(DMFLAGS & 1), 1);
   // LD A,(FRAME)            // Pick up Willy's animation frame (0-3) from FRAME
   // AND 3                   // Point DE at the sprite graphic data for Willy's
   // RRCA                    // current animation frame (see MANDAT)
   // RRCA
   // RRCA
   // OR E
+  frame = rotr((uint8_t)(FRAME & 3), 3) | frame;
   // LD E,A
-  id = (uint8_t)(rotr((uint8_t)(FRAME & 3), 3) | id);
   // LD D,130
-  uint8_t *sprite = &MANDAT[id];
+  uint8_t *sprite = &WILLYDATA[frame]; // not using MANDAT
 
   // LD B,16                 // There are 16 rows of pixels to copy
 
   // LD A,(LOCATION)         // Pick up Willy's screen x-coordinate (0-31) from
   // AND 31                  // LOCATION
   // LD C,A                  // Copy it to C
-  uint8_t x_coord = (uint8_t)(LOCATION & 31);
-
-  uint8_t msb, lsb;
-  uint16_t addr;
+  split_address(LOCATION, &msb, &lsb);
+  uint8_t w_lsb = lsb;
 
   // DRAWWILLY_0:
-  for (int i = 0; i < 16; i++) {
-    split_address(y_coord, &msb, &lsb);
+  for (int i = 16; i > 0; i--) {
     // LD A,(IX+0)             // Set HL to the address in the screen buffer at 24576
     // LD H,(IX+1)             // that corresponds to where we are going to draw the
+    split_address(addr, &y, &x);
     // OR C                    // next pixel row of the sprite graphic
     // LD L,A
-    lsb |= x_coord;
-    addr = build_address(msb, lsb);
+    x |= w_lsb;
+    addr = build_address(y, x);
 
     // LD A,(DE)               // Pick up a sprite graphic byte
     // OR (HL)                 // Merge it with the background
     // LD (HL),A               // Save the resultant byte to the screen buffer
-    sprite[i] |= (sprite[i] | MEM[addr]);
+    MEM[addr] = sprite[frame] | MEM[addr];
 
     // INC HL                  // Move HL along to the next cell to the right
     addr++;
     // INC DE                  // Point DE at the next sprite graphic byte
-    i++;
+    frame++;
 
     // LD A,(DE)               // Pick it up in A
     // OR (HL)                 // Merge it with the background
     // LD (HL),A               // Save the resultant byte to the screen buffer
-    sprite[i] |= (sprite[i] | MEM[addr]);
+    MEM[addr] = sprite[frame] | MEM[addr];
 
     // INC IX                  // Point IX at the next entry in the screen buffer
     // INC IX                  // address lookup table at SBUFADDRS
-    y_coord += 2;
+    addr += 2;
 
     // INC DE                  // Point DE at the next sprite graphic byte
+    frame++;
+
     // DJNZ DRAWWILLY_0        // Jump back until all 16 rows of pixels have been drawn
   }
 
@@ -3934,6 +3967,7 @@ void PMESS(void *msg, uint16_t addr, uint8_t len) {
     // SUB 8                   // the routine at PRINTCHAR)
     // LD D,A
     addr++;
+
     // DEC C                   // Have we printed the entire message yet?
     // JR NZ,PMESS             // If not, jump back to print the next character
   }
@@ -3970,18 +4004,18 @@ void PRINTCHAR_0(void *character, uint16_t addr, uint8_t len) {
   uint8_t msb, lsb;
 
   for (int i = 0; i < len; i++) {
-    split_address(addr, &msb, &lsb);
 
     // LD A,(HL)               // Copy the character bitmap to the screen (or item
     // LD (DE),A               // graphic to the screen buffer)
-    MEM[addr] = chr[i];
     // INC HL
+    MEM[addr] = chr[i];
 
     // INC D
+    split_address(addr, &msb, &lsb);
     msb++;
+    addr = build_address(msb, lsb);
 
     // DJNZ PRINTCHAR_0
-    addr = build_address(msb, lsb);
   }
   // RET
 }
@@ -4008,7 +4042,8 @@ bool PLAYTUNE() {
     // LD C,A                  // Copy the first byte of data for this note (which determines the duration) to C
 
     // LD B,0                  // Initialise B, which will be used as a delay counter in the note-producing loop
-    uint8_t delay_counter = 0;
+    // uint8_t delay = 0; // FIXME: seems to never get set anywhere else?
+
     // XOR A                   // Set A=0 (for no apparent reasaon)
 
     // LD D,(IY+1)             // Pick up the second byte of data for this note
@@ -4016,7 +4051,6 @@ bool PLAYTUNE() {
     freq1 = note[1];
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
     addr = PIANOKEY(freq1);
-
     // LD (HL),80              // Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1)
     MEM[addr] = 80;
 
@@ -4026,7 +4060,6 @@ bool PLAYTUNE() {
     uint8_t pitch = freq2;
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
     addr = PIANOKEY(freq2);
-
     // LD (HL),40              // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0)
     MEM[addr] = 40;
 
@@ -4058,7 +4091,7 @@ bool PLAYTUNE() {
         pitch ^= 24;
       }
 
-      // FIXME: reg B is initialized to 0, but never set anywhere else, so this code is obsolete...?
+      // FIXME: reg B (delay) is initialized to 0, but never set anywhere else, so this code is obsolete...?
       // PLAYTUNE_2:
       // DJNZ PLAYTUNE_0
       millisleep(1);
@@ -4076,14 +4109,12 @@ bool PLAYTUNE() {
     // LD A,(IY+1)             // Pick up the second byte of data for this note
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
     addr = PIANOKEY(note[1]);
-
     // LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
     MEM[addr] = 56;
 
     // LD A,(IY+2)             // Pick up the third byte of data for this note
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
     addr = PIANOKEY(note[2]);
-
     // LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
     MEM[addr] = 56;
 
@@ -4110,7 +4141,7 @@ uint16_t PIANOKEY(uint8_t frequency) {
   // RRCA
   frequency = rotr(frequency, 3);
   // CPL
-  frequency = ~frequency;
+  frequency = (uint8_t)~frequency;
   // OR 224                  // A=224+K; this is the LSB
   frequency |= 224;
   // LD L,A                  // Set HL to the attribute file address for the piano
@@ -4139,11 +4170,10 @@ bool CHECKENTER() {
   // CHECKENTER_0:
   // LD BC,49150             // Read keys H-J-K-L-ENTER
   // IN A,(C)
-  uint8_t key = IN(49150);
   // AND 1                   // Keep only bit 0 of the result (ENTER)
   // CP 1                    // Reset the zero flag if ENTER is being pressed
   // RET
-  if ( check_enter_keypress() || key & 1) {
+  if (check_enter_keypress()) {
     return true;
   } else {
     return false;
