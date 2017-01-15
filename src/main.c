@@ -368,7 +368,7 @@ NEWSHT:
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Are we in demo mode?
   // JR Z,LOOP               // If not, enter the main loop now
-  if (DEMO > 0) {
+  if (DEMO) {
     // Reset the game mode indicator at DEMO to 64 (we're in demo mode)
     // LD A,64
     // LD (DEMO),A
@@ -417,7 +417,7 @@ NEWSHT:
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Are we in demo mode?
     // CALL Z,WILLYATTRS       // If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
-    if (DEMO <= 0) {
+    if (DEMO == 0) {
       if (MOVEWILLY()) {
         goto LOOP_4; // Willy has died!
       }
@@ -488,9 +488,9 @@ NEWSHT:
     // This entry point is used by the routine at SKYLABS.
     // LOOP_3:
     // CALL CHKPORTAL          // Draw the portal, or move to the next cavern if Willy has entered it
-//    if (CHKPORTAL()) {
-//      goto NEWSHT;
-//    }
+    if (CHKPORTAL()) {
+      goto NEWSHT;
+    }
 
     // This entry point is used by the routine at KILLWILLY.
 LOOP_4:
@@ -506,7 +506,7 @@ LOOP_4:
     // LD A,(FLASH)            // Pick up the screen flash counter from FLASH
     // OR A                    // Is it zero?
     // JR Z,LOOP_5             // Jump if so
-    if (FLASH != 0) {
+    if (FLASH > 0) {
       // Decrement the screen flash counter at FLASH
       // DEC A
       // LD (FLASH),A
@@ -634,51 +634,51 @@ LOOP_4:
     // LOOP_9:
     // BIT 1,(HL)              // Has the in-game music been switched off?
     // JR NZ,NONOTE4           // Jump if so
-//    if (((MUSICFLAGS >> 1) & 1) == 0) {
-//      // The next section of code plays a note of the in-game music.
-//
-//      // Increment the in-game music note index at NOTEINDEX
-//      // LD A,(NOTEINDEX)
-//      // INC A
-//      // LD (NOTEINDEX),A
-//      NOTEINDEX++;
-//
-//      // AND 126                 // Point HL at the appropriate entry in the tune data
-//      // RRCA                    // table at GAMETUNE
-//      uint8_t index = rotr((uint8_t)(NOTEINDEX & 126), 1);
-//      // LD E,A
-//      // LD D,0
-//      // LD HL,GAMETUNE
-//      //  ADD HL,DE
-//      //  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-//      uint8_t note = BORDER;
-//      //  LD E,(HL)               // Initialise the pitch delay counter in E
-//      uint8_t pitch_delay_counter = GAMETUNE[index];
-//      //  LD BC,3                 // Initialise the duration delay counters in B (0) and C (3)
-//
-//      // TM51:
-//      for (int i = 0; i < 3; i++) {
-//        // OUT (254),A             // Produce a note of the in-game music
-//        OUT(note);
-//
-//        // SEE37708:
-//        // DEC E
-//        pitch_delay_counter--;
-//        // JR NZ,NOFLP6
-//        if (pitch_delay_counter > 0) {
-//          // LD E,(HL)
-//          pitch_delay_counter = GAMETUNE[index];
-//          // XOR 24
-//          note ^= 24;
-//        }
-//
-//        // NOFLP6:
-//        // DJNZ TM51
-//        // DEC C
-//        // JR NZ,TM51
-//        millisleep(1);
-//      }
-//    }
+    if (((MUSICFLAGS >> 1) & 1) == 0) {
+      // The next section of code plays a note of the in-game music.
+
+      // Increment the in-game music note index at NOTEINDEX
+      // LD A,(NOTEINDEX)
+      // INC A
+      // LD (NOTEINDEX),A
+      NOTEINDEX++;
+
+      // AND 126                 // Point HL at the appropriate entry in the tune data
+      // RRCA                    // table at GAMETUNE
+      uint8_t index = rotr((uint8_t)(NOTEINDEX & 126), 1);
+      // LD E,A
+      // LD D,0
+      // LD HL,GAMETUNE
+      //  ADD HL,DE
+      //  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
+      uint8_t note = BORDER;
+      //  LD E,(HL)               // Initialise the pitch delay counter in E
+      uint8_t pitch_delay_counter = GAMETUNE[index];
+      //  LD BC,3                 // Initialise the duration delay counters in B (0) and C (3)
+
+      // TM51:
+      for (int i = 0; i < 3; i++) {
+        // OUT (254),A             // Produce a note of the in-game music
+        OUT(note);
+
+        // SEE37708:
+        // DEC E
+        pitch_delay_counter--;
+        // JR NZ,NOFLP6
+        if (pitch_delay_counter > 0) {
+          // LD E,(HL)
+          pitch_delay_counter = GAMETUNE[index];
+          // XOR 24
+          note ^= 24;
+        }
+
+        // NOFLP6:
+        // DJNZ TM51
+        // DEC C
+        // JR NZ,TM51
+        millisleep(1);
+      }
+    }
 
     // If we're in demo mode, check the keyboard and joystick and return to the
     // title screen if there's any input.
@@ -690,9 +690,8 @@ LOOP_4:
       // We're in demo mode; is it time to show the next cavern?
 
       // DEC A
-      DEMO--;
       // JP Z,MANDEAD            // Jump if so
-      if (DEMO < 1) {
+      if (DEMO - 1 == 0) {
         if (MANDEAD()) {
           return false; // goto START, and don't quit!
         } else {
@@ -700,6 +699,7 @@ LOOP_4:
         }
       }
       // LD (DEMO),A             // Update the game mode indicator at DEMO
+      DEMO--;
 
       // LD BC,254               // Read every row of keys on the keyboard
       // IN A,(C)
@@ -796,7 +796,7 @@ bool MANDEAD() {
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Is it demo mode?
   // JP NZ,NXSHEET           // If so, move to the next cavern
-  if (DEMO > 0) {
+  if (DEMO) {
     // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` after it -MRC-
     NXSHEET();
     return false; // goto NEWSHT;
@@ -1102,13 +1102,14 @@ bool DECAIR() {
   // LD A,(CLOCK)            // Update the game clock at CLOCK
   // SUB 4
   // LD (CLOCK),A
+  CLOCK -= 4;
   // CP 252                  // Was it just decreased from zero?
   // JR NZ,DECAIR_0          // Jump if not
-  if (CLOCK == 0) {
+  if (CLOCK == 252) {
     // LD A,(AIR)              // Pick up the value of the remaining air supply from AIR
     // CP 36                   // Has the air supply run out?
     // RET Z                   // Return (with the zero flag set) if so
-    if (AIR != 36) {
+    if (AIR == 36) {
       return true;
     }
 
@@ -1117,9 +1118,6 @@ bool DECAIR() {
     AIR--;
 
     // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
-  } else {
-    // IMPORTANT: `SUB 4` here instead of above -MRC-
-     CLOCK -= 4;
   }
 
   // DECAIR_0:
@@ -3052,7 +3050,8 @@ bool NXSHEET() {
 
   // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
   // INC A                   // Increment the cavern number
-  uint8_t next_sheet = (uint8_t)(SHEET + 1);
+//  uint8_t next_sheet = (uint8_t)(SHEET + 1);
+  uint8_t next_sheet = 0; // FIXME: always cervern 0 while testing!
 
   // CP 20                   // Is the current cavern The Final Barrier?
   // JR NZ,NXSHEET_3         // Jump if not
@@ -3196,10 +3195,8 @@ bool NXSHEET() {
 
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Are we in demo mode?
-  if (DEMO != 0) {
+  if (DEMO) {
     // JP NZ,NEWSHT            // If so, demo the next cavern
-
-    // goto NEWSHT; // FIXME: remove this and let callers handle it.
     return true;
   }
 
@@ -3207,10 +3204,8 @@ bool NXSHEET() {
   // NXSHEET_6:
   while (true) {
     // CALL DECAIR             // Decrease the air remaining in the current cavern
-    if ( DECAIR() ) {
+    if (DECAIR()) {
       // JP Z,NEWSHT             // Move to the next cavern if the air supply is now gone
-
-      // goto NEWSHT; // FIXME: remove this and let callers handle it.
       return true;
     }
 
@@ -4192,18 +4187,19 @@ void tick() {
   }
   redraw_screen();
 
-  millisleep(25);
+//  millisleep(25);
+  millisleep(10); // FIXME: speed up game for testing
   return;
 
-//  clock_t last_tick = clock();
-//  int sleep_time = SKIP_TICKS - timediff(current_time, last_tick);
-//
-//  if (sleep_time > 0) {
-//    usleep((useconds_t) sleep_time * 1000);
-//    current_time = clock();
-//  } else {
-//    // Shit, we are running behind!
-//  }
+  clock_t last_tick = clock();
+  int sleep_time = SKIP_TICKS - timediff(current_time, last_tick);
+
+  if (sleep_time > 0) {
+    usleep((useconds_t) sleep_time * 1000);
+    current_time = clock();
+  } else {
+    // Shit, we are running behind!
+  }
 }
 
 void draw_remaining_lives() {
