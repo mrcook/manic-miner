@@ -732,176 +732,303 @@ uint8_t CAVERN0[512] = {
 };
 
 
-// IMPORTANT: until we get a proper implementation, we just wrap these
-// initializations in a function.
+// IMPORTANT: until we get a proper implementation, we just wrap these initializations in a function.
+//
+// Initialize arrays and copy the cavern definition into the game status buffer.
+// We must copy a total of 512 bytes into the buffer address from 32768.
 void initialize_cavern0() {
+  uint8_t msb, lsb;
+  uint16_t addr = 32768;
 
-// The next 32 bytes are copied to CAVERNNAME and specify the cavern name.
-CAVERNNAME = "         Central Cavern         "; // Cavern name
+  // The next 32 bytes are copied to CAVERNNAME and specify the cavern name.
+  CAVERNNAME = "         Central Cavern         "; // Cavern name
+  for (int i = 0; i < 32; i++) {
+    MEM[addr++] = (uint8_t)CAVERNNAME[i];
+  }
 
-// The next 72 bytes are copied to BACKGROUND and contain the attributes and
-// graphic data for the tiles used to build the cavern.
-uint8_t newBACKGROUND[9] = {0,0,0,0,0,0,0,0,0};                // Background
-uint8_t newFLOOR[9]      = {66,255,255,219,110,197,64,0,0};    // Floor
-uint8_t newCRUMBLING[9]  = {2,255,219,165,36,82,32,8,0};       // Crumbling floor
-uint8_t newWALL[9]       = {22,34,255,136,255,34,255,136,255}; // Wall
-uint8_t newCONVEYOR[9]   = {4,240,102,240,102,0,153,255,0};    // Conveyor
-uint8_t newNASTY1[9]     = {68,68,40,148,81,53,214,88,16};     // Nasty 1
-uint8_t newNASTY2[9]     = {5,255,254,126,124,76,76,8,8};      // Nasty 2
-uint8_t newEXTRA[9]      = {0,0,0,0,0,0,0,0,0};                // Extra (unused)
-memcpy(BACKGROUND, newBACKGROUND, sizeof(newBACKGROUND));
-memcpy(FLOOR,      newFLOOR,      sizeof(newFLOOR));
-memcpy(CRUMBLING,  newCRUMBLING,  sizeof(newCRUMBLING));
-memcpy(WALL,       newWALL,       sizeof(newWALL));
-memcpy(CONVEYOR,   newCONVEYOR,   sizeof(newCONVEYOR));
-memcpy(NASTY1,     newNASTY1,     sizeof(newNASTY1));
-memcpy(NASTY2,     newNASTY2,     sizeof(newNASTY2));
-memcpy(EXTRA,      newEXTRA,      sizeof(newEXTRA));
+  // The next 72 bytes are copied to BACKGROUND and contain the attributes and
+  // graphic data for the tiles used to build the cavern.
+  uint8_t newBACKGROUND[9] = {0,0,0,0,0,0,0,0,0};                // Background
+  for (int i = 0; i < 9; i++) {
+    BACKGROUND[i] = newBACKGROUND[i];
+    MEM[addr++] = newBACKGROUND[i];
+  }
+  uint8_t newFLOOR[9] = {66,255,255,219,110,197,64,0,0};    // Floor
+  for (int i = 0; i < 9; i++) {
+    FLOOR[i] = newFLOOR[i];
+    MEM[addr++] = newFLOOR[i];
+  }
+  uint8_t newCRUMBLING[9] = {2,255,219,165,36,82,32,8,0};       // Crumbling floor
+  for (int i = 0; i < 9; i++) {
+    CRUMBLING[i] = newCRUMBLING[i];
+    MEM[addr++] = newCRUMBLING[i];
+  }
+  uint8_t newWALL[9] = {22,34,255,136,255,34,255,136,255}; // Wall
+  for (int i = 0; i < 9; i++) {
+    WALL[i] = newWALL[i];
+    MEM[addr++] = newWALL[i];
+  }
+  uint8_t newCONVEYOR[9] = {4,240,102,240,102,0,153,255,0};    // Conveyor
+  for (int i = 0; i < 9; i++) {
+    CONVEYOR[i] = newCONVEYOR[i];
+    MEM[addr++] = newCONVEYOR[i];
+  }
+  uint8_t newNASTY1[9] = {68,68,40,148,81,53,214,88,16};     // Nasty 1
+  for (int i = 0; i < 9; i++) {
+    NASTY1[i] = newNASTY1[i];
+    MEM[addr++] = newNASTY1[i];
+  }
+  uint8_t newNASTY2[9] = {5,255,254,126,124,76,76,8,8};      // Nasty 2
+  for (int i = 0; i < 9; i++) {
+    NASTY2[i] = newNASTY2[i];
+    MEM[addr++] = newNASTY2[i];
+  }
+  uint8_t newEXTRA[9] = {0,0,0,0,0,0,0,0,0};                // Extra (unused)
+  for (int i = 0; i < 9; i++) {
+    EXTRA[i] = newEXTRA[i];
+    MEM[addr++] = newEXTRA[i];
+  }
 
-// The next seven bytes are copied to 32872-32878 and specify Miner Willy's
-// initial location and appearance in the cavern.
-PIXEL_Y  = 208;           // Pixel y-coordinate * 2 (see PIXEL_Y)
-FRAME    = 0;             // Animation frame (see FRAME)
-DMFLAGS  = 0;             // Direction and movement flags: facing right (see DMFLAGS)
-AIRBORNE = 0;             // Airborne status indicator (see AIRBORNE)
-LOCATION = 23970;         // Location in the attribute buffer at 23552: (13,2) (see LOCATION)
-JUMPING  = 0;             // Jumping animation counter (see JUMPING)
+  // The next seven bytes are copied to 32872-32878 and specify Miner Willy's
+  // initial location and appearance in the cavern.
+  PIXEL_Y  = 208;           // Pixel y-coordinate * 2 (see PIXEL_Y)
+  MEM[addr++] = PIXEL_Y;
 
-// The next four bytes are copied to CONVDIR and specify the direction, location
-// and length of the conveyor.
-CONVDIR = 0;              // Direction (left)
-CONVLOC = 30760;          // Location in the screen buffer at 28672: (9,8)
-CONVLEN = 20;             // Length
+  FRAME    = 0;             // Animation frame (see FRAME)
+  MEM[addr++] = FRAME;
 
-// The next byte is copied to BORDER and specifies the border colour.
-BORDER = 2;               // Border colour
+  DMFLAGS  = 0;             // Direction and movement flags: facing right (see DMFLAGS)
+  MEM[addr++] = DMFLAGS;
 
-// The next byte is copied to ITEMATTR, but is not used.
-ITEMATTR = 0;             // Unused
+  AIRBORNE = 0;             // Airborne status indicator (see AIRBORNE)
+  MEM[addr++] = AIRBORNE;
 
-// The next 25 bytes are copied to ITEMS and specify the location and initial
-// colour of the items in the cavern.
-uint16_t newITEMS[5][5] = {
-  // Item 1 at (0,9)
-  { 3, 23561, 96, 255 },
+  // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
+  LOCATION = 23970;         // Location in the attribute buffer at 23552: (13,2) (see LOCATION)
+  split_address(LOCATION, &msb, &lsb);
+  MEM[addr++] = msb;
+  MEM[addr++] = lsb;
 
-  // Item 2 at (0,29)
-  { 4, 23581, 96, 255 },
+  JUMPING  = 0;             // Jumping animation counter (see JUMPING)
+  MEM[addr++] = JUMPING;
 
-  // Item 3 at (1,16)
-  { 5, 23600, 96, 255 },
+  // The next four bytes are copied to CONVDIR and specify the direction, location
+  // and length of the conveyor.
+  CONVDIR = 0;              // Direction (left)
+  MEM[addr++] = CONVDIR;
 
-  // Item 4 at (4,24)
-  { 6, 23704, 96, 255 },
+  // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
+  CONVLOC = 30760;          // Location in the screen buffer at 28672: (9,8)
+  split_address(CONVLOC, &msb, &lsb);
+  MEM[addr++] = msb;
+  MEM[addr++] = lsb;
 
-  // Item 5 at (6,30)
-  { 3, 23774, 96, 255 },
-};
-// DEFB 255               // Terminator
-memcpy(ITEMS, newITEMS, sizeof(newITEMS));
+  CONVLEN = 20;             // Length
+  MEM[addr++] = CONVLEN;
 
-// The next 37 bytes are copied to PORTAL and define the portal graphic and its
-// location.
-PORTAL = 14;              // Attribute
-uint8_t newPORTALG[32] = {           // Graphic data
-  255,255,146,73,182,219,255,255,
-  146,73,182,219,255,255,146,73,
-  182,219,255,255,146,73,182,219,
-  255,255,146,73,182,219,255,255,
-};
-memcpy(PORTALG, newPORTALG, sizeof(newPORTALG));
+  // The next byte is copied to BORDER and specifies the border colour.
+  BORDER = 2;               // Border colour
+  MEM[addr++] = BORDER;
 
-PORTALLOC1 = 23997;       // Location in the attribute buffer at 23552: (13,29)
-PORTALLOC2 = 26813;       // Location in the screen buffer at 24576: (13,29)
+  // The next byte is copied to ITEMATTR, but is not used.
+  ITEMATTR = 0;             // Unused
+  MEM[addr++] = ITEMATTR;
 
-// The next eight bytes are copied to ITEM and define the item graphic.
-uint8_t newITEM[8] = {48,72,136,144,104,4,10,4}; // Item graphic data
-memcpy(ITEM, newITEM, sizeof(newITEM));
+  // The next 25 bytes are copied to ITEMS and specify the location and initial
+  // colour of the items in the cavern.
+  uint16_t newITEMS[5][5] = {
+      // Item 1 at (0,9)
+      { 3, 23561, 96, 255 },
 
-// The next byte is copied to AIR and specifies the initial air supply in the
-// cavern.
-AIR = 63;                 // Air
+      // Item 2 at (0,29)
+      { 4, 23581, 96, 255 },
 
-// The next byte is copied to CLOCK and initialises the game clock.
-CLOCK = 252;             // Game clock
+      // Item 3 at (1,16)
+      { 5, 23600, 96, 255 },
 
-// The next 28 bytes are copied to HGUARDS and define the horizontal guardians.
-uint16_t newHGUARDS[4][6] = {
-  {
-    70,                   // Horizontal guardian 1: y=7, initial x=8, 8<=x<=15,
-    23784,                // speed=normal
-    96,
-    0,
-    232,
-    239,
-  },
-  {0,0,0,0,0,0},        // Horizontal guardian 2 (unused)
-  {0,0,0,0,0,0},        // Horizontal guardian 3 (unused)
-  {0,0,0,0,0,0},        // Horizontal guardian 4 (unused)
-};
-// DEFB 255               // Terminator
-memcpy(HGUARDS, newHGUARDS, sizeof(newHGUARDS));
+      // Item 4 at (4,24)
+      { 6, 23704, 96, 255 },
 
-// The next two bytes are copied to EUGDIR and EUGHGT but are not used.
-EUGDIR = 0;               // Unused
-EUGHGT = 0;
+      // Item 5 at (6,30)
+      { 3, 23774, 96, 255 },
+  };
+  for (int i = 0; i < 5; i++) {
+    ITEMS[i][0] = newITEMS[i][0];
+    MEM[addr++] = (uint8_t)newITEMS[i][0];
 
-// The next byte is copied to VGUARDS and indicates that there are no vertical
-// guardians in this cavern.
-uint8_t newVGUARDS[4] = {};
-// DEFB 255               // Terminator
-memcpy(VGUARDS, newVGUARDS, sizeof(newVGUARDS));
+    // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
+    ITEMS[i][1] = newITEMS[i][1];
+    split_address(newITEMS[i][1], &msb, &lsb);
+    MEM[addr++] = msb;
+    MEM[addr++] = lsb;
 
-// The next two bytes are unused.
-// DEFB 0,0               // Unused
+    ITEMS[i][2] = newITEMS[i][2];
+    MEM[addr++] = (uint8_t)newITEMS[i][2];
+    ITEMS[i][3] = newITEMS[i][3];
+    MEM[addr++] = (uint8_t)newITEMS[i][3];
+  }
+  // DEFB 255               // Terminator
+  MEM[addr++] = 255;
 
-// The next 32 bytes define the swordfish graphic that appears in The Final
-// Barrier when the game is completed.
-uint8_t newSWORDFISH[32] = {         // Swordfish graphic data
-  2,160,5,67,31,228,115,255,
-  242,248,31,63,255,228,63,195,
-  0,0,1,0,57,252,111,2,
-  81,1,127,254,57,252,1,0,
-};
-memcpy(SWORDFISH, newSWORDFISH, sizeof(newSWORDFISH));
+  // The next 37 bytes are copied to PORTAL and define the portal graphic and its location.
+  PORTAL = 14;              // Attribute
+  MEM[addr++] = PORTAL;
 
-// The next 256 bytes are copied to GGDATA and define the guardian graphics.
-uint8_t newGGDATA[256] = {           // Guardian graphic data
-  31,32,57,224,25,224,15,32,
-  159,0,95,128,255,192,94,0,
-  159,192,31,128,14,0,31,0,
-  187,160,113,192,32,128,17,0,
-  7,196,14,124,6,124,35,196,
-  23,192,23,224,63,240,23,240,
-  23,240,39,224,3,128,3,128,
-  6,192,6,192,28,112,6,192,
-  1,242,3,158,1,158,0,242,
-  9,240,5,248,15,252,5,224,
-  9,252,1,248,0,224,0,224,
-  0,224,0,224,0,224,1,240,
-  0,125,0,231,0,103,0,61,
-  0,124,0,127,3,252,0,120,
-  0,124,0,127,0,56,0,56,
-  0,108,0,108,1,199,0,108,
-  190,0,231,0,230,0,188,0,
-  62,0,254,0,63,192,30,0,
-  62,0,254,0,28,0,28,0,
-  54,0,54,0,227,128,54,0,
-  79,128,121,192,121,128,79,0,
-  15,144,31,160,63,240,7,160,
-  63,144,31,128,7,0,7,0,
-  7,0,7,0,7,0,15,128,
-  35,224,62,112,62,96,35,196,
-  3,232,7,232,15,252,15,232,
-  15,232,7,228,1,192,1,192,
-  3,96,3,96,14,56,3,96,
-  4,248,7,156,7,152,4,240,
-  0,249,1,250,3,255,0,122,
-  3,249,1,248,0,112,0,248,
-  5,221,3,142,1,4,0,136,
-};
-memcpy(GGDATA, newGGDATA, sizeof(newGGDATA));
+  uint8_t newPORTALG[32] = {           // Graphic data
+      255,255,146,73,182,219,255,255,
+      146,73,182,219,255,255,146,73,
+      182,219,255,255,146,73,182,219,
+      255,255,146,73,182,219,255,255,
+  };
+  for (int i = 0; i < 32; i++) {
+    PORTALG[i] = newPORTALG[i];
+    MEM[addr++] = newPORTALG[i];
+  }
 
+  // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
+  PORTALLOC1 = 23997;       // Location in the attribute buffer at 23552: (13,29)
+  PORTALLOC2 = 26813;       // Location in the screen buffer at 24576: (13,29)
+  split_address(PORTALLOC1, &msb, &lsb);
+  MEM[addr++] = msb;
+  MEM[addr++] = lsb;
+  split_address(PORTALLOC2, &msb, &lsb);
+  MEM[addr++] = msb;
+  MEM[addr++] = lsb;
+
+
+  // The next eight bytes are copied to ITEM and define the item graphic.
+  uint8_t newITEM[8] = {48,72,136,144,104,4,10,4}; // Item graphic data
+  for (int i = 0; i < 8; i++) {
+    ITEM[i] = newITEM[i];
+    MEM[addr++] = newITEM[i];
+  }
+
+  // The next byte is copied to AIR and specifies the initial air supply in the
+  // cavern.
+  AIR = 63;                 // Air
+  MEM[addr++] = AIR;
+
+  // The next byte is copied to CLOCK and initialises the game clock.
+  CLOCK = 252;             // Game clock
+  MEM[addr++] = CLOCK;
+
+  // The next 28 bytes are copied to HGUARDS and define the horizontal guardians.
+  uint16_t newHGUARDS[4][6] = {
+    {
+      70,                   // Horizontal guardian 1: y=7, initial x=8, 8<=x<=15,
+      23784,                // speed=normal
+      96,
+      0,
+      232,
+      239,
+    },
+    {0,0,0,0,0,0},        // Horizontal guardian 2 (unused)
+    {0,0,0,0,0,0},        // Horizontal guardian 3 (unused)
+    {0,0,0,0,0,0},        // Horizontal guardian 4 (unused)
+  };
+  for (int i = 0; i < 4; i++) {
+    HGUARDS[i][0] = newHGUARDS[i][0];
+    MEM[addr++] = (uint8_t)newHGUARDS[i][0];
+
+    HGUARDS[i][1] = newHGUARDS[i][1];
+    split_address(newHGUARDS[i][1], &msb, &lsb);
+    MEM[addr++] = msb;
+    MEM[addr++] = lsb;
+
+    HGUARDS[i][2] = newHGUARDS[i][2];
+    MEM[addr++] = (uint8_t)newHGUARDS[i][2];
+    HGUARDS[i][3] = newHGUARDS[i][3];
+    MEM[addr++] = (uint8_t)newHGUARDS[i][3];
+    HGUARDS[i][4] = newHGUARDS[i][4];
+    MEM[addr++] = (uint8_t)newHGUARDS[i][4];
+    HGUARDS[i][5] = newHGUARDS[i][5];
+    MEM[addr++] = (uint8_t)newHGUARDS[i][5];
+
+  }
+  // DEFB 255               // Terminator
+  MEM[addr++] = 255;
+
+  // The next two bytes are copied to EUGDIR and EUGHGT but are not used.
+  EUGDIR = 0;               // Unused
+  EUGHGT = 0;
+  MEM[addr++] = 0;
+  MEM[addr++] = 0;
+
+  //
+  // FIXEM: we need to fill 35 bytes before GGDATA, but also populate VGUARDS array
+  //
+
+  // The next byte is copied to VGUARDS and indicates that there are no vertical
+  // guardians in this cavern.
+  uint8_t newVGUARDS[4][7] = {};
+  memcpy(VGUARDS, newVGUARDS, sizeof(newVGUARDS));
+  // DEFB 255               // Terminator
+  MEM[addr++] = 255;
+
+  // The next two bytes are unused.
+  // DEFB 0,0               // Unused
+  MEM[addr++] = 0;
+  MEM[addr++] = 0;
+
+  // The next 32 bytes define the swordfish graphic that appears in The Final
+  // Barrier when the game is completed.
+  uint8_t newSWORDFISH[32] = {         // Swordfish graphic data
+    2,160,5,67,31,228,115,255,
+    242,248,31,63,255,228,63,195,
+    0,0,1,0,57,252,111,2,
+    81,1,127,254,57,252,1,0,
+  };
+  for (int i = 0; i < 32; i++) {
+    SWORDFISH[i] = newSWORDFISH[i];
+    MEM[addr++] = newSWORDFISH[i];
+  }
+
+  // The next 256 bytes are copied to GGDATA and define the guardian graphics.
+  uint8_t newGGDATA[256] = {           // Guardian graphic data
+    31,32,57,224,25,224,15,32,
+    159,0,95,128,255,192,94,0,
+    159,192,31,128,14,0,31,0,
+    187,160,113,192,32,128,17,0,
+    7,196,14,124,6,124,35,196,
+    23,192,23,224,63,240,23,240,
+    23,240,39,224,3,128,3,128,
+    6,192,6,192,28,112,6,192,
+    1,242,3,158,1,158,0,242,
+    9,240,5,248,15,252,5,224,
+    9,252,1,248,0,224,0,224,
+    0,224,0,224,0,224,1,240,
+    0,125,0,231,0,103,0,61,
+    0,124,0,127,3,252,0,120,
+    0,124,0,127,0,56,0,56,
+    0,108,0,108,1,199,0,108,
+    190,0,231,0,230,0,188,0,
+    62,0,254,0,63,192,30,0,
+    62,0,254,0,28,0,28,0,
+    54,0,54,0,227,128,54,0,
+    79,128,121,192,121,128,79,0,
+    15,144,31,160,63,240,7,160,
+    63,144,31,128,7,0,7,0,
+    7,0,7,0,7,0,15,128,
+    35,224,62,112,62,96,35,196,
+    3,232,7,232,15,252,15,232,
+    15,232,7,228,1,192,1,192,
+    3,96,3,96,14,56,3,96,
+    4,248,7,156,7,152,4,240,
+    0,249,1,250,3,255,0,122,
+    3,249,1,248,0,112,0,248,
+    5,221,3,142,1,4,0,136,
+  };
+  for (int i = 0; i < 256; i++) {
+    GGDATA[i] = newGGDATA[i];
+    MEM[addr++] = newGGDATA[i];
+  }
+
+  int total = addr - 32768;
+  if (total != 512) {
+    restore_terminal();
+    printf("Incorrect number of bytes assigned in cavern init: %d - %d = %d\n", addr, 32768, total);
+    exit(-1);
+  }
 } // NOTE: end of initialize_cavern0() function!
 
 

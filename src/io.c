@@ -88,9 +88,13 @@ void redraw_screen() {
         }
 
         // double up the width to get a better aspect ratio in curses.
-        put_tile(tile, row, col);
-        col++;
-        put_tile(tile, row, col);
+        if (mvinch(row, col) != tile)  {
+          put_tile(tile, row, col);
+          col++;
+          put_tile(tile, row, col);
+        } else {
+          col++;
+        }
 
         if (col < 511) {
           col++;
