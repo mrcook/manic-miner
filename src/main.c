@@ -169,7 +169,7 @@ int main(void) {
     // XOR A
     // LD (EUGHGT),A
     for (EUGHGT = 0; DEMO > 0 && EUGHGT < 224; EUGHGT++) {
-      continue; // FIXME: disable title screen to speed up testing rest of game
+//      continue; // FIXME: disable title screen to speed up testing rest of game
 
       // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
 
@@ -266,7 +266,6 @@ bool play_new_cavern() {
   // FIXME: disable DEMO mode
   DEMO = 0;
 
-
   // This entry point is used by the routines at LOOP (when teleporting into a cavern
   // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
 NEWSHT:
@@ -283,6 +282,7 @@ NEWSHT:
   // LD DE,24064
   // LD BC,512
   // LDIR
+  // FIXME: uses Attr Buff (Blank): Attr File = 22528
   for (int i = 0; i < 512; i++) {
     MEM[24064 + i] = CAVERN0[i];
   }
@@ -376,7 +376,6 @@ NEWSHT:
   }
   // This routine continues into the main loop at LOOP.
 
-
   // Main loop
   //
   // The routine at STARTGAME continues here.
@@ -396,6 +395,7 @@ NEWSHT:
     // LD DE,23552             // (the attributes for the empty cavern) into the
     // LD BC,512               // attribute buffer at 23552
     // LDIR
+    // FIXME: no need to copy buffers
     for (int i = 0; i < 512; i++) {
       MEM[23552 + i] = MEM[24064 + i];
     }
@@ -404,6 +404,7 @@ NEWSHT:
     // LD DE,24576             // (the tiles for the empty cavern) into the screen
     // LD BC,4096              // buffer at 24576
     // LDIR
+    // FIXME: no need to copy buffers
     for (int i = 0; i < 4096; i++) {
       MEM[24576 + i] = MEM[28672 + i];
     }
@@ -498,6 +499,7 @@ LOOP_4:
     // LD DE,16384
     // LD BC,4096
     // LDIR
+    // FIXME: no need to copy buffers
     for (int i = 0; i < 4096; i++) {
       MEM[16384 + i] = MEM[24576 + i];
     }
@@ -522,6 +524,7 @@ LOOP_4:
       // LD BC,511
       // LD (HL),A
       // LDIR
+    // FIXME: Uses Attr Buffer: Attr File= 22528
       for (int i = 0; i < 512; i++) {
         MEM[23552 + i] = new_flash_value;
       }
@@ -533,6 +536,7 @@ LOOP_4:
     // LD DE,22528             // to the attribute file
     // LD BC,512
     // LDIR
+    // FIXME: no need to copy buffers
     for (int i = 0; i < 512; i++) {
       MEM[22528 + i] = MEM[23552 + i];
     }
@@ -1169,6 +1173,7 @@ bool DECAIR() {
 //
 // Used by the routine at STARTGAME.
 void DRAWSHEET() {
+  // FIXME: Screen Buffer: Screen File = 16384
   uint16_t addr = 28672;
   uint8_t msb, lsb;
 
@@ -1226,6 +1231,7 @@ void DRAWSHEET() {
   // If we're in The Final Barrier, however, there is further work to do.
   if (SHEET == 19) {
     // Copy the graphic data from TITLESCR1 to the top half of the screen buffer at 28672
+    // FIXME: Blank Screen Buffer: Screen File = 16384
     for (int i = 0; i <= 2048; i++) {
       MEM[28672 + i] = TITLESCR1[i];
     }
@@ -2002,6 +2008,80 @@ bool KILLWILLY_1() {
 //
 // Used by the routine at LOOP.
 void MOVEHG() {
+  uint8_t msb, lsb;
+
+  // The guardian-moving loop begins here.
+  for (int i = 0; i < 4; i++) {
+    uint16_t *guardian = HGUARDS[i];
+
+    if (guardian[0] == 0 && guardian[1] == 0 && guardian[2] == 0 && guardian[3] == 0 && guardian[4] == 0 && guardian[5] == 0) {
+      continue;
+    }
+
+    uint8_t current_clock = CLOCK;
+    current_clock &= 4;
+    current_clock = rotr(current_clock, 3);
+
+    // Jump to consider the next guardian if this one is not due to be moved on this pass
+    if ((current_clock & guardian[0])) {
+      continue;
+    }
+
+    // The guardian will be moved on this pass.
+    // Pick up the current animation frame (0-7)
+
+    // Is it 3 (the terminal frame for a guardian moving right)?
+    // If so move the guardian right across a cell boundary or turn it round
+    if (guardian[3] == 3) {
+      // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
+      split_address(guardian[1], &msb, &lsb);
+
+      // Has the guardian reached the rightmost point in its path?
+      if (lsb == guardian[5]) {
+        // Set the animation frame to 7 (turning the guardian round to face left)
+        guardian[3] = 7;
+        // Jump forward to consider the next guardian
+      } else {
+        // Set the animation frame to 0 (the initial frame for a guardian moving right)
+        guardian[3] = 0;
+        // Increment the guardian's x-coordinate (moving it right across a cell boundary)
+        lsb++;
+        guardian[1] = build_address(msb, lsb);
+        // Jump forward to consider the next guardian
+      }
+
+    // Is the current animation frame 4 (the terminal frame for a guardian moving left)?
+    // If so move the guardian left across a cell boundary or turn it round
+    } else if (guardian[3] == 4) {
+      // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
+      split_address(guardian[1], &msb, &lsb);
+
+      // Has the guardian reached the leftmost point in its path?
+      if (lsb == guardian[4]) {
+        // Set the animation frame to 0 (turning the guardian round to face right)
+        guardian[3] = 0;
+      } else {
+        // Set the animation frame to 7 (the initial frame for a guardian moving left)
+        guardian[3] = 7;
+        // Decrement the guardian's x-coordinate (moving it left across a cell boundary)
+        lsb--;
+        guardian[1] = build_address(msb, lsb);
+      }
+
+    // Jump if the animation frame is 5, 6 or 7
+    } else if (guardian[3] == 5 || guardian[3] == 6 || guardian[3] == 7) {
+      // Decrement the animation frame (this guardian is moving left)
+      guardian[3]--;
+    } else {
+      // Increment the animation frame (this guardian is moving right)
+      guardian[3]++;
+    }
+
+    // The current guardian definition has been dealt with. Time for the next one.
+  }
+}
+// FIXME: rewrote this function above
+void MOVEHG_XX() {
   // LD IY,HGUARDS           // Point IY at the first byte of the first horizontal guardian definition at HGUARDS
   // LD DE,7                 // Prepare DE for addition (there are 7 bytes in a guardian definition)
 
@@ -2037,7 +2117,7 @@ void MOVEHG() {
     // AND (IY+0)              // Combine this bit with bit 7 of the first byte of the guardian definition,]
                                // which specifies the guardian's animation speed: 0=normal, 1=slow
     // JR NZ,MOVEHG_6          // Jump to consider the next guardian if this one is not due to be moved on this pass
-    if ((current_clock & guardian[0]) != 0) {
+    if ((current_clock & guardian[0])) {
         continue;
     }
 
@@ -2120,6 +2200,7 @@ void MOVEHG() {
 // Used by the routine at LOOP.
 void LIGHTBEAM() {
   // LD HL,23575             // Point HL at the cell at (0,23) in the attribute buffer at 23552 (the source of the light beam)
+  // FIXME: Screen Buffer: Screen File = 22551
   uint16_t addr = 23575;
 
   // LD DE,32                // Prepare DE for addition (the beam travels vertically downwards to start with)
@@ -2185,11 +2266,10 @@ void LIGHTBEAM() {
 // Used by the routine at LOOP.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool DRAWHG() {
-  // LD IY,HGUARDS           // Point IY at the first byte of the first horizontal guardian definition at HGUARDS
-
-  uint8_t msb;
-  uint8_t lsb;
+  uint8_t msb, lsb;
   uint16_t addr;
+
+  // LD IY,HGUARDS           // Point IY at the first byte of the first horizontal guardian definition at HGUARDS
 
   // The guardian-drawing loop begins here.
   // DRAWHG_0:
@@ -2213,6 +2293,7 @@ bool DRAWHG() {
     addr = guardian[1];
 
     uint8_t attr = (uint8_t)guardian[0];
+
     // AND 127                 // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
     attr &= 127;
     // LD (HL),A               // Set the attribute bytes for the guardian in the
@@ -2235,11 +2316,12 @@ bool DRAWHG() {
     // LD C,1                  // Prepare C for the call to the drawing routine at DRWFIX later on
 
     // LD A,(IY+4)             // Pick up the animation frame (0-7)
+    uint8_t anim_frame = (uint8_t)guardian[3];
     // RRCA                    // Multiply it by 32
     // RRCA
     // RRCA
     // LD E,A                  // Copy the result to E
-    uint8_t anim_frame = rotr((uint8_t)guardian[3], 3);
+    anim_frame = rotr(anim_frame, 3);
 
     // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
     // CP 7                    // Are we in one of the first seven caverns?
@@ -3419,6 +3501,7 @@ bool KONGBEAST() {
 
   // LD HL,23558             // Flip the left-hand switch at (0,6) if Willy is
   // CALL CHKSWITCH          // touching it
+  // FIXME: Screen Buffer: Screen File = 22534
   CHKSWITCH(23558);
 
   // LD A,(EUGDIR)           // Pick up the Kong Beast's status from EUGDIR
@@ -3431,6 +3514,7 @@ bool KONGBEAST() {
   // LD A,(29958)            // Pick up the sixth pixel row of the left-hand switch from the screen buffer at 28672
   // CP 16                   // Has the switch been flipped?
   // JP Z,KONGBEAST_8        // Jump if not
+  // FIXME: Blank Screen Buffer: Screen File = 17670
   if (MEM[29958] != 16) {
     return KONGBEAST_8();  // return dead-ness state of Willy! -MRC-
   }
@@ -3440,8 +3524,10 @@ bool KONGBEAST() {
   // LD A,(24433)            // Pick up the attribute byte of the tile at (11,17) in the buffer at 24064
   // OR A                    // Has the wall there been removed yet?
   // JR Z,KONGBEAST_2        // Jump if so
+  // FIXME: Blank Screen Buffer: Screen File = 22897
   if (MEM[24433] != 0) {
     // LD HL,32625             // Point HL at the bottom row of pixels of the wall tile at (11,17) in the screen buffer at 28672
+  // FIXME: Blank Screen Buffer: Screen File = 20337
     addr = 32625;
 
     // KONGBEAST_0:
@@ -3485,8 +3571,10 @@ bool KONGBEAST() {
 
     // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // LD (24433),A            // Change the attributes at (11,17) and (12,17) in the
+    // FIXME: Blank Screen Buffer: Screen File = 22897
     memcpy(&MEM[24433], BACKGROUND, sizeof(BACKGROUND));
     // LD (24465),A            // buffer at 24064 to match the background tile (the wall there is now gone)
+    // FIXME: Blank Screen Buffer: Screen File = 22929
     memcpy(&MEM[24465], BACKGROUND, sizeof(BACKGROUND));
 
     // FIXME: I guess we need to update HGUARD2 directly rather than this memeory address.
@@ -3504,6 +3592,7 @@ bool KONGBEAST() {
   // LD HL,23570             // Flip the right-hand switch at (0,18) if Willy is
   // CALL CHKSWITCH          // touching it (and it hasn't already been flipped)
   // JR NZ,KONGBEAST_4       // Jump if the switch was not flipped
+  // FIXME: Screen Buffer: Screen File = 22546
   if ( !CHKSWITCH(23570) ) {
     // Initialise the Kong Beast's pixel y-coordinate at EUGHGT to 0
     // XOR A
@@ -3517,11 +3606,14 @@ bool KONGBEAST() {
 
     // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // LD (24143),A            // Change the attributes of the floor beneath the Kong
+    // FIXME: Blank Screen Buffer: Screen File = 22607
     memcpy(&MEM[24143], BACKGROUND, sizeof(BACKGROUND));
     // LD (24144),A            // Beast in the buffer at 24064 to match that of the background tile
+    // FIXME: Blank Screen Buffer: Screen File = 16463
     memcpy(&MEM[24144], BACKGROUND, sizeof(BACKGROUND));
 
     // LD HL,28751             // Point HL at (2,15) in the screen buffer at 28672
+    // FIXME: Blank Screen Buffer: Screen File = 22608
     addr = 28751;
     // LD B,8                  // Clear the cells at (2,15) and (2,16), removing the
     // KONGBEAST_3:
@@ -3661,6 +3753,7 @@ bool KONGBEAST_8() {
   // LD HL,24591             // Draw the Kong Beast at (0,15) in the screen buffer
   // LD C,1                  // at 24576
   // CALL DRWFIX
+  // FIXME: Screen Buffer: Screen File = 16399
   bool kill_willy = DRWFIX(&GGDATA[sprite_id], 24591, 1);
 
   // JP NZ,KILLWILLY_0       // Kill Willy if he collided with the Kong Beast
@@ -3673,8 +3766,10 @@ bool KONGBEAST_8() {
   // LD (23600),A            // buffer at 23552
   // LD (23567),A
   // LD (23568),A
+  // FIXME: Screen Buffer: Screen File = 22575
   MEM[23599] = 68;
   MEM[23600] = 68;
+  // FIXME: Screen Buffer: Screen File = 22543
   MEM[23567] = 68;
   MEM[23568] = 68;
 
@@ -3899,8 +3994,9 @@ void DRAWWILLY() {
     // LD H,(IX+1)             // that corresponds to where we are going to draw the
     split_address(regIX, &h, &l);
     // OR C                    // next pixel row of the sprite graphic
+    l |= lsb;
     // LD L,A
-    addr = build_address(h, lsb);
+    addr = build_address(h, l);
 
     // LD A,(DE)               // Pick up a sprite graphic byte
     // OR (HL)                 // Merge it with the background
@@ -4187,8 +4283,8 @@ void tick() {
   }
   redraw_screen();
 
-//  millisleep(25);
-  millisleep(10); // FIXME: speed up game for testing
+  millisleep(25);
+//  millisleep(10); // FIXME: speed up game for testing
   return;
 
   clock_t last_tick = clock();
