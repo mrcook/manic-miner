@@ -169,7 +169,7 @@ int main(void) {
     // XOR A
     // LD (EUGHGT),A
     for (EUGHGT = 0; DEMO > 0 && EUGHGT < 224; EUGHGT++) {
-//      continue; // FIXME: disable title screen to speed up testing rest of game
+     continue; // FIXME: disable title screen to speed up testing rest of game
 
       // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
 
@@ -395,7 +395,7 @@ NEWSHT:
     // LD DE,23552             // (the attributes for the empty cavern) into the
     // LD BC,512               // attribute buffer at 23552
     // LDIR
-    // FIXME: no need to copy buffers
+    // FIXME: all good, uses the Display File
     for (int i = 0; i < 512; i++) {
       MEM[23552 + i] = MEM[24064 + i];
     }
@@ -404,7 +404,7 @@ NEWSHT:
     // LD DE,24576             // (the tiles for the empty cavern) into the screen
     // LD BC,4096              // buffer at 24576
     // LDIR
-    // FIXME: no need to copy buffers
+    // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
       MEM[24576 + i] = MEM[28672 + i];
     }
@@ -419,9 +419,9 @@ NEWSHT:
     // OR A                    // Are we in demo mode?
     // CALL Z,WILLYATTRS       // If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
     if (DEMO == 0) {
-      if (MOVEWILLY()) {
-        goto LOOP_4; // Willy has died!
-      }
+       if (MOVEWILLY()) {
+         goto LOOP_4; // Willy has died!
+       }
       if (WILLYATTRS()) {
         goto LOOP_4; // Willy has died!
       }
@@ -499,7 +499,7 @@ LOOP_4:
     // LD DE,16384
     // LD BC,4096
     // LDIR
-    // FIXME: no need to copy buffers
+    // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
       MEM[16384 + i] = MEM[24576 + i];
     }
@@ -536,7 +536,7 @@ LOOP_4:
     // LD DE,22528             // to the attribute file
     // LD BC,512
     // LDIR
-    // FIXME: no need to copy buffers
+    // FIXME: all good, uses the Display File
     for (int i = 0; i < 512; i++) {
       MEM[22528 + i] = MEM[23552 + i];
     }
@@ -1318,7 +1318,7 @@ bool MOVEWILLY() {
     // INC HL                  // Point HL at the top-right cell occupied by Willy's sprite
     // CP (HL)                 // Is the top-right cell of Willy's sprite overlapping a wall tile?
     // JP Z,MOVEWILLY_10       // Jump if so
-    if ( memcmp(&MEM[PIXEL_Y], WALL, sizeof(WALL)) == 0 || memcmp(&MEM[PIXEL_Y + 1], WALL, sizeof(WALL)) == 0 ) {
+    if ( memcmp(&MEM[PIXEL_Y/2], WALL, sizeof(WALL)) == 0 || memcmp(&MEM[(PIXEL_Y/2) + 1], WALL, sizeof(WALL)) == 0 ) {
       MOVEWILLY_10();
       return false;
     }
@@ -3964,7 +3964,7 @@ void DRAWWILLY() {
   // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   // LD IXh,131              // Point IX at the entry in the screen buffer address
   // LD IXl,A                // lookup table at SBUFADDRS that corresponds to Willy's y-coordinate
-  uint16_t regIX = SBUFADDRS[PIXEL_Y];
+  uint8_t pixy = (uint8_t)(PIXEL_Y/2);
 
   // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
   // AND 1                   // Now E=0 if Willy is facing right, or 128 if he's
@@ -3992,11 +3992,10 @@ void DRAWWILLY() {
   for (int i = 16; i > 0; i--) {
     // LD A,(IX+0)             // Set HL to the address in the screen buffer at 24576
     // LD H,(IX+1)             // that corresponds to where we are going to draw the
-    split_address(regIX, &h, &l);
+    split_address(SBUFADDRS[pixy], &h, &l);
     // OR C                    // next pixel row of the sprite graphic
-    l |= lsb;
     // LD L,A
-    addr = build_address(h, l);
+    addr = build_address(h, l|lsb);
 
     // LD A,(DE)               // Pick up a sprite graphic byte
     // OR (HL)                 // Merge it with the background
@@ -4015,7 +4014,7 @@ void DRAWWILLY() {
 
     // INC IX                  // Point IX at the next entry in the screen buffer
     // INC IX                  // address lookup table at SBUFADDRS
-    regIX += 2;
+    pixy += 1;
 
     // INC DE                  // Point DE at the next sprite graphic byte
     frame++;
