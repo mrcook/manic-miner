@@ -2282,7 +2282,7 @@ bool DRAWHG() {
 
     // OR A                    // Is this guardian definition blank?
     // JR Z,DRAWHG_2           // If so, skip it and consider the next one
-    if (guardian[0] == 0 && guardian[1] == 0 && guardian[2] == 0 && guardian[3] == 0 && guardian[4] == 0 && guardian[5] == 0) {
+    if (guardian[1] == 0) {
       continue;
     }
 
@@ -2293,7 +2293,6 @@ bool DRAWHG() {
     addr = guardian[1];
 
     uint8_t attr = (uint8_t)guardian[0];
-
     // AND 127                 // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
     attr &= 127;
     // LD (HL),A               // Set the attribute bytes for the guardian in the
@@ -2331,8 +2330,6 @@ bool DRAWHG() {
     // CP 15                   // Are we in The Sixteenth Cavern?
     // JR Z,DRAWHG_1           // Jump if so
     if (SHEET == 7 || SHEET == 9 || SHEET == 15) {
-      // jump to DRAWHG_1
-    } else {
       // SET 7,E                 // Add 128 to E (the horizontal guardians in this cavern use frames 4-7 only)
       anim_frame |= (1 << 7);
     }
