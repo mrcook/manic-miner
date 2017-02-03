@@ -169,8 +169,6 @@ int main(void) {
     // XOR A
     // LD (EUGHGT),A
     for (EUGHGT = 0; DEMO > 0 && EUGHGT < 224; EUGHGT++) {
-     continue; // FIXME: disable title screen to speed up testing rest of game
-
       // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
 
       // Print 32 characters of the message at 20576 (19,0)
@@ -209,7 +207,7 @@ int main(void) {
       //   DJNZ START_3
       //   DEC C
       //   JR NZ,START_3
-      millisleep(55);
+      millisleep(72);
 
       // Is ENTER being pressed? If so, start the game
       // LD BC,49150             // Read keys H-J-K-L-ENTER
@@ -4279,8 +4277,7 @@ void tick() {
   }
   redraw_screen();
 
-  millisleep(25);
-//  millisleep(10); // FIXME: speed up game for testing
+  millisleep(29);
   return;
 
   clock_t last_tick = clock();
