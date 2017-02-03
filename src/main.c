@@ -946,11 +946,12 @@ void ENDGAM() {
 
   redraw_screen();
 
+  uint8_t msb, lsb;
   uint16_t addr;
 
   // The following loop draws the boot's descent onto the plinth that supports Willy.
   // LOOPFT:
-  for (EUGHGT = 0; EUGHGT < 196; EUGHGT += 4) {
+  for (EUGHGT = 0; EUGHGT < 98; EUGHGT += 4) {
     // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
     // LD C,A                  // Point BC at the corresponding entry in the screen
     // LD B,131                // buffer address lookup table at SBUFADDRS
@@ -961,38 +962,38 @@ void ENDGAM() {
     // LD A,(BC)
     // SUB 32
     // LD H,A
-    addr = (uint16_t)(SBUFADDRS[EUGHGT] + 15); // center of screen
+    split_address(SBUFADDRS[EUGHGT], &msb, &lsb);
+    addr = build_address(msb-32, lsb|15); // center of screen
 
     // LD DE,BOOT              // Draw the boot (see BOOT) at this location, without
     // LD C,0                  // erasing the boot at the previous location; this
     // CALL DRWFIX             // leaves the portion of the boot sprite that's above the ankle in place, and makes the boot appear as if it's at the end of a long, extending trouser leg
-    DRWFIX(&BOOT, MEM[addr], 0);
+    DRWFIX(&BOOT, addr, 0);
 
     // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
     // CPL                     // A=255-A
     uint8_t distance = (uint8_t)(255 - EUGHGT);
 
-//    // LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
-//    uint8_t pitch = distance;
-//    // XOR A                   // A=0 (black border)
-//    uint8_t border = 0;
-//    // LD BC,64                // C=64; this value determines the duration of the sound effect
-//
-//    // TM111:
-//    for (int i = 0; i < 64; i++) {
-//      // OUT(254), A             // Produce a short note whose pitch is determined by E
-//      OUT(border);
-//      // XOR 24
-//      border ^= 24;
-//
-//      // LD B, E
-//      // TM112:
-//      // DJNZ TM112
-//      millisleep(pitch);
-//
-//      // DEC C
-//      // JR NZ, TM111
-//    }
+    // LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
+    // XOR A                   // A=0 (black border)
+    uint8_t border = 0;
+    // LD BC,64                // C=64; this value determines the duration of the sound effect
+
+    // TM111:
+    for (int i = 0; i < 64; i++) {
+      // OUT(254), A             // Produce a short note whose pitch is determined by E
+      OUT(border);
+      // XOR 24
+      border ^= 24;
+
+      // LD B, E
+      // TM112:
+      // DJNZ TM112
+      millisleep(distance/216);
+
+      // DEC C
+      // JR NZ, TM111
+    }
 
     // LD HL,22528             // Prepare BC, DE and HL for setting the attribute
     // LD DE,22529             // bytes in the top two-thirds of the screen
@@ -1009,7 +1010,6 @@ void ENDGAM() {
     for (int i = 0; i < 512; i++) {
       MEM[22528 + i] = distance;
     }
-    redraw_screen();
 
     // LD A,(EUGHGT)           // Add 4 to the distance variable at EUGHGT; this will
     // ADD A,4                 // move the boot sprite down two pixel rows
@@ -1026,14 +1026,14 @@ void ENDGAM() {
   // LD C,4
   // LD DE,16586
   // CALL PMESS
-  DRWFIX(&MESSG, 16586, 4);
+  PMESS(&MESSG, 16586, 4);
 
   // Print "Over" (see MESSO) at (6,18)
   // LD IX,MESSO
   // LD C,4
   // LD DE,16594
   // CALL PMESS
-  DRWFIX(&MESSO, 16594, 4);
+  PMESS(&MESSO, 16594, 4);
 
   // LD BC,0                 // Prepare the delay counters for the following loop;
   // LD D,6                  // the counter in C will also determine the INK colours to use for the "Game Over" message
