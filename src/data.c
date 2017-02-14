@@ -36,6 +36,7 @@ uint8_t WILLYDATA[256] = {  // combined MANDAT, WILLYR2, WILLYR3
     0,96,0,124,0,62,0,44,0,124,0,60,0,24,0,60,
     0,126,0,126,0,239,0,223,0,60,0,110,0,118,0,238,
 };
+
 uint8_t MANDAT[64] = {
   6,0,62,0,124,0,52,0,62,0,60,0,24,0,60,0,
   126,0,126,0,247,0,251,0,60,0,118,0,110,0,119,0,
@@ -199,25 +200,24 @@ uint16_t SBUFADDRS[128] = {
 
 
 // IMPORTANT: Using GCC `0b` extension for these binary numbers
-//            I've also create an array of 16...is this correct? -MRC-
+
 // 6031769
 //
 // Used by the routine at LOOP. In each pair of bytes here, bits 0-4 of the
 // first byte correspond to keys 1-2-3-4-5, and bits 0-4 of the second byte
 // correspond to keys 0-9-8-7-6; among those bits, a zero indicates a key being
 // pressed.
-int CHEATDT[16] = {
-  0b00011111,0b00011111, // (no keys pressed)
-  0b00011111,0b00001111, // 6
-  0b00011111,0b00011110, // 0
-  0b00011011,0b00011111, // 3
-  0b00011110,0b00011111, // 1
-  0b00011111,0b00010111, // 7
-  0b00011111,0b00001111, // 6
-  0b00011111,0b00011101, // 9
-};
-
-
+// int CHEATDT[16] = {
+//   0b00011111,0b00011111, // (no keys pressed)
+//   0b00011111,0b00001111, // 6
+//   0b00011111,0b00011110, // 0
+//   0b00011011,0b00011111, // 3
+//   0b00011110,0b00011111, // 1
+//   0b00011111,0b00010111, // 7
+//   0b00011111,0b00001111, // 6
+//   0b00011111,0b00011101, // 9
+// };
+int CHEATDT = {6, 0, 3, 1, 7, 6, 9};
 
 // Title screen tune data (The Blue Danube)
 //
