@@ -217,7 +217,7 @@ uint16_t SBUFADDRS[128] = {
 //   0b00011111,0b00001111, // 6
 //   0b00011111,0b00011101, // 9
 // };
-int CHEATDT = {6, 0, 3, 1, 7, 6, 9};
+int CHEATDT[7] = {6, 0, 3, 1, 7, 6, 9};
 
 // Title screen tune data (The Blue Danube)
 //

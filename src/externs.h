@@ -74,7 +74,7 @@ extern uint8_t WILLYR2[32];
 extern uint8_t WILLYR3[160];
 extern uint16_t SBUFADDRS[128];
 
-extern int CHEATDT[16];
+extern int CHEATDT[7];
 
 extern uint8_t THEMETUNE[95][3];
 extern uint8_t GAMETUNE[64];
