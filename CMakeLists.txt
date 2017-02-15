@@ -18,7 +18,7 @@ set(SOURCE_FILES
         src/helpers.c
         src/globals.c
         src/character_set.c
-        src/data.c)
+        src/data.c src/willy.h src/tile.h src/portal.h src/item.h src/guardian_vertical.h src/guardian_horizontal.h src/conveyor.h src/cavern.h src/colour.h src/terminal.h src/coord.h src/terminal.c)
 
 add_executable(manic_miner ${SOURCE_FILES})
 
