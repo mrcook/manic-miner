@@ -43,4 +43,4 @@ typedef struct Willy_ {
     uint8_t JUMPING;
 } Willy;
 
-void initializeWilly();
+void Willy_initialize();

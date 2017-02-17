@@ -1,9 +1,8 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
 
 #include "externs.h"
-#include "willy.h"
 
-void initializeWilly() {
+void Willy_initialize() {
     willy.NOMEN = 2;
     willy.PIXEL_Y = 208;
     willy.FRAME = 0;

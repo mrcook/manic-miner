@@ -41,7 +41,7 @@ clock_t current_time;
 
 
 int main(void) {
-  initializeWilly();
+    Willy_initialize();
 
   initialize_curses();
 
@@ -2800,17 +2800,15 @@ void DRAWITEMS() {
     // CP 255                  // Have we dealt with all the items yet?
     // JR Z,DRAWITEMS_3        // Jump if so
 
-    uint16_t *item = ITEMS[i];
-
     // OR A                    // Has this item already been collected?
     // JR Z,DRAWITEMS_2        // If so, skip it and consider the next one
-    if (item[0] == 0) {
+    if (ITEMS[i].attribute == 0) {
       continue;
     }
 
     // LD E,(IY+1)             // Point DE at the address of the item's location in
     // LD D,(IY+2)             // the attribute buffer at 23552
-    addr = item[1];
+    addr = ITEMS[i].address;
 
     // LD A,(DE)               // Pick up the current attribute byte at the item's location
     // AND 7                   // Is the INK white (which happens if Willy is
@@ -2824,7 +2822,7 @@ void DRAWITEMS() {
       INCSCORE_0(33836);
 
       // LD (IY+0),0             // Set the item's attribute byte to 0 so that it will be skipped the next time
-      item[0] = 0;
+        ITEMS[i].attribute = 0;
       // JR DRAWITEMS_2          // Jump forward to consider the next item
     } else {
       // This item has not been collected yet.
@@ -2833,13 +2831,13 @@ void DRAWITEMS() {
       // AND 248                 // Keep the BRIGHT and PAPER bits, and set the INK to
       // OR 3                    // 3 (magenta)
       // LD B,A                  // Store this value in B
-      uint8_t attribute = (uint8_t)((item[0] & 248) | 3);
+      uint8_t attribute = (uint8_t)((ITEMS[i].attribute & 248) | 3);
       // LD A,(IY+0)             // Pick up the item's current attribute byte again
       // AND 3                   // Keep only bits 0 and 1 and add the value in B; this
       // ADD A,B                 // maintains the BRIGHT and PAPER bits, and cycles the INK colour through 3, 4, 5 and 6
-      attribute += (item[0] & 3);
+      attribute += (ITEMS[i].attribute & 3);
       // LD (IY+0),A             // Store the new attribute byte
-      item[0] = attribute;
+        ITEMS[i].attribute = attribute;
 
       // LD (DE),A               // Update the attribute byte at the item's location in the buffer at 23552
       MEM[addr] = attribute;
@@ -2849,12 +2847,12 @@ void DRAWITEMS() {
 
       // LD D,(IY+3)             // Point DE at the address of the item's location in the screen buffer at 24576
       split_address(addr, &msb, &lsb);
-      msb = (uint8_t)item[2];
+      msb = (uint8_t)ITEMS[i].addressMSB;
       addr = build_address(msb, lsb);
       // LD HL,ITEM              // Point HL at the item graphic for the current cavern (at ITEM)
       // LD B,8                  // There are eight pixel rows to copy
       // CALL PRINTCHAR_0        // Draw the item to the screen buffer at 24576
-      PRINTCHAR_0(&ITEM, addr, 8);
+      PRINTCHAR_0(ITEMS[i].tile, addr, 8);
     }
 
     // The current item definition has been dealt with. Time for the next one.

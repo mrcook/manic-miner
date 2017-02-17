@@ -2,13 +2,15 @@
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
 #include "headers.h"
+
+#include "item.h"
 #include "willy.h"
 
 // Setup all game objects
 //Cavern cavern;
 //GuardianHorizontal HGUARDS[4];
 //GuardianVertical VGUARDS[4];
-//Item ITEMS[5];
+Item ITEMS[5];
 Willy willy;
 
 // Cavern name
@@ -54,29 +56,6 @@ uint8_t BORDER;
 // last item drawn, or 0 if all the items have been collected.
 uint8_t ITEMATTR;
 
-// Item definitions
-//
-// The item definitions are copied here by the routine at STARTGAME, and then
-// used by the routine at DRAWITEMS. An item definition contains the following
-// information:
-//
-// +---------+-----------------------------------------------------------------+
-// | Byte(s) | Contents                                                        |
-// +---------+-----------------------------------------------------------------+
-// | 0       | Current attribute                                               |
-// | 1,2     | Address of the item's location in the attribute buffer at 23552 |
-// | 3       | MSB of the address of the item's location in the screen buffer  |
-// |         | at 24576                                                        |
-// | 4       | Unused (always 255)                                             |
-// +---------+-----------------------------------------------------------------+
-uint16_t ITEMS[5][5];
-// DEFS 5                  // Item 1
-// DEFS 5                  // Item 2
-// DEFS 5                  // Item 3
-// DEFS 5                  // Item 4
-// DEFS 5                  // Item 5
-// DEFB 0                  // Terminator (set to 255)
-
 // Portal definition
 //
 // The portal definition is copied here by the routine at STARTGAME.
@@ -84,12 +63,6 @@ uint8_t PORTAL;      // Attribute byte (used by the routines at DRAWITEMS and CH
 uint8_t PORTALG[32]; // Graphic data (used by the routine at CHKPORTAL)
 uint16_t PORTALLOC1; // Address of the portal's location in the attribute buffer at 23552 (used by the routine at CHKPORTAL)
 uint16_t PORTALLOC2; // Address of the portal's location in the screen buffer at 24576 (used by the routine at CHKPORTAL)
-
-// Item graphic
-//
-// The item graphic is copied here by the routine at STARTGAME, and then used by
-// the routine at DRAWITEMS.
-uint8_t ITEM[8];
 
 // Remaining air supply
 //

@@ -852,19 +852,25 @@ void initialize_cavern0() {
       // Item 5 at (6,30)
       { 3, 23774, 96, 255 },
   };
+  uint8_t newITEM[8] = {48,72,136,144,104,4,10,4}; // Item graphic data
+
   for (int i = 0; i < 5; i++) {
-    ITEMS[i][0] = newITEMS[i][0];
+    ITEMS[i].attribute  = (uint8_t)newITEMS[i][0];
+    ITEMS[i].address    = newITEMS[i][1];
+    ITEMS[i].addressMSB = (uint8_t)newITEMS[i][2];
+    for (int j = 0; j < 8; j++) {
+        ITEMS[i].tile[j] = newITEM[j];
+    }
+
+    // Add items to the buffer memory
     MEM[addr++] = (uint8_t)newITEMS[i][0];
 
     // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
-    ITEMS[i][1] = newITEMS[i][1];
     split_address(newITEMS[i][1], &msb, &lsb);
     MEM[addr++] = msb;
     MEM[addr++] = lsb;
 
-    ITEMS[i][2] = newITEMS[i][2];
     MEM[addr++] = (uint8_t)newITEMS[i][2];
-    ITEMS[i][3] = newITEMS[i][3];
     MEM[addr++] = (uint8_t)newITEMS[i][3];
   }
   // DEFB 255               // Terminator
@@ -896,10 +902,9 @@ void initialize_cavern0() {
   MEM[addr++] = lsb;
 
 
+  // IMPORTANT: moved newITEM[8] above next to newITEMS as it's needed there too!
   // The next eight bytes are copied to ITEM and define the item graphic.
-  uint8_t newITEM[8] = {48,72,136,144,104,4,10,4}; // Item graphic data
   for (int i = 0; i < 8; i++) {
-    ITEM[i] = newITEM[i];
     MEM[addr++] = newITEM[i];
   }
 
