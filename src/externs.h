@@ -4,12 +4,15 @@
 // globals.c
 
 #include "item.h"
+#include "portal.h"
 #include "willy.h"
 
 // Setup all game objects
 //extern Cavern cavern;
 //extern GuardianHorizontal HGUARDS[4];
 //extern GuardianVertical VGUARDS[4];
+
+extern Portal portal;
 extern Item ITEMS[5];
 extern Willy willy;
 
@@ -34,10 +37,6 @@ extern uint16_t CONVLOC;
 extern uint8_t CONVLEN;
 extern uint8_t BORDER;
 extern uint8_t ITEMATTR;
-extern uint8_t PORTAL;
-extern uint8_t PORTALG[32];
-extern uint16_t PORTALLOC1;
-extern uint16_t PORTALLOC2;
 extern uint8_t AIR;
 extern uint8_t CLOCK;
 extern uint8_t EUGDIR;

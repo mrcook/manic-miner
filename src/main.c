@@ -2876,7 +2876,7 @@ void DRAWITEMS() {
 
   // LD HL,PORTAL            // Ensure that the portal is flashing by setting bit 7
   // SET 7,(HL)              // of its attribute byte at PORTAL
-  PORTAL |= (1 << 7);
+  portal.PORTAL |= (1 << 7);
 
   // RET
 }
@@ -2891,7 +2891,7 @@ bool CHKPORTAL() {
   uint8_t w_msb, w_lsb;
 
   // LD HL,(PORTALLOC1)      // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
-  uint16_t addr = PORTALLOC1;
+  uint16_t addr = portal.PORTALLOC1;
   split_address(addr, &msb, &lsb);
 
   // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
@@ -2908,7 +2908,7 @@ bool CHKPORTAL() {
       // LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
       // BIT 7,A                 // Is the portal flashing?
       // JR Z,CHKPORTAL_0        // Jump if not
-      if (((PORTAL >> 7) & 1) == 1) {
+      if (((portal.PORTAL >> 7) & 1) == 1) {
         // POP HL                  // Drop the return address from the stack
         // JP NXSHEET              // Move Willy to the next cavern
 
@@ -2923,25 +2923,25 @@ bool CHKPORTAL() {
   // CHKPORTAL_0:
   // LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
   // LD (HL),A               // Set the attribute bytes for the portal in the
-  MEM[addr] = PORTAL;
+  MEM[addr] = portal.PORTAL;
   // INC HL                  // buffer at 23552
   addr++;
   // LD (HL),A
-  MEM[addr] = PORTAL;
+  MEM[addr] = portal.PORTAL;
   // LD DE,31
   // ADD HL,DE
   addr += 31;
   // LD (HL),A
-  MEM[addr] = PORTAL;
+  MEM[addr] = portal.PORTAL;
   // INC HL
   addr++;
   // LD (HL),A
-  MEM[addr] = PORTAL;
+  MEM[addr] = portal.PORTAL;
 
   // LD DE,PORTALG           // Point DE at the graphic data for the portal at PORTALG
   // LD HL,(PORTALLOC2)      // Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2
   // LD C,0                  // C=0: overwrite mode
-  DRWFIX(&PORTALG, PORTALLOC2, 0);
+  DRWFIX(&portal.PORTALG, portal.PORTALLOC2, 0);
   // This routine continues into the one at DRWFIX.
 
   return false; // NOTE: callers should not `goto NEWSHT`.

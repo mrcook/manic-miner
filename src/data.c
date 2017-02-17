@@ -877,8 +877,8 @@ void initialize_cavern0() {
   MEM[addr++] = 255;
 
   // The next 37 bytes are copied to PORTAL and define the portal graphic and its location.
-  PORTAL = 14;              // Attribute
-  MEM[addr++] = PORTAL;
+  portal.PORTAL = 14;              // Attribute
+  MEM[addr++] = portal.PORTAL;
 
   uint8_t newPORTALG[32] = {           // Graphic data
       255,255,146,73,182,219,255,255,
@@ -887,17 +887,17 @@ void initialize_cavern0() {
       255,255,146,73,182,219,255,255,
   };
   for (int i = 0; i < 32; i++) {
-    PORTALG[i] = newPORTALG[i];
+    portal.PORTALG[i] = newPORTALG[i];
     MEM[addr++] = newPORTALG[i];
   }
 
   // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
-  PORTALLOC1 = 23997;       // Location in the attribute buffer at 23552: (13,29)
-  PORTALLOC2 = 26813;       // Location in the screen buffer at 24576: (13,29)
-  split_address(PORTALLOC1, &msb, &lsb);
+  portal.PORTALLOC1 = 23997;       // Location in the attribute buffer at 23552: (13,29)
+  portal.PORTALLOC2 = 26813;       // Location in the screen buffer at 24576: (13,29)
+  split_address(portal.PORTALLOC1, &msb, &lsb);
   MEM[addr++] = msb;
   MEM[addr++] = lsb;
-  split_address(PORTALLOC2, &msb, &lsb);
+  split_address(portal.PORTALLOC2, &msb, &lsb);
   MEM[addr++] = msb;
   MEM[addr++] = lsb;
 

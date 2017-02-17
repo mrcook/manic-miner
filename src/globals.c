@@ -4,6 +4,7 @@
 #include "headers.h"
 
 #include "item.h"
+#include "portal.h"
 #include "willy.h"
 
 // Setup all game objects
@@ -11,6 +12,7 @@
 //GuardianHorizontal HGUARDS[4];
 //GuardianVertical VGUARDS[4];
 Item ITEMS[5];
+Portal portal;
 Willy willy;
 
 // Cavern name
@@ -55,14 +57,6 @@ uint8_t BORDER;
 // Used by the routines at EUGENE and DRAWITEMS. Holds the attribute byte of the
 // last item drawn, or 0 if all the items have been collected.
 uint8_t ITEMATTR;
-
-// Portal definition
-//
-// The portal definition is copied here by the routine at STARTGAME.
-uint8_t PORTAL;      // Attribute byte (used by the routines at DRAWITEMS and CHKPORTAL)
-uint8_t PORTALG[32]; // Graphic data (used by the routine at CHKPORTAL)
-uint16_t PORTALLOC1; // Address of the portal's location in the attribute buffer at 23552 (used by the routine at CHKPORTAL)
-uint16_t PORTALLOC2; // Address of the portal's location in the screen buffer at 24576 (used by the routine at CHKPORTAL)
 
 // Remaining air supply
 //
