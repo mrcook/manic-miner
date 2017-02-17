@@ -13,12 +13,25 @@ set(SOURCE_FILES
         src/headers.h
         src/externs.h
         src/io.c
-        src/main.c
         src/emulator.c
         src/helpers.c
         src/globals.c
         src/character_set.c
-        src/data.c src/willy.h src/tile.h src/portal.h src/item.h src/guardian_vertical.h src/guardian_horizontal.h src/conveyor.h src/cavern.h src/colour.h src/terminal.h src/coord.h src/terminal.c src/willy.c)
+        src/data.c
+        src/terminal.h
+        src/terminal.c
+        src/conveyor.h
+        src/cavern.h
+        src/colour.h
+        src/coord.h
+        src/guardian_horizontal.h
+        src/guardian_vertical.h
+        src/item.h
+        src/portal.h
+        src/tile.h
+        src/willy.h
+        src/willy.c
+        src/main.c)
 
 add_executable(manic_miner ${SOURCE_FILES})
 
