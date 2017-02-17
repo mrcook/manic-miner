@@ -6,6 +6,6 @@
 
 typedef struct Colour_ {
     bool BRIGHT;
-    uint8_t PAPER
+    uint8_t PAPER;
     uint8_t INK;
 } Colour;

@@ -791,26 +791,26 @@ void initialize_cavern0() {
 
   // The next seven bytes are copied to 32872-32878 and specify Miner Willy's
   // initial location and appearance in the cavern.
-  PIXEL_Y  = 208;           // Pixel y-coordinate * 2 (see PIXEL_Y)
-  MEM[addr++] = PIXEL_Y;
+  willy.PIXEL_Y  = 208;           // Pixel y-coordinate * 2 (see PIXEL_Y)
+  MEM[addr++] = willy.PIXEL_Y;
 
-  FRAME    = 0;             // Animation frame (see FRAME)
-  MEM[addr++] = FRAME;
+  willy.FRAME    = 0;             // Animation frame (see FRAME)
+  MEM[addr++] = willy.FRAME;
 
-  DMFLAGS  = 0;             // Direction and movement flags: facing right (see DMFLAGS)
-  MEM[addr++] = DMFLAGS;
+  willy.DMFLAGS  = 0;             // Direction and movement flags: facing right (see DMFLAGS)
+  MEM[addr++] = willy.DMFLAGS;
 
-  AIRBORNE = 0;             // Airborne status indicator (see AIRBORNE)
-  MEM[addr++] = AIRBORNE;
+  willy.AIRBORNE = 0;             // Airborne status indicator (see AIRBORNE)
+  MEM[addr++] = willy.AIRBORNE;
 
   // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
-  LOCATION = 23970;         // Location in the attribute buffer at 23552: (13,2) (see LOCATION)
-  split_address(LOCATION, &msb, &lsb);
+  willy.LOCATION = 23970;         // Location in the attribute buffer at 23552: (13,2) (see LOCATION)
+  split_address(willy.LOCATION, &msb, &lsb);
   MEM[addr++] = msb;
   MEM[addr++] = lsb;
 
-  JUMPING  = 0;             // Jumping animation counter (see JUMPING)
-  MEM[addr++] = JUMPING;
+  willy.JUMPING  = 0;             // Jumping animation counter (see JUMPING)
+  MEM[addr++] = willy.JUMPING;
 
   // The next four bytes are copied to CONVDIR and specify the direction, location
   // and length of the conveyor.

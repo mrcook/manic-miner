@@ -2,6 +2,14 @@
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
 #include "headers.h"
+#include "willy.h"
+
+// Setup all game objects
+//Cavern cavern;
+//GuardianHorizontal HGUARDS[4];
+//GuardianVertical VGUARDS[4];
+//Item ITEMS[5];
+Willy willy;
 
 // Cavern name
 //
@@ -26,66 +34,6 @@ uint8_t CONVEYOR[9];   // Conveyor tile (also used by the routine at MOVEWILLY2)
 uint8_t NASTY1[9];     // Nasty tile 1 (also used by the routines at MOVEWILLY and WILLYATTR)
 uint8_t NASTY2[9];     // Nasty tile 2 (also used by the routines at MOVEWILLY and WILLYATTR)
 uint8_t EXTRA[9];      // Extra tile (also used by the routine at CHKSWITCH)
-
-// Willy's pixel y-coordinate (x2)
-//
-// Initialised by the routine at STARTGAME, and used by the routines at
-// MOVEWILLY, MOVEWILLY2, WILLYATTRS and DRAWWILLY. Holds the LSB of the address
-// of the entry in the screen buffer address lookup table at SBUFADDRS that
-// corresponds to Willy's pixel y-coordinate; in practice, this is twice Willy's
-// actual pixel y-coordinate.
-uint8_t PIXEL_Y;
-
-// Willy's animation frame
-//
-// Initialised upon entry to a cavern or after losing a life by the routine at
-// STARTGAME, used by the routine at DRAWWILLY, and updated by the routine at
-// MOVEWILLY2. Possible values are 0, 1, 2 and 3.
-uint8_t FRAME;
-
-// Willy's direction and movement flags
-//
-// Initialised by the routine at STARTGAME.
-//
-// +--------+-----------------------------------------+-----------------------+
-// | Bit(s) | Meaning                                 | Used by               |
-// +--------+-----------------------------------------+-----------------------+
-// | 0      | Direction Willy is facing (reset=right, | MOVEWILLY2, DRAWWILLY |
-// |        | set=left)                               |                       |
-// | 1      | Willy's movement flag (set=moving)      | MOVEWILLY, MOVEWILLY2 |
-// | 2-7    | Unused (always reset)                   |                       |
-// +--------+-----------------------------------------+-----------------------+
-uint8_t DMFLAGS;
-
-// Airborne status indicator
-//
-// Initialised by the routine at STARTGAME, and used by the routines at LOOP,
-// MOVEWILLY, MOVEWILLY2 and KILLWILLY. Possible values are:
-//
-// +-------+---------------------------------------------------------------+
-// | Value | Meaning                                                       |
-// +-------+---------------------------------------------------------------+
-// | 0     | Willy is neither falling nor jumping                          |
-// | 1     | Willy is jumping                                              |
-// | 2-11  | Willy is falling, and can land safely                         |
-// | 12+   | Willy is falling, and has fallen too far to land safely (see  |
-// |       | MOVEWILLY2)                                                   |
-// | 255   | Willy has collided with a nasty or a guardian (see KILLWILLY) |
-// +-------+---------------------------------------------------------------+
-uint8_t AIRBORNE;
-
-// Address of Willy's location in the attribute buffer at 23552
-//
-// Initialised by the routine at STARTGAME, used by the routines at MOVEWILLY,
-// CHKPORTAL, CHKSWITCH, WILLYATTRS and DRAWWILLY, and updated by the routine at
-// MOVEWILLY2.
-uint16_t LOCATION;
-
-// Jumping animation counter
-//
-// Initialised by the routine at STARTGAME, and used by the routines at
-// MOVEWILLY and MOVEWILLY2.
-uint8_t JUMPING;
 
 // Conveyor definition
 //
@@ -265,39 +213,6 @@ uint8_t SWORDFISH[32];
 // DRAWSHEET and DRAWHG, and updated by the routine at NXSHEET.
 uint8_t SHEET;
 
-// Left-right movement table
-//
-// Used by the routine at MOVEWILLY2. The entries in this table are used to map
-// the existing value (V) of Willy's direction and movement flags at DMFLAGS to
-// a new value (V'), depending on the direction Willy is facing and how he is
-// moving or being moved (by 'left' and 'right' keypresses and joystick input,
-// or by a conveyor).
-//
-// One of the first four entries is used when Willy is not moving.
-uint8_t LRMOVEMENT[16] = {
-  0,                  // V=0 (facing right, no movement) + no movement: V'=0 (no change)
-  1,                  // V=1 (facing left, no movement) + no movement: V'=1 (no change)
-  0,                  // V=2 (facing right, moving) + no movement: V'=0 (facing right, no movement) (i.e. stop)
-  1,                  // V=3 (facing left, moving) + no movement: V'=1 (facing left, no movement) (i.e. stop)
-// One of the next four entries is used when Willy is moving left.
-  1,                  // V=0 (facing right, no movement) + move left: V'=1 (facing left, no movement) (i.e. turn around)
-  3,                  // V=1 (facing left, no movement) + move left: V'=3 (facing left, moving)
-  1,                  // V=2 (facing right, moving) + move left: V'=1 (facing left, no movement) (i.e. turn around)
-  3,                  // V=3 (facing left, moving) + move left: V'=3 (no change)
-// One of the next four entries is used when Willy is moving right.
-  2,                  // V=0 (facing right, no movement) + move right: V'=2 (facing right, moving)
-  0,                  // V=1 (facing left, no movement) + move right: V'=0 (facing right, no movement) (i.e. turn around)
-  2,                  // V=2 (facing right, moving) + move right: V'=2 (no change)
-  0,                  // V=3 (facing left, moving) + move right: V'=0 (facing right, no movement) (i.e. turn around)
-// One of the final four entries is used when Willy is being pulled both left
-// and right; each entry leaves the flags at DMFLAGS unchanged (so Willy carries
-// on moving in the direction he's already moving, or remains stationary).
-  0,                  // V=V'=0 (facing right, no movement)
-  1,                  // V=V'=1 (facing left, no movement)
-  2,                  // V=V'=2 (facing right, moving)
-  3,                  // V=V'=3 (facing left, moving)
-};
-
 // 'AIR'
 //
 // Used by the routine at STARTGAME.
@@ -338,12 +253,6 @@ char MESSG[] = "Game";
 //
 // Used by the routine at ENDGAM.
 char MESSO[] = "Over";
-
-// Lives remaining
-//
-// Initialised to 2 by the routine at START, and used and updated by the
-// routines at LOOP and INCSCORE.
-uint8_t NOMEN;
 
 // Screen flash counter
 //

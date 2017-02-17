@@ -41,6 +41,8 @@ clock_t current_time;
 
 
 int main(void) {
+  initializeWilly();
+
   initialize_curses();
 
   // Set initial clock tick value - for calculating FSP.
@@ -75,11 +77,6 @@ int main(void) {
     // Initialise the screen flash counter at FLASH
     // LD (FLASH),A
     FLASH = 0;
-
-    // Initialise the number of lives remaining at NOMEN
-    // LD A,2
-    // LD (NOMEN),A
-    NOMEN = 2;
 
     // Initialise the keypress flag in bit 0 at MUSICFLAGS
     // LD HL,MUSICFLAGS
@@ -602,7 +599,7 @@ LOOP_4:
     // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
     // CP 255                  // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
     // JP Z,MANDEAD            // Jump if so
-    if (AIRBORNE == 255) {
+    if (willy.AIRBORNE == 255) {
       if (MANDEAD()) {
         return false; // goto START, and don't quit!
       } else {
@@ -873,14 +870,14 @@ bool MANDEAD() {
   // OR A
   // JP Z,ENDGAM
   // Are there any lives remaining?
-  if (NOMEN < 1) {
+  if (willy.NOMEN < 1) {
     // If not, display the game over sequence
     ENDGAM();
     return true; // goto START;
   } else {
     // Decrease the number of lives remaining by one
     // DEC (HL)
-    NOMEN--;
+    willy.NOMEN--;
   }
 
   // Jump back to reinitialise the current cavern
@@ -1294,10 +1291,10 @@ bool MOVEWILLY() {
   // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
   // CP 1
   // JR NZ,MOVEWILLY_3       // Jump if not
-  if (AIRBORNE == 1) {
+  if (willy.AIRBORNE == 1) {
     // Willy is currently jumping.
     // LD A,(JUMPING)          // Pick up the jumping animation counter (0-17) from JUMPING
-    uint8_t jump = JUMPING;
+    uint8_t jump = willy.JUMPING;
     // RES 0,A                 // Now -8<=A<=8 (and A is even)
     jump &= ~(1 << 0);
     // SUB 8
@@ -1305,10 +1302,10 @@ bool MOVEWILLY() {
     // LD HL,PIXEL_Y           // Adjust Willy's pixel y-coordinate at PIXEL_Y
     // ADD A,(HL)              // depending on where Willy is in the jump
     // LD (HL),A
-    PIXEL_Y += jump;
+    willy.PIXEL_Y += jump;
 
     // CALL MOVEWILLY_7        // Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate
-    MOVEWILLY_7(PIXEL_Y);
+    MOVEWILLY_7(willy.PIXEL_Y);
 
     // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // CP (HL)                 // Is the top-left cell of Willy's sprite overlapping a wall tile?
@@ -1316,7 +1313,7 @@ bool MOVEWILLY() {
     // INC HL                  // Point HL at the top-right cell occupied by Willy's sprite
     // CP (HL)                 // Is the top-right cell of Willy's sprite overlapping a wall tile?
     // JP Z,MOVEWILLY_10       // Jump if so
-    if ( memcmp(&MEM[PIXEL_Y/2], WALL, sizeof(WALL)) == 0 || memcmp(&MEM[(PIXEL_Y/2) + 1], WALL, sizeof(WALL)) == 0 ) {
+    if ( memcmp(&MEM[willy.PIXEL_Y/2], WALL, sizeof(WALL)) == 0 || memcmp(&MEM[(willy.PIXEL_Y/2) + 1], WALL, sizeof(WALL)) == 0 ) {
       MOVEWILLY_10();
       return false;
     }
@@ -1325,17 +1322,17 @@ bool MOVEWILLY() {
     // LD A,(JUMPING)
     // INC A
     // LD (JUMPING),A
-    JUMPING++;
+    willy.JUMPING++;
 
     // A=J-8, where J (1-18) is the new value of the jumping animation counter
     // SUB 8
     // JP P,MOVEWILLY_0        // Jump if J>=8
     // NEG                     // A=8-J (1<=J<=7, 1<=A<=7)
     uint8_t anim_counter;
-    if (JUMPING < 8) {
-      anim_counter = (uint8_t)(8 - JUMPING);
+    if (willy.JUMPING < 8) {
+      anim_counter = (uint8_t)(8 - willy.JUMPING);
     } else {
-      anim_counter = (uint8_t)(JUMPING - 8);
+      anim_counter = (uint8_t)(willy.JUMPING - 8);
     }
 
     // MOVEWILLY_0:
@@ -1378,12 +1375,12 @@ bool MOVEWILLY() {
     // JR Z,MOVEWILLY_3        // Jump if so
     // CP 13                   // Is the jumping animation counter now 13?
     // JP NZ,MOVEWILLY2_6      // Jump if not
-    if (JUMPING == 18) {
+    if (willy.JUMPING == 18) {
       MOVEWILLY_8();
       return false;
-    } else if (JUMPING == 16) {
+    } else if (willy.JUMPING == 16) {
       // jump to MOVEWILLY_3
-    } else if (JUMPING != 13) {
+    } else if (willy.JUMPING != 13) {
       MOVEWILLY2_6();
       return false;
     }
@@ -1401,11 +1398,11 @@ bool MOVEWILLY() {
   // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   // AND 15                  // Does Willy's sprite occupy six cells at the moment?
   // JR NZ,MOVEWILLY_4       // Jump if so
-  if (PIXEL_Y & 15) {
+  if (willy.PIXEL_Y & 15) {
     // LD HL,(LOCATION)        // Pick up Willy's attribute buffer coordinates from LOCATION
     // LD DE,64                // Point HL at the left-hand cell below Willy's sprite
     // ADD HL,DE
-    addr = (uint16_t)(LOCATION + 64);
+    addr = (uint16_t)(willy.LOCATION + 64);
     // LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
     // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
     // CALL Z,CRUMBLE          // If so, make it crumble
@@ -1462,7 +1459,7 @@ bool MOVEWILLY() {
   // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
   // CP 1                    // Is Willy jumping?
   // JP Z,MOVEWILLY2_6       // Jump if so
-  if (AIRBORNE == 1) {
+  if (willy.AIRBORNE == 1) {
     MOVEWILLY2_6();
     return false;
   }
@@ -1470,25 +1467,25 @@ bool MOVEWILLY() {
   // If we get here, then Willy is either in the process of falling or just about to start falling.
   // LD HL,DMFLAGS           // Reset bit 1 at DMFLAGS: Willy is not moving left or
   // RES 1,(HL)              // right
-  DMFLAGS &= ~(1 << 1);
+  willy.DMFLAGS &= ~(1 << 1);
 
   // OR A                    // Is Willy already falling?
   // JP Z,MOVEWILLY_9        // Jump if not
-  if (AIRBORNE != 1) {
+  if (willy.AIRBORNE != 1) {
     MOVEWILLY_9();
     return false;
   }
 
   // INC A                   // Increment the airborne status indicator at AIRBORNE
   // LD (AIRBORNE),A
-  AIRBORNE++;
+  willy.AIRBORNE++;
 
   // RLCA                    // D=16*A; this value determines the pitch of the
   // RLCA                    // falling sound effect
   // RLCA
   // RLCA
   // LD D,A
-  uint8_t pitch = rotl(AIRBORNE, 4);
+  uint8_t pitch = rotl(willy.AIRBORNE, 4);
 
   // LD C,32                 // C=32; this value determines the duration of the falling sound effect
 
@@ -1514,9 +1511,9 @@ bool MOVEWILLY() {
   // LD A,(PIXEL_Y)          // Add 8 to Willy's pixel y-coordinate at PIXEL_Y;
   // ADD A,8                 // this moves Willy downwards by 4 pixels
   // LD (PIXEL_Y),A
-  PIXEL_Y += 8;
+  willy.PIXEL_Y += 8;
 
-  MOVEWILLY_7(PIXEL_Y); // IMPORTANT: implicit call to this subroutine.
+  MOVEWILLY_7(willy.PIXEL_Y); // IMPORTANT: implicit call to this subroutine.
 
   return false; // FIXME: is this the correct return value?
 }
@@ -1543,13 +1540,13 @@ void MOVEWILLY_7(uint8_t y_coord) {
 
   // LD A,(LOCATION)         // Pick up Willy's screen x-coordinate (1-29) from
   // AND 31                  // bits 0-4 at LOCATION
-  split_address(LOCATION, &x_msb, &x_lsb);
+  split_address(willy.LOCATION, &x_msb, &x_lsb);
   // OR L                    // Now L holds the LSB of Willy's attribute buffer
   // LD L,A                  // address
   x_lsb |= lsb;
 
   // LD (LOCATION),HL        // Store Willy's updated attribute buffer location at LOCATION
-  LOCATION = build_address(msb, x_lsb);
+  willy.LOCATION = build_address(msb, x_lsb);
 
   // RET
 }
@@ -1558,7 +1555,7 @@ void MOVEWILLY_7(uint8_t y_coord) {
 void MOVEWILLY_8() {
   // LD A,6                  // Set the airborne status indicator at AIRBORNE to 6:
   // LD (AIRBORNE),A         // Willy will continue to fall unless he's landed on a wall or floor block
-  AIRBORNE = 6;
+  willy.AIRBORNE = 6;
   // RET
 }
 
@@ -1566,7 +1563,7 @@ void MOVEWILLY_8() {
 void MOVEWILLY_9() {
   // LD A,2                  // Set the airborne status indicator at AIRBORNE to 2
   // LD (AIRBORNE),A
-  AIRBORNE = 2;
+  willy.AIRBORNE = 2;
   // RET
 }
 
@@ -1576,18 +1573,18 @@ void MOVEWILLY_10() {
   // ADD A,16                // that the top row of cells of his sprite is just
   // AND 240                 // below the wall tile
   // LD (PIXEL_Y),A
-  PIXEL_Y = (uint8_t)((PIXEL_Y + 16) & 240);
+  willy.PIXEL_Y = (uint8_t)((willy.PIXEL_Y + 16) & 240);
 
   // CALL MOVEWILLY_7        // Adjust Willy's attribute buffer location at LOCATION to account for this new pixel y-coordinate
-  MOVEWILLY_7(PIXEL_Y);
+  MOVEWILLY_7(willy.PIXEL_Y);
 
   // LD A,2                  // Set the airborne status indicator at AIRBORNE to 2:
   // LD (AIRBORNE),A         // Willy has started falling
-  AIRBORNE = 2;
+  willy.AIRBORNE = 2;
 
   // LD HL,DMFLAGS           // Reset bit 1 at DMFLAGS: Willy is not moving left or
   // RES 1,(HL)              // right
-  DMFLAGS &= ~(1 << 1);
+  willy.DMFLAGS &= ~(1 << 1);
 
   // RET
 }
@@ -1673,7 +1670,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // LD A,(AIRBORNE)         // Pick up the airborne status indicator from AIRBORNE
   // CP 12                   // Has Willy just landed after falling from too great a height?
   // JP NC,KILLWILLY_0       // If so, kill him
-  if (AIRBORNE == 12) {
+  if (willy.AIRBORNE == 12) {
     KILLWILLY_0();
     return true;
   }
@@ -1683,7 +1680,7 @@ bool MOVEWILLY2(uint16_t addr) {
 
   // XOR A                   // Reset the airborne status indicator at AIRBORNE
   // LD (AIRBORNE),A         // (Willy has landed safely)
-  AIRBORNE = 0;
+  willy.AIRBORNE = 0;
 
   // LD A,(CONVEYOR)         // Pick up the attribute byte of the conveyor tile for the current cavern from CONVEYOR
   // CP (HL)                 // Does the attribute byte of the left-hand cell below Willy's sprite match that of the conveyor tile?
@@ -1769,13 +1766,13 @@ bool MOVEWILLY2(uint16_t addr) {
   // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
   // ADD A,C                 // Point HL at the entry in the left-right movement
   // LD C,A                  // table at LRMOVEMENT that corresponds to the
-  movement = DMFLAGS + movement;
+  movement = willy.DMFLAGS + movement;
   // LD B,0                  // direction Willy is facing, and the direction in
   // LD HL,LRMOVEMENT        // which he is being moved or trying to move
   // ADD HL,BC
   // LD A,(HL)               // Update Willy's direction and movement flags at
   // LD (DMFLAGS),A          // DMFLAGS with the entry from the left-right movement table
-  DMFLAGS = LRMOVEMENT[movement];
+  willy.DMFLAGS = LRMOVEMENT[movement];
 
   // That is left-right movement taken care of. Now check the jump keys.
   // LD BC,32510             // Read keys SHIFT-Z-X-C-V and B-N-M-SS-SPACE
@@ -1800,11 +1797,11 @@ bool MOVEWILLY2(uint16_t addr) {
     // MOVEWILLY2_5:
     // XOR A                   // Initialise the jumping animation counter at JUMPING
     // LD (JUMPING),A
-    JUMPING = 0;
+    willy.JUMPING = 0;
 
     // INC A                   // Set the airborne status indicator at AIRBORNE to 1:
     // LD (AIRBORNE),A         // Willy is jumping
-    AIRBORNE = 1;
+    willy.AIRBORNE = 1;
   }
 
   MOVEWILLY2_6(); // IMPORTANT: implicit function call -MRC-
@@ -1816,14 +1813,14 @@ void MOVEWILLY2_6() {
   // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
   // AND 2                   // Is Willy moving?
   // RET Z                   // Return if not
-  if ((DMFLAGS & 2) == 0) {
+  if ((willy.DMFLAGS & 2) == 0) {
     return;
   }
 
   // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
   // AND 1                   // Is Willy facing right? (0 = right, 1 = left)
   // JP Z,MOVEWILLY2_9       // Jump if so
-  if (((DMFLAGS >> 0) & 1) == 0) {
+  if (((willy.DMFLAGS >> 0) & 1) == 0) {
     MOVEWILLY2_9();
     return;
   }
@@ -1832,14 +1829,14 @@ void MOVEWILLY2_6() {
   // LD A,(FRAME)            // Pick up Willy's animation frame from FRAME
   // OR A                    // Is it 0?
   // JR Z,MOVEWILLY2_7       // If so, jump to move Willy's sprite left across a cell boundary
-  if (FRAME == 0) {
+  if (willy.FRAME == 0) {
     MOVEWILLY2_7();
     return;
   }
 
   // DEC A                   // Decrement Willy's animation frame at FRAME
   // LD (FRAME),A
-  FRAME--;
+  willy.FRAME--;
 
   // RET
 }
@@ -1850,7 +1847,7 @@ void MOVEWILLY2_6() {
 void MOVEWILLY2_7() {
   // LD HL,(LOCATION)        // Collect Willy's attribute buffer coordinates from LOCATION
   // DEC HL                  // Point HL at the cell at (x-1,y+1)
-  uint16_t addr = (uint16_t)(LOCATION - 1);
+  uint16_t addr = (uint16_t)(willy.LOCATION - 1);
   // LD DE,32
   // ADD HL,DE
   addr += 32;
@@ -1864,7 +1861,7 @@ void MOVEWILLY2_7() {
   // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   // AND 15                  // Does Willy's sprite currently occupy only two rows of cells?
   // JR Z,MOVEWILLY2_8       // Jump if so
-  if ((PIXEL_Y & 15) != 0) {
+  if ((willy.PIXEL_Y & 15) != 0) {
     // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // ADD HL,DE               // Point HL at the cell at (x-1,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
@@ -1891,11 +1888,11 @@ void MOVEWILLY2_7() {
   }
 
   // LD (LOCATION),HL        // Save Willy's new attribute buffer coordinates (in HL) at LOCATION
-  LOCATION = addr;
+  willy.LOCATION = addr;
 
   // LD A,3                  // Change Willy's animation frame at FRAME from 0 to 3
   // LD (FRAME),A
-  FRAME = 3;
+  willy.FRAME = 3;
 
   // RET
 }
@@ -1905,12 +1902,12 @@ void MOVEWILLY2_9() {
   // LD A,(FRAME)            // Pick up Willy's animation frame from FRAME
   // CP 3                    // Is it 3?
   // JR Z,MOVEWILLY2_10      // If so, jump to move Willy's sprite right across a cell boundary
-  if (FRAME == 3) {
+  if (willy.FRAME == 3) {
     MOVEWILLY2_10();
   } else {
     // INC A                   // Increment Willy's animation frame at FRAME
     // LD (FRAME),A
-    FRAME++;
+    willy.FRAME++;
   }
   // RET
 }
@@ -1922,7 +1919,7 @@ void MOVEWILLY2_10() {
   // LD HL,(LOCATION)        // Collect Willy's attribute buffer coordinates from LOCATION
   // INC HL                  // Point HL at the cell at (x+2,y)
   // INC HL
-  uint16_t addr = LOCATION += 2;
+  uint16_t addr = willy.LOCATION += 2;
 
   // LD DE,32                // Prepare DE for addition
   // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
@@ -1937,7 +1934,7 @@ void MOVEWILLY2_10() {
   // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   // AND 15                  // Does Willy's sprite currently occupy only two rows of cells?
   // JR Z,MOVEWILLY2_11      // Jump if so
-  if ((PIXEL_Y & 15) != 0) {
+  if ((willy.PIXEL_Y & 15) != 0) {
     // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // ADD HL,DE               // Point HL at the cell at (x+2,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
@@ -1963,11 +1960,11 @@ void MOVEWILLY2_10() {
   // DEC HL                  // Point HL at the cell at (x+1,y)
   addr--;
   // LD (LOCATION),HL        // Save Willy's new attribute buffer coordinates (in HL) at LOCATION
-  LOCATION = addr;
+  willy.LOCATION = addr;
 
   // XOR A                   // Change Willy's animation frame at FRAME from 3 to 0
   // LD (FRAME),A
-  FRAME = 0;
+  willy.FRAME = 0;
 
   // RET
 }
@@ -1995,7 +1992,7 @@ bool KILLWILLY_0() {
 bool KILLWILLY_1() {
   // LD A,255                // Set the airborne status indicator at AIRBORNE to
   // LD (AIRBORNE),A         // 255 (meaning Willy has had a fatal accident)
-  AIRBORNE = 255;
+  willy.AIRBORNE = 255;
 
   // JP LOOP_4               // Jump back into the main loop
   return true;
@@ -2900,7 +2897,7 @@ bool CHKPORTAL() {
   split_address(addr, &msb, &lsb);
 
   // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
-  uint16_t w_addr = LOCATION;
+  uint16_t w_addr = willy.LOCATION;
   split_address(w_addr, &w_msb, &w_lsb);
 
   // CP L                    // Does it match that of the portal?
@@ -3364,7 +3361,7 @@ void INCSCORE_0(uint16_t addr) {
     split_address(addr, &msb, &lsb);
     if (lsb == 42) {
       FLASH = 8;
-      NOMEN++;
+      willy.NOMEN++;
     }
   }
 }
@@ -3787,7 +3784,7 @@ bool CHKSWITCH(uint16_t addr) {
   split_address(addr, &sw_msb, &sw_lsb);
 
   // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
-  w_addr = LOCATION;
+  w_addr = willy.LOCATION;
   split_address(w_addr, &msb, &lsb);
   // INC A                   // Is it equal to or one less than the LSB of the
   lsb++;
@@ -3845,7 +3842,7 @@ bool WILLYATTRS() {
   bool kill_willy = false;
 
   // LD HL,(LOCATION)        // Pick up the address of Willy's location in the attribute buffer at 23552 from LOCATION
-  uint16_t addr = LOCATION;
+  uint16_t addr = willy.LOCATION;
 
   // LD DE,31                // Prepare DE for addition
 
@@ -3880,7 +3877,7 @@ bool WILLYATTRS() {
 
   // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   // LD C,A                  // Copy it to C
-  ink = PIXEL_Y;
+  ink = willy.PIXEL_Y;
 
   // ADD HL,DE               // Move HL down a row and back one cell to the left
   addr += 31;
@@ -3959,20 +3956,20 @@ void DRAWWILLY() {
   // LD A,(PIXEL_Y)          // Pick up Willy's pixel y-coordinate from PIXEL_Y
   // LD IXh,131              // Point IX at the entry in the screen buffer address
   // LD IXl,A                // lookup table at SBUFADDRS that corresponds to Willy's y-coordinate
-  uint8_t pixy = (uint8_t)(PIXEL_Y/2);
+  uint8_t pixy = (uint8_t)(willy.PIXEL_Y/2);
 
   // LD A,(DMFLAGS)          // Pick up Willy's direction and movement flags from DMFLAGS
   // AND 1                   // Now E=0 if Willy is facing right, or 128 if he's
   // RRCA                    // facing left
   // LD E,A
-  uint8_t frame = rotr((uint8_t)(DMFLAGS & 1), 1);
+  uint8_t frame = rotr((uint8_t)(willy.DMFLAGS & 1), 1);
   // LD A,(FRAME)            // Pick up Willy's animation frame (0-3) from FRAME
   // AND 3                   // Point DE at the sprite graphic data for Willy's
   // RRCA                    // current animation frame (see MANDAT)
   // RRCA
   // RRCA
   // OR E
-  frame = rotr((uint8_t)(FRAME & 3), 3) | frame;
+  frame = rotr((uint8_t)(willy.FRAME & 3), 3) | frame;
   // LD E,A
   // LD D,130
 
@@ -3981,7 +3978,7 @@ void DRAWWILLY() {
   // LD A,(LOCATION)         // Pick up Willy's screen x-coordinate (0-31) from
   // AND 31                  // LOCATION
   // LD C,A                  // Copy it to C
-  split_address(LOCATION, &msb, &lsb);
+  split_address(willy.LOCATION, &msb, &lsb);
 
   // DRAWWILLY_0:
   for (int i = 16; i > 0; i--) {
@@ -4302,7 +4299,7 @@ void draw_remaining_lives() {
 
   // The following loop draws the remaining lives at the bottom of the screen.
   // LOOP_0:
-  for (int i = 0; i < NOMEN; i++) {
+  for (int i = 0; i < willy.NOMEN; i++) {
     // LD C,0                  // C=0; this tells the sprite-drawing routine at DRWFIX to overwrite any existing graphics
 
     // PUSH HL                 // Save HL and BC briefly
