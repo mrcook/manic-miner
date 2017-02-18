@@ -55,3 +55,5 @@ typedef struct Cavern_ {
     // Attributes that define the layout of the cavern. aka CAVERN0.
     uint8_t layout[512];
 } Cavern;
+
+void Cavern_initialize(void);

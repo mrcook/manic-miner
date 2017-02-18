@@ -315,16 +315,6 @@ uint8_t GAMETUNE[64] = {
 
 
 
-// '...MANIC MINER . . © BUG-BYTE ltd. 1983...'
-//
-// Used by the routine at START.
-char *MESSINTRO =
-  ".  .  .  .  .  .  .  .  .  .  . MANIC MINER . . "
-  "© BUG-BYTE ltd. 1983 . . By Matthew Smith . . . "
-  "Q to P = Left & Right . . Bottom row = Jump . . "
-  "A to G = Pause . . H to L = Tune On/Off . . . "
-  "Guide Miner Willy through 20 lethal caverns"
-  " .  .  .  .  .  .  .  .";
 
 // Attribute data for the bottom two-thirds of the title screen
 //
@@ -842,8 +832,8 @@ void initialize_cavern0() {
   MEM[addr++] = cavern.BORDER;
 
   // The next byte is copied to ITEMATTR, but is not used.
-  ITEMATTR = 0;             // Unused
-  MEM[addr++] = ITEMATTR;
+  game.ITEMATTR = 0;             // Unused
+  MEM[addr++] = game.ITEMATTR;
 
   // The next 25 bytes are copied to ITEMS and specify the location and initial
   // colour of the items in the cavern.

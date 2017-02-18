@@ -5,6 +5,7 @@
 
 #include "cavern.h"
 #include "conveyor.h"
+#include "game.h"
 #include "guardian_horizontal.h"
 #include "guardian_vertical.h"
 #include "item.h"
@@ -12,37 +13,26 @@
 #include "willy.h"
 
 // Setup all game objects
+extern Game game;
 extern Cavern cavern;
 extern GuardianHorizontal HGUARDS[4];
 extern GuardianVertical VGUARDS[4];
 extern Willy willy;
 
-// Original globals
-extern uint8_t ITEMATTR;
+// Text and graphics
 extern uint8_t EUGDIR;
 extern uint8_t EUGHGT;
 extern uint8_t GGDATA[256]; // now only used for Kong Beast
 extern uint8_t SWORDFISH[32];
-
-extern uint8_t LRMOVEMENT[16];
-
 extern char MESSAIR[];
 extern char HGHSCOR[];
 extern char SCORE[];
 extern char SCORBUF[];
 extern char MESSHSSC[];
-extern int highscore;
-extern int current_score;
-
 extern char MESSG[];
 extern char MESSO[];
 
-extern uint8_t FLASH;
-extern uint8_t KEMP;
-extern uint8_t DEMO;
-extern uint8_t NOTEINDEX;
-extern uint8_t MUSICFLAGS;
-extern uint8_t CHEAT;
+extern uint8_t LRMOVEMENT[16];
 
 // character_set.c
 
@@ -57,8 +47,6 @@ extern int CHEATDT[7];
 
 extern uint8_t THEMETUNE[95][3];
 extern uint8_t GAMETUNE[64];
-
-extern char *MESSINTRO;
 
 extern uint8_t LOWERATTRS[512];
 extern uint8_t TITLESCR1[2048];

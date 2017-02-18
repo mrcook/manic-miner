@@ -32,7 +32,7 @@ set(SOURCE_FILES
         src/tile.h
         src/willy.h
         src/willy.c
-        src/main.c)
+        src/main.c src/game.h src/game.c src/cavern.c)
 
 add_executable(manic_miner ${SOURCE_FILES})
 

@@ -15,251 +15,38 @@ const int SKIP_TICKS = 1000 / FRAMES_PER_SECOND;
 // that have elapsed since the system was started
 clock_t current_time;
 
-
-// ORG 32765
-// JP BEGIN
-
-
-// ------------------------------------------------------
-//   NOTE: variable declarations moved to the globals.c
-//   NOTE: Willy sprites and buff addr moved data.c
-// ------------------------------------------------------
-
-
 // The game has just loaded
-// BEGIN:
-//   DI                      // Disable interrupts
-//   LD SP,40190             // Place the stack somewhere safe (near the end of the source code remnants at SOURCE)
-//   JP START                // Display the title screen and play the theme tune
-
-
-// -----------------------------------------------------
-//   NOTE: variable declarations moved to the globals.c
-//   NOTE: Cheat and Music data moved data.c
-// -----------------------------------------------------
-
-
-
 int main(void) {
-  Willy_initialize();
+    Game_initialize();
 
-  initialize_curses();
+    // Set initial clock tick value - for calculating FSP.
+    current_time = clock();
 
-  // Set initial clock tick value - for calculating FSP.
-  current_time = clock();
+    while (true) {
+        // Initialise the game mode indicator at DEMO.
+        game.DEMO = 64;
 
-  // Display the title screen and play the theme tune
-  //
-  // Used by the routines at BEGIN, LOOP and ENDGAM.
-  //
-  // The first thing this routine does is initialise some game status buffer
-  // variables in preparation for the next game.
-  // START:
-  while (true) {
-    // Initialise the current cavern number at SHEET
-    // XOR A                   // A=0
-    // LD (SHEET),A
-    cavern.SHEET = 0;
+        // Display the title screen and play the theme tune
+        Game_play_intro();
 
-    // Initialise the Kempston joystick indicator at KEMP
-    // LD (KEMP),A
-    KEMP = 0;
+        // Initialise a new game (reset score, etc.)
+        Game_new();
 
-    // Initialise the game mode indicator at DEMO.
-    // IMPORTANT: enabling demo here to make STARTGAME call below easier to do -MRC-
-    // LD (DEMO),A
-    DEMO = 64;
-
-    // Initialise the in-game music note index at NOTEINDEX
-    // LD (NOTEINDEX),A
-    NOTEINDEX = 0;
-
-    // Initialise the screen flash counter at FLASH
-    // LD (FLASH),A
-    FLASH = 0;
-
-    // Initialise the keypress flag in bit 0 at MUSICFLAGS
-    // LD HL,MUSICFLAGS
-    // SET 0,(HL)
-    MUSICFLAGS |= 1 << 0;
-
-    // Next, prepare the screen.
-
-    // Clear the entire display file
-    // LD HL,16384
-    // LD DE,16385
-    // LD BC,6143
-    // LD (HL),0
-    // LDIR
-    for (int i = 0; i < 6144; i++) {
-      MEM[16384 + i] = 0;
+        if (play_new_cavern()) {
+            break; // aka QUIT!
+        }
     }
 
-    // Copy the graphic data at TITLESCR1 to the top two-thirds of the display file
-    // LD HL,TITLESCR1
-    // LD DE,16384
-    // LD BC,4096
-    // LDIR
-    for (int i = 0; i < 2048; i++) {
-      MEM[16384 + i] = TITLESCR1[i];
-    }
-    for (int i = 0; i < 2048; i++) {
-      MEM[16384 + 2048 + i] = TITLESCR2[i];
-    }
-    redraw_screen();
-
-    // Draw Willy at 18493 (9,29)
-    // LD HL,18493
-    // LD DE,WILLYR2
-    // LD C,0
-    // CALL DRWFIX
-    DRWFIX(&willy.sprites[64], 18493, 0);
-
-    // Copy the attribute bytes from CAVERN19 to the top third of the attribute file
-    // LD HL,CAVERN19
-    // LD DE,22528
-    uint16_t addr = 22528;
-    // LD BC,256
-    // LDIR
-    for (int i = 0; i < 256; i++) {
-      MEM[addr + i] = CAVERN19[i];
-    }
-    // Copy the attribute bytes from LOWERATTRS to the bottom two-thirds of the attribute file
-    // LD HL,LOWERATTRS
-    // LD BC,512
-    // LDIR
-    addr += 256;
-    for (int i = 0; i < 512; i++) {
-      MEM[addr + i] = LOWERATTRS[i];
-    }
-    redraw_screen();
-
-    // Now check whether there is a joystick connected.
-    //   LD BC,31                // B=0, C=31 (joystick port)
-    //   DI                      // Disable interrupts (which are already disabled)
-    //   XOR A                   // A=0
-    // START_0:
-    //   IN E,(C)                // Combine 256 readings of the joystick port in A; if
-    //   OR E                    // no joystick is connected, some of these readings
-    //   DJNZ START_0            // will have bit 5 set
-    //   AND 32                  // Is a joystick connected (bit 5 reset)?
-    //   JR NZ,START_1           // Jump if not
-    //   LD A,1                  // Set the Kempston joystick indicator at KEMP to 1
-    //   LD (KEMP),A
-    KEMP = 0; // IMPORTANT: no joystick support just yet! -MRC-
-
-    // And finally, play the theme tune and check for keypresses.
-
-    // Play the theme tune
-    // Start the game if ENTER or the fire button was pressed
-    // START_1:
-    // LD IY,THEMETUNE         // Point IY at the theme tune data at THEMETUNE
-    // CALL PLAYTUNE
-    // JP NZ,STARTGAME
-    // FIXME: commented out -- no need to run the tune, just yet :)
-    // if (PLAYTUNE()) {
-    //   goto STARTGAME;
-    // }
-
-    // Initialise the game status buffer variable at EUGHGT;
-    // this will be used as an index for the message scrolled across the screen
-    // XOR A
-    // LD (EUGHGT),A
-    for (EUGHGT = 0; DEMO > 0 && EUGHGT < 224; EUGHGT++) {
-      // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-
-      // Print 32 characters of the message at 20576 (19,0)
-      // Point IX at the corresponding location in the message at MESSINTRO
-      // LD IX,MESSINTRO
-      // LD IXl,A
-      // LD DE,20576
-      // LD C,32
-      // CALL PMESS
-      PMESS(&MESSINTRO[EUGHGT], 20576, 32);
-
-      // Pick up the message index from EUGHGT
-      // Keep only bits 1 and 2, and move them into bits 6 and 7, so that A holds 0, 64, 128 or 192;
-      // this value determines the animation frame to use for Willy
-      // LD A,(EUGHGT)
-      // AND 6
-      // RRCA
-      // RRCA
-      // RRCA
-      uint8_t sprite_id = rotr((uint8_t)(EUGHGT & 6), 3);
-
-      // Draw Willy at 18493 (9,29)
-      // Point DE at the graphic data for Willy's sprite (MANDAT+A)
-      // LD E,A
-      // LD D,130
-      // LD HL,18493
-      // LD C,0
-      // CALL DRWFIX
-      DRWFIX(&willy.sprites[sprite_id], 18493, 0);
-
-      redraw_screen();
-
-      // Pause for about 0.1s
-      //   LD BC,100
-      // START_3:
-      //   DJNZ START_3
-      //   DEC C
-      //   JR NZ,START_3
-      millisleep(72);
-
-      // Is ENTER being pressed? If so, start the game
-      // LD BC,49150             // Read keys H-J-K-L-ENTER
-      // IN A,(C)
-      // AND 1                   // Keep only bit 0 of the result (ENTER)
-      // CP 1
-      // JR NZ,STARTGAME
-      if (check_enter_keypress()) { // ((IN(49150) & 0xFF) & 1) == 1)
-        // IMPORTANT: disable demo mode so we can just break this loop rather than using a `goto`
-        // goto STARTGAME;
-        DEMO = 0;
-      }
-
-      // LD A,(EUGHGT)           // Pick up the message index from EUGHGT
-      // INC A                   // Increment it
-      // CP 224                  // Set the zero flag if we've reached the end of the message
-      // LD (EUGHGT),A           // Store the new message index at EUGHGT
-      // JR NZ,START_2           // Jump back unless we've finished scrolling the message across the screen
-    }
-
-    // IMPORTANT: not needed now that DEMO is enabled by default.
-    // Initialise the game mode indicator at DEMO to 64: demo mode
-    // LD A,64
-    // LD (DEMO),A
-
-    // This routine continues into the one at STARTGAME.
-
-    // Start the game (or demo mode)
-    //
-    // Used by the routine at START.
-    // STARTGAME:
-
-    // FIXME: Probably better to have custom SCORE/SCORBUF/HGHSCOR updating and printing. -MRC-
-    // Initialise the score at SCORE
-    // LD HL,SCORE
-    // LD DE,33830
-    // LD BC,9
-    // LD (HL),48
-    current_score = 0;
-    // LDIR
-
-    if (play_new_cavern()) {
-      break; // aka QUIT!
-    }
-  }
-
-  restore_terminal();
-  return 0;
+    restore_terminal();
+    return 0;
 }
 
-
-// Returning true quites the game!
+// Returning true quits the game!
 bool play_new_cavern() {
+  Cavern_initialize();
+
   // FIXME: disable DEMO mode
-  DEMO = 0;
+  game.DEMO = 0;
 
   // This entry point is used by the routines at LOOP (when teleporting into a cavern
   // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
@@ -363,11 +150,11 @@ NEWSHT:
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Are we in demo mode?
   // JR Z,LOOP               // If not, enter the main loop now
-  if (DEMO) {
+  if (game.DEMO) {
     // Reset the game mode indicator at DEMO to 64 (we're in demo mode)
     // LD A,64
     // LD (DEMO),A
-    DEMO = 64;
+    game.DEMO = 64;
   }
   // This routine continues into the main loop at LOOP.
 
@@ -413,7 +200,7 @@ NEWSHT:
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Are we in demo mode?
     // CALL Z,WILLYATTRS       // If not, check and set the attribute bytes for Willy's sprite in the buffer at 23552, and draw Willy to the screen buffer at 24576
-    if (DEMO == 0) {
+    if (game.DEMO == 0) {
        if (MOVEWILLY()) {
          goto LOOP_4; // Willy has died!
        }
@@ -503,17 +290,17 @@ LOOP_4:
     // LD A,(FLASH)            // Pick up the screen flash counter from FLASH
     // OR A                    // Is it zero?
     // JR Z,LOOP_5             // Jump if so
-    if (FLASH > 0) {
+    if (game.FLASH > 0) {
       // Decrement the screen flash counter at FLASH
       // DEC A
       // LD (FLASH),A
-      FLASH--;
+      game.FLASH--;
 
       // RLCA                    // Move bits 0-2 into bits 3-5 and clear all the other
       // RLCA                    // bits
       // RLCA
       // AND 56
-      uint8_t new_flash_value = (uint8_t) (rotl(FLASH, 3) & 56);
+      uint8_t new_flash_value = (uint8_t) (rotl(game.FLASH, 3) & 56);
       // LD HL,23552             // Set every attribute byte in the buffer at 23552 to
       // LD DE,23553             // this value
       // LD BC,511
@@ -607,44 +394,26 @@ LOOP_4:
       }
     }
 
-    // Now read the keys H, J, K, L and ENTER (which toggle the in-game music).
-    // LD B,191                // Prepare B for reading keys H-J-K-L-ENTER
-    // LD HL,MUSICFLAGS        // Point HL at the music flags at MUSICFLAGS
-    // IN A,(C)                // Read keys H-J-K-L-ENTER
-    // AND 31                  // Are any of these keys being pressed?
-    // CP 31
-    // JR Z,LOOP_8             // Jump if not
-//    if (check_mute_keypress()) {
-//      // BIT 0,(HL)              // Were any of these keys being pressed the last time we checked?
-//      // JR NZ,LOOP_9            // Jump if so
-//      if ((MUSICFLAGS & 1) == 0) {
-//        // LD A,(HL)               // Set bit 0 (the keypress flag) and flip bit 1 (the
-//        // XOR 3                   // in-game music flag) at MUSICFLAGS
-//        // LD (HL),A
-//        MUSICFLAGS ^= 3;
-//        // JR LOOP_9
-//      }
-//    } else {
-//      // LOOP_8:
-//      // RES 0,(HL)              // Reset bit 0 (the keypress flag) at MUSICFLAGS
-//      MUSICFLAGS &= ~(1 << 0);
-//    }
+    // Check key press to toggle the in-game music.
+    if (check_mute_keypress()) {
+      game.playMusic = ~game.playMusic;
+    }
 
     // LOOP_9:
     // BIT 1,(HL)              // Has the in-game music been switched off?
     // JR NZ,NONOTE4           // Jump if so
-    if (((MUSICFLAGS >> 1) & 1) == 0) {
+    if (game.playMusic) {
       // The next section of code plays a note of the in-game music.
 
       // Increment the in-game music note index at NOTEINDEX
       // LD A,(NOTEINDEX)
       // INC A
       // LD (NOTEINDEX),A
-      NOTEINDEX++;
+      game.NOTEINDEX++;
 
       // AND 126                 // Point HL at the appropriate entry in the tune data
       // RRCA                    // table at GAMETUNE
-      uint8_t index = rotr((uint8_t)(NOTEINDEX & 126), 1);
+      uint8_t index = rotr((uint8_t)(game.NOTEINDEX & 126), 1);
       // LD E,A
       // LD D,0
       // LD HL,GAMETUNE
@@ -685,12 +454,12 @@ LOOP_4:
     // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
     // OR A                    // Are we in demo mode?
     // JR Z,NODEM1             // Jump if not
-    if (DEMO > 0) {
+    if (game.DEMO > 0) {
       // We're in demo mode; is it time to show the next cavern?
 
       // DEC A
       // JP Z,MANDEAD            // Jump if so
-      if (DEMO - 1 == 0) {
+      if (game.DEMO - 1 == 0) {
         if (MANDEAD()) {
           return false; // goto START, and don't quit!
         } else {
@@ -698,7 +467,7 @@ LOOP_4:
         }
       }
       // LD (DEMO),A             // Update the game mode indicator at DEMO
-      DEMO--;
+      game.DEMO--;
 
       // LD BC,254               // Read every row of keys on the keyboard
       // IN A,(C)
@@ -712,7 +481,7 @@ LOOP_4:
       // LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
       // OR A                    // Is there a joystick connected?
       // JR Z,NODEM1             // Jump if not
-      if (KEMP != 0) {
+      if (game.KEMP) {
         /* TODO
           IN A,(31)               // Collect input from the joystick
           OR A                    // Is the joystick being moved or the fire button being pressed?
@@ -795,7 +564,7 @@ bool MANDEAD() {
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Is it demo mode?
   // JP NZ,NXSHEET           // If so, move to the next cavern
-  if (DEMO) {
+  if (game.DEMO) {
     // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` after it -MRC-
     NXSHEET();
     return false; // goto NEWSHT;
@@ -905,8 +674,8 @@ void ENDGAM() {
   //   LD DE,HGHSCOR
   //   LD BC,6
   //   LDIR
-  if (current_score > highscore) {
-    highscore = current_score;
+  if (game.current_score > game.highscore) {
+    game.highscore = game.current_score;
     memcpy(HGHSCOR, SCORBUF, sizeof(&SCORBUF));
   }
 
@@ -1727,7 +1496,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // LD A,(KEMP)             // Collect the Kempston joystick indicator from KEMP
   // OR A                    // Is the joystick connected?
   // JR Z,MOVEWILLY2_2       // Jump if not
-  if (KEMP != 0) {
+  if (game.KEMP) {
     /* TODO
         LD BC,31                // Collect input from the joystick
         IN A,(C)
@@ -2367,7 +2136,7 @@ bool EUGENE() {
   // LD A,(EUGDIR)           // Pick up Eugene's direction from EUGDIR
   // OR A                    // Is Eugene moving downwards?
   // JR Z,EUGENE_0           // Jump if so
-  if (ITEMATTR != 0 && EUGDIR != 0) {
+  if (game.ITEMATTR != 0 && EUGDIR != 0) {
     // LD A,(EUGHGT)           // Pick up Eugene's pixel y-coordinate from EUGHGT
     // DEC A                   // Decrement it (moving Eugene up)
     // JR Z,EUGENE_1           // Jump if Eugene has reached the top of the cavern
@@ -2470,7 +2239,7 @@ bool EUGENE() {
   // LD A,7                  // Assume we will draw Eugene with white INK
   uint8_t ink_color = 7;
   // JR NZ,EUGENE_3          // Jump if there are items remaining to be collected
-  if (ITEMATTR == 0) {
+  if (game.ITEMATTR == 0) {
     // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
     // RRCA                    // Move bits 2-4 into bits 0-2 and clear the other
     // RRCA                    // bits; this value (which decreases by one on each
@@ -2797,7 +2566,7 @@ void DRAWITEMS() {
 
   // XOR A                   // Initialise the attribute of the last item drawn at
   // LD (ITEMATTR),A         // ITEMATTR to 0 (in case there are no items left to draw)
-  ITEMATTR = 0;
+  game.ITEMATTR = 0;
 
   // LD IY,ITEMS             // Point IY at the first byte of the first item definition at ITEMS
 
@@ -2826,7 +2595,7 @@ void DRAWITEMS() {
       // Willy is touching this item, so add it to his collection.
       // LD HL,33836             // Add 100 to the score
       // CALL INCSCORE_0
-      current_score += 100;
+      game.current_score += 100;
       INCSCORE_0(33836);
 
       // LD (IY+0),0             // Set the item's attribute byte to 0 so that it will be skipped the next time
@@ -2851,7 +2620,7 @@ void DRAWITEMS() {
       MEM[addr] = attribute;
 
       // LD (ITEMATTR),A         // Store the new attribute byte at ITEMATTR as well
-      ITEMATTR = attribute;
+      game.ITEMATTR = attribute;
 
       // LD D,(IY+3)             // Point DE at the address of the item's location in the screen buffer at 24576
       split_address(addr, &msb, &lsb);
@@ -2878,7 +2647,7 @@ void DRAWITEMS() {
   // LD A,(ITEMATTR)         // Pick up the attribute of the last item drawn at ITEMATTR
   // OR A                    // Were any items drawn?
   // RET NZ                  // Return if so (some remain to be collected)
-  if (ITEMATTR != 0) {
+  if (game.ITEMATTR != 0) {
     return;
   }
 
@@ -3142,7 +2911,7 @@ bool NXSHEET() {
     // LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
     // CP 7                    // Is cheat mode activated?
     // JR Z,NXSHEET_2          // Jump if so
-    if (DEMO == 0 && CHEAT != 7) {
+    if (game.DEMO == 0 && game.CHEAT != 7) {
       // Willy has made it through The Final Barrier without cheating.
       // LD C,0                  // Draw Willy at (2,19) on the ground above the portal
       // LD DE,WILLYR3
@@ -3275,7 +3044,7 @@ bool NXSHEET() {
 
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Are we in demo mode?
-  if (DEMO) {
+  if (game.DEMO) {
     // JP NZ,NEWSHT            // If so, demo the next cavern
     return true;
   }
@@ -3291,7 +3060,7 @@ bool NXSHEET() {
 
     // LD HL,33838             // Add 1 to the score
     // CALL INCSCORE_0
-    current_score++;
+    game.current_score++;
     INCSCORE_0(33838);
 
     // LD IX,SCORBUF           // Print the new score at (19,26)
@@ -3366,7 +3135,7 @@ void INCSCORE_0(uint16_t addr) {
     // Is this the 10000s digit?
     split_address(addr, &msb, &lsb);
     if (lsb == 42) {
-      FLASH = 8;
+      game.FLASH = 8;
       willy.NOMEN++;
     }
   }
@@ -3700,7 +3469,7 @@ bool KONGBEAST() {
 
     // LD HL,33836             // Add 100 to the score
     // CALL INCSCORE_0
-    current_score += 100;
+    game.current_score += 100;
     INCSCORE_0(33836);
 
     // LD A,(EUGHGT)           // Pick up the Kong Beast's pixel y-coordinate from EUGHGT
@@ -4237,7 +4006,7 @@ bool CHECKENTER() {
   // LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
   // OR A                    // Is the joystick connected?
   // JR Z,CHECKENTER_0       // Jump if not
-  if (KEMP != 0) {
+  if (game.KEMP) {
     /* TODO
       IN A,(31)               // Collect input from the joystick
       BIT 4,A                 // Is the fire button being pressed?
@@ -4315,7 +4084,7 @@ void draw_remaining_lives() {
     // RLCA
     // RLCA
     // AND 96
-    uint8_t anim_frame = (uint8_t)(rotl(NOTEINDEX, 3) & 96);
+    uint8_t anim_frame = (uint8_t)(rotl(game.NOTEINDEX, 3) & 96);
 
     // LD E,A                  // Point DE at the corresponding Willy sprite (at MANDAT+A)
     // LD D,130
@@ -4338,7 +4107,7 @@ void draw_remaining_lives() {
   // LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
   // CP 7                    // Has 6031769 been keyed in yet?
   // JR NZ,LOOP_2            // Jump if not
-  if (CHEAT == 7) {
+  if (game.CHEAT == 7) {
     // LD DE,BOOT              // Point DE at the graphic data for the boot (at BOOT)
     // LD C,0                  // C=0 (overwrite mode)
     // CALL DRWFIX             // Draw the boot at the bottom of the screen next to the remaining lives

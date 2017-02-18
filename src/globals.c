@@ -5,6 +5,7 @@
 
 #include "cavern.h"
 #include "conveyor.h"
+#include "game.h"
 #include "guardian_horizontal.h"
 #include "guardian_vertical.h"
 #include "item.h"
@@ -13,6 +14,7 @@
 
 // Setup all game objects
 Cavern cavern;
+Game game;
 GuardianHorizontal HGUARDS[4];
 GuardianVertical VGUARDS[4];
 Willy willy;
@@ -110,20 +112,6 @@ uint8_t DEMO;
 //
 // Initialised by the routine at START, and used and updated by the routine at LOOP.
 uint8_t NOTEINDEX;
-
-// Music flags
-//
-// The keypress flag in bit 0 is initialised by the routine at START; bits 0 and
-// 1 are checked and updated by the routine at LOOP.
-//
-// +--------+-----------------------------------------------------------------+
-// | Bit(s) | Meaning                                                         |
-// +--------+-----------------------------------------------------------------+
-// | 0      | Keypress flag (set=H-ENTER being pressed, reset=no key pressed) |
-// | 1      | In-game music flag (set=music off, reset=music on)              |
-// | 2-7    | Unused                                                          |
-// +--------+-----------------------------------------------------------------+
-uint8_t MUSICFLAGS;
 
 // 6031769 key counter
 //
