@@ -75,3 +75,16 @@ uint8_t IN(uint16_t addr);
 
 // OUT(254) border/sound output.
 void OUT(uint8_t value);
+
+// Split a uint16_t memory address into its MSB and LSB values
+void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb);
+
+// Build a uint16_t memory address from the MSB and LSB values
+uint16_t build_address(uint8_t msb, uint8_t lsb);
+
+// Rotate left n places
+uint8_t rotl(uint8_t a, uint8_t n);
+
+// Rotate right n places
+uint8_t rotr(uint8_t a, uint8_t n);
+

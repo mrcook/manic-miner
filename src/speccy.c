@@ -126,16 +126,35 @@ uint8_t Speccy_readScreenBuffer(int address) {
     return speccy.convertedScreen[address];
 }
 
+void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
+    *lsb = (uint8_t) (addr & 0xFF);
+    *msb = (uint8_t) (addr >> 8);
+}
+
+uint16_t build_address(uint8_t msb, uint8_t lsb) {
+    return (msb << 8) | lsb;
+}
+
+uint8_t rotl(uint8_t a, uint8_t n) {
+    assert (n > 0 && n < 8);
+    return (a << n) | (a >> (8 - n));
+}
+
+uint8_t rotr(uint8_t a, uint8_t n) {
+    assert (n > 0 && n < 8);
+    return (a >> n) | (a << (8 - n));
+}
+
+
 //
 // Temporary functions
 //
-// IN from Keyboard and Joystick
+
 uint8_t IN(uint16_t addr) {
     // get keyboard input values
     return 0;
 }
 
-// OUT(254) border/sound output.
 void OUT(uint8_t value) {
     // output the sound!
 }

@@ -22,27 +22,3 @@ void millisleep(int milliseconds) {
 int timediff(clock_t t1, clock_t t2) {
   return (int)(((double)t2 - t1) / CLOCKS_PER_SEC * 1000);
 }
-
-// Split a uint16_t memory address into its MSB and LSB values
-void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
-  *lsb = (uint8_t)(addr & 0xFF);
-  *msb = (uint8_t)(addr >> 8);
-}
-
-// Build a uint16_t memory address from the MSB and LSB values
-uint16_t build_address(uint8_t msb, uint8_t lsb) {
-  return (msb << 8) | lsb;
-}
-
-
-
-uint8_t rotl (uint8_t a, uint8_t n) {
-  assert (n > 0 && n < 8);
-  return (a << n) | (a >> (8 - n));
-}
-
-uint8_t rotr (uint8_t a, uint8_t n) {
-  assert (n > 0 && n < 8);
-  return (a >> n) | (a << (8 - n));
-}
-

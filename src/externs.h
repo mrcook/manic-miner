@@ -53,8 +53,5 @@ void initialize_cavern0();
 
 // helpers.c
 void millisleep(int milliseconds);
+
 int timediff(clock_t t1, clock_t t2);
-void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb);
-uint16_t build_address(uint8_t msb, uint8_t lsb);
-uint8_t rotl (uint8_t a, uint8_t n);
-uint8_t rotr (uint8_t a, uint8_t n);
