@@ -8,10 +8,6 @@ void Game_initialize() {
     Terminal_init(192, 512);
     Willy_initialize();
 
-    // FIXME: no joystick support just yet! -MRC-
-    // Now check whether there is a joystick connected.
-    game.KEMP = false;
-
     strcpy(game.MESSAIR, "AIR");
 
     // High score default

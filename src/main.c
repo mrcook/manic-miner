@@ -481,17 +481,6 @@ LOOP_4:
       if (Terminal_keyAny()) {
         return false; // goto START, and don't quit!
       }
-
-      // LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
-      // OR A                    // Is there a joystick connected?
-      // JR Z,NODEM1             // Jump if not
-      if (game.KEMP) {
-        /* TODO
-          IN A,(31)               // Collect input from the joystick
-          OR A                    // Is the joystick being moved or the fire button being pressed?
-          JP NZ,START             // If so, return to the title screen
-        */
-      }
     }
 
   // IMPORTANT: not handling cheat codes just yet -MRC-
@@ -1496,19 +1485,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // AND E                   // Merge this reading of the '8' key into bit 2 of E
   // LD E,A
   input = (uint8_t)((IN(61438) | 251) & input);
-  // LD A,(KEMP)             // Collect the Kempston joystick indicator from KEMP
-  // OR A                    // Is the joystick connected?
-  // JR Z,MOVEWILLY2_2       // Jump if not
-  if (game.KEMP) {
-    /* TODO
-        LD BC,31                // Collect input from the joystick
-        IN A,(C)
-        AND 3                   // Keep only bits 0 (right) and 1 (left) and flip them
-        CPL
-        AND E                   // Merge this reading of the joystick right and left
-        LD E,A                  // buttons into bits 0 and 1 of E
-    */
-  }
+
   // At this point, bits 0-5 in E indicate the direction in which Willy is being
   // moved or trying to move. If bit 0, 2 or 4 is reset, Willy is being moved or
   // trying to move right; if bit 1, 3 or 5 is reset, Willy is being moved or
@@ -1557,13 +1534,6 @@ bool MOVEWILLY2(uint16_t addr) {
   // AND 9                   // Keep only bits 0 (the '0' key) and 3 (the '7' key)
   // CP 9                    // Is '0' or '7' being pressed?
   // JR NZ,MOVEWILLY2_5      // Jump if so
-  // LD A,(KEMP)             // Collect the Kempston joystick indicator from KEMP
-  // OR A                    // Is the joystick connected?
-  // JR Z,MOVEWILLY2_6       // Jump if not
-  // LD BC,31                // Collect input from the joystick
-  // IN A,(C)
-  // BIT 4,A                 // Is the fire button being pressed?
-  // JR Z,MOVEWILLY2_6       // Jump if not
   if (Terminal_keyJump()) {
     // A jump key or the fire button is being pressed. Time to make Willy jump.
     // MOVEWILLY2_5:
@@ -4006,17 +3976,6 @@ uint16_t PIANOKEY(uint8_t frequency) {
 // Used by the routine at PLAYTUNE. Returns with the zero flag reset if ENTER or
 // the fire button on the joystick is being pressed.
 bool CHECKENTER() {
-  // LD A,(KEMP)             // Pick up the Kempston joystick indicator from KEMP
-  // OR A                    // Is the joystick connected?
-  // JR Z,CHECKENTER_0       // Jump if not
-  if (game.KEMP) {
-    /* TODO
-      IN A,(31)               // Collect input from the joystick
-      BIT 4,A                 // Is the fire button being pressed?
-      RET NZ                  // Return (with the zero flag reset) if so
-    */
-  }
-
   // CHECKENTER_0:
   // LD BC,49150             // Read keys H-J-K-L-ENTER
   // IN A,(C)

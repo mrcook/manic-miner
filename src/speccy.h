@@ -71,8 +71,6 @@ uint8_t Speccy_readScreenBuffer(int address);
 // IN 32766 reads the half row SPACE to B
 //
 // IN 254   reads every row of keys
-//
-// IN 31    reads from the Kempston joystick
 uint8_t IN(uint16_t addr);
 
 // OUT(254) border/sound output.
