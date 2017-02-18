@@ -1,8 +1,7 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-// globals.c
-
+#include "speccy.h"
 #include "cavern.h"
 #include "conveyor.h"
 #include "game.h"
@@ -13,6 +12,7 @@
 #include "willy.h"
 
 // Setup all game objects
+extern Speccy speccy;
 extern Game game;
 extern Cavern cavern;
 extern GuardianHorizontal HGUARDS[4];
@@ -38,7 +38,6 @@ extern uint8_t LRMOVEMENT[16];
 
 extern uint8_t character_set[96][8];
 
-
 // data.c
 extern uint8_t WILLYDATA[256];
 extern uint16_t SBUFADDRS[128];
@@ -56,8 +55,6 @@ extern uint8_t PLINTH[32];
 extern uint8_t BOOT[32];
 extern uint8_t EUGENEG[32];
 extern uint8_t CAVERN19[512];
-
-
 
 // functions
 bool play_new_cavern();
@@ -108,41 +105,6 @@ bool CHECKENTER();
 void initialize_cavern0();
 void draw_remaining_lives();
 void tick();
-
-// curses.c
-void initialize_curses();
-void restore_terminal();
-void clear_screen();
-void clear_to_bottom_from(int row);
-void redraw_screen();
-void put_tile(char ch, int row, int col);
-void byte_to_bits(uint8_t byte, uint8_t *bits);
-void memory_dump_to_buffer();
-bool check_any_keypress();
-bool check_enter_keypress();
-bool check_left_keypress();
-bool check_right_keypress();
-bool check_jump_keypress();
-bool check_quit_keypress();
-bool check_exit_keypress();
-bool check_pause_keypress();
-bool check_mute_keypress();
-
-// emulator.c
-uint8_t MEM[1024 * 64];
-uint8_t regA;
-uint8_t regB;
-uint8_t regC;
-uint8_t regD;
-uint8_t regE;
-uint8_t regH;
-uint8_t regL;
-uint16_t regBC;
-uint16_t regDE;
-uint16_t regHL;
-uint8_t IN(uint16_t addr);
-void OUT(uint8_t value);
-
 
 // helpers.c
 void millisleep(int milliseconds);

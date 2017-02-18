@@ -2,27 +2,49 @@
 
 #pragma once
 
-#include <ncurses.h>
 #include <string.h>
+#include <ncurses.h>
 
 #include "coord.h"
 
+void Terminal_init();
+
+void Terminal_exit(void);
+
 // Output methods
-void clearScreen(void);
+void Terminal_clear(void);
 
-void refreshScreen(void);
+void Terminal_refresh(void);
 
-chtype readCharAt(Coord pos);
+chtype Terminal_readCharAt(Coord pos);
 
-void printCharAt(char ch, Coord pos);
+void Terminal_printCharAt(char ch, Coord pos);
 
-void printString(char *str);
+void Terminal_printString(char *str);
 
-void printStringAt(char *str, Coord pos);
+void Terminal_printStringAt(char *str, Coord pos);
 
 // Input methods
-void getString(char *str, int bufferSize);
+void Terminal_getString(char *str, int bufferSize);
 
-int getKey(void);
+int Terminal_getKey(void);
 
-bool keyPressed(void);
+bool Terminal_keyAny(void);
+
+bool Terminal_keyEnter(void);
+
+bool Terminal_keyLeft(void);
+
+bool Terminal_keyRight(void);
+
+bool Terminal_keyJump(void);
+
+bool Terminal_keyQuit(void);
+
+bool Terminal_keyExit(void);
+
+bool Terminal_keyPaused(void);
+
+bool Terminal_keyMuteMusic(void);
+
+void Terminal_redraw(void);

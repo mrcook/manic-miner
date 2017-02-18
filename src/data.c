@@ -3,6 +3,7 @@
 
 #include "headers.h"
 #include "externs.h"
+#include "terminal.h"
 
 // Willy sprite graphic data
 //
@@ -637,7 +638,7 @@ void initialize_cavern0() {
   // The next 32 bytes are copied to CAVERNNAME and specify the cavern name.
   strcpy(cavern.CAVERNNAME, "         Central Cavern         "); // Cavern name
   for (int i = 0; i < 32; i++) {
-    MEM[addr++] = (uint8_t)cavern.CAVERNNAME[i];
+    speccy.memory[addr++] = (uint8_t)cavern.CAVERNNAME[i];
   }
 
   // Central Cavern (teleport: 6)
@@ -724,7 +725,7 @@ void initialize_cavern0() {
     if (i > 0) {
       cavern.BACKGROUND.sprite[i-1] = newBACKGROUND[i];
     }
-    MEM[addr++] = newBACKGROUND[i];
+    speccy.memory[addr++] = newBACKGROUND[i];
   }
   uint8_t newFLOOR[9] = {66,255,255,219,110,197,64,0,0};    // Floor
   cavern.FLOOR.id = newFLOOR[0]; // First entry is the cavern map ID
@@ -733,7 +734,7 @@ void initialize_cavern0() {
     if (i > 0) {
       cavern.FLOOR.sprite[i-1] = newFLOOR[i];
     }
-    MEM[addr++] = newFLOOR[i];
+    speccy.memory[addr++] = newFLOOR[i];
   }
   uint8_t newCRUMBLING[9] = {2,255,219,165,36,82,32,8,0};       // Crumbling floor
   cavern.CRUMBLING.id = newCRUMBLING[0]; // First entry is the cavern map ID
@@ -742,7 +743,7 @@ void initialize_cavern0() {
     if (i > 0) {
       cavern.CRUMBLING.sprite[i-1] = newCRUMBLING[i];
     }
-    MEM[addr++] = newCRUMBLING[i];
+    speccy.memory[addr++] = newCRUMBLING[i];
   }
   uint8_t newWALL[9] = {22,34,255,136,255,34,255,136,255}; // Wall
   cavern.WALL.id = newWALL[0]; // First entry is the cavern map ID
@@ -751,7 +752,7 @@ void initialize_cavern0() {
     if (i > 0) {
       cavern.WALL.sprite[i-1] = newWALL[i];
     }
-    MEM[addr++] = newWALL[i];
+    speccy.memory[addr++] = newWALL[i];
   }
   uint8_t newCONVEYOR[9] = {4,240,102,240,102,0,153,255,0};    // Conveyor
   cavern.CONVEYOR.id = newCONVEYOR[0]; // First entry is the cavern map ID
@@ -760,7 +761,7 @@ void initialize_cavern0() {
     if (i > 0) {
       cavern.CONVEYOR.sprite[i-1] = newCONVEYOR[i];
     }
-    MEM[addr++] = newCONVEYOR[i];
+    speccy.memory[addr++] = newCONVEYOR[i];
   }
   uint8_t newNASTY1[9] = {68,68,40,148,81,53,214,88,16};     // Nasty 1
   cavern.NASTY1.id = newNASTY1[0]; // First entry is the cavern map ID
@@ -769,7 +770,7 @@ void initialize_cavern0() {
     if (i > 0) {
       cavern.NASTY1.sprite[i-1] = newNASTY1[i];
     }
-    MEM[addr++] = newNASTY1[i];
+    speccy.memory[addr++] = newNASTY1[i];
   }
   uint8_t newNASTY2[9] = {5,255,254,126,124,76,76,8,8};      // Nasty 2
   cavern.NASTY2.id = newNASTY2[0]; // First entry is the cavern map ID
@@ -778,7 +779,7 @@ void initialize_cavern0() {
     if (i > 0) {
       cavern.NASTY2.sprite[i-1] = newNASTY2[i];
     }
-    MEM[addr++] = newNASTY2[i];
+    speccy.memory[addr++] = newNASTY2[i];
   }
   uint8_t newEXTRA[9] = {0,0,0,0,0,0,0,0,0};                // Extra (unused)
   cavern.EXTRA.id = newEXTRA[0]; // First entry is the cavern map ID
@@ -787,53 +788,53 @@ void initialize_cavern0() {
     if (i > 0) {
       cavern.EXTRA.sprite[i-1] = newEXTRA[i];
     }
-    MEM[addr++] = newEXTRA[i];
+    speccy.memory[addr++] = newEXTRA[i];
   }
 
   // The next seven bytes are copied to 32872-32878 and specify Miner Willy's
   // initial location and appearance in the cavern.
   willy.PIXEL_Y  = 208;           // Pixel y-coordinate * 2 (see PIXEL_Y)
-  MEM[addr++] = willy.PIXEL_Y;
+  speccy.memory[addr++] = willy.PIXEL_Y;
 
   willy.FRAME    = 0;             // Animation frame (see FRAME)
-  MEM[addr++] = willy.FRAME;
+  speccy.memory[addr++] = willy.FRAME;
 
   willy.DMFLAGS  = 0;             // Direction and movement flags: facing right (see DMFLAGS)
-  MEM[addr++] = willy.DMFLAGS;
+  speccy.memory[addr++] = willy.DMFLAGS;
 
   willy.AIRBORNE = 0;             // Airborne status indicator (see AIRBORNE)
-  MEM[addr++] = willy.AIRBORNE;
+  speccy.memory[addr++] = willy.AIRBORNE;
 
   // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
   willy.LOCATION = 23970;         // Location in the attribute buffer at 23552: (13,2) (see LOCATION)
   split_address(willy.LOCATION, &msb, &lsb);
-  MEM[addr++] = msb;
-  MEM[addr++] = lsb;
+  speccy.memory[addr++] = msb;
+  speccy.memory[addr++] = lsb;
 
   willy.JUMPING  = 0;             // Jumping animation counter (see JUMPING)
-  MEM[addr++] = willy.JUMPING;
+  speccy.memory[addr++] = willy.JUMPING;
 
   // The next four bytes are copied to CONVDIR and specify the direction, location
   // and length of the conveyor.
   cavern.CONVEYOR.CONVDIR = 0;              // Direction (left)
-  MEM[addr++] = cavern.CONVEYOR.CONVDIR;
+  speccy.memory[addr++] = cavern.CONVEYOR.CONVDIR;
 
   // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
   cavern.CONVEYOR.CONVLOC = 30760;          // Location in the screen buffer at 28672: (9,8)
   split_address(cavern.CONVEYOR.CONVLOC, &msb, &lsb);
-  MEM[addr++] = msb;
-  MEM[addr++] = lsb;
+  speccy.memory[addr++] = msb;
+  speccy.memory[addr++] = lsb;
 
   cavern.CONVEYOR.CONVLEN = 20;             // Length
-  MEM[addr++] = cavern.CONVEYOR.CONVLEN;
+  speccy.memory[addr++] = cavern.CONVEYOR.CONVLEN;
 
   // The next byte is copied to BORDER and specifies the border colour.
   cavern.BORDER = 2;               // Border colour
-  MEM[addr++] = cavern.BORDER;
+  speccy.memory[addr++] = cavern.BORDER;
 
   // The next byte is copied to ITEMATTR, but is not used.
   game.ITEMATTR = 0;             // Unused
-  MEM[addr++] = game.ITEMATTR;
+  speccy.memory[addr++] = game.ITEMATTR;
 
   // The next 25 bytes are copied to ITEMS and specify the location and initial
   // colour of the items in the cavern.
@@ -864,22 +865,22 @@ void initialize_cavern0() {
     }
 
     // Add items to the buffer memory
-    MEM[addr++] = (uint8_t)newITEMS[i][0];
+    speccy.memory[addr++] = (uint8_t)newITEMS[i][0];
 
     // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
     split_address(newITEMS[i][1], &msb, &lsb);
-    MEM[addr++] = msb;
-    MEM[addr++] = lsb;
+    speccy.memory[addr++] = msb;
+    speccy.memory[addr++] = lsb;
 
-    MEM[addr++] = (uint8_t)newITEMS[i][2];
-    MEM[addr++] = (uint8_t)newITEMS[i][3];
+    speccy.memory[addr++] = (uint8_t)newITEMS[i][2];
+    speccy.memory[addr++] = (uint8_t)newITEMS[i][3];
   }
   // DEFB 255               // Terminator
-  MEM[addr++] = 255;
+  speccy.memory[addr++] = 255;
 
   // The next 37 bytes are copied to PORTAL and define the portal graphic and its location.
   cavern.portal.PORTAL = 14;              // Attribute
-  MEM[addr++] = cavern.portal.PORTAL;
+  speccy.memory[addr++] = cavern.portal.PORTAL;
 
   uint8_t newPORTALG[32] = {           // Graphic data
       255,255,146,73,182,219,255,255,
@@ -889,34 +890,34 @@ void initialize_cavern0() {
   };
   for (int i = 0; i < 32; i++) {
     cavern.portal.PORTALG[i] = newPORTALG[i];
-    MEM[addr++] = newPORTALG[i];
+    speccy.memory[addr++] = newPORTALG[i];
   }
 
   // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
   cavern.portal.PORTALLOC1 = 23997;       // Location in the attribute buffer at 23552: (13,29)
   cavern.portal.PORTALLOC2 = 26813;       // Location in the screen buffer at 24576: (13,29)
   split_address(cavern.portal.PORTALLOC1, &msb, &lsb);
-  MEM[addr++] = msb;
-  MEM[addr++] = lsb;
+  speccy.memory[addr++] = msb;
+  speccy.memory[addr++] = lsb;
   split_address(cavern.portal.PORTALLOC2, &msb, &lsb);
-  MEM[addr++] = msb;
-  MEM[addr++] = lsb;
+  speccy.memory[addr++] = msb;
+  speccy.memory[addr++] = lsb;
 
 
   // IMPORTANT: moved newITEM[8] above next to newITEMS as it's needed there too!
   // The next eight bytes are copied to ITEM and define the item graphic.
   for (int i = 0; i < 8; i++) {
-    MEM[addr++] = newITEM[i];
+    speccy.memory[addr++] = newITEM[i];
   }
 
   // The next byte is copied to AIR and specifies the initial air supply in the
   // cavern.
   cavern.AIR = 63;                 // Air
-  MEM[addr++] = cavern.AIR;
+  speccy.memory[addr++] = cavern.AIR;
 
   // The next byte is copied to CLOCK and initialises the game clock.
   cavern.CLOCK = 252;             // Game clock
-  MEM[addr++] = cavern.CLOCK;
+  speccy.memory[addr++] = cavern.CLOCK;
 
   // The next 28 bytes are copied to HGUARDS and define the horizontal guardians.
   uint16_t newHGUARDS[4][6] = {
@@ -940,26 +941,26 @@ void initialize_cavern0() {
     HGUARDS[i].addressLeftLSB = (uint8_t)newHGUARDS[i][4];
     HGUARDS[i].addressRightLSB = (uint8_t)newHGUARDS[i][5];
 
-    MEM[addr++] = (uint8_t)newHGUARDS[i][0];
+    speccy.memory[addr++] = (uint8_t)newHGUARDS[i][0];
 
     split_address(newHGUARDS[i][1], &msb, &lsb);
-    MEM[addr++] = msb;
-    MEM[addr++] = lsb;
+    speccy.memory[addr++] = msb;
+    speccy.memory[addr++] = lsb;
 
-    MEM[addr++] = (uint8_t)newHGUARDS[i][2];
-    MEM[addr++] = (uint8_t)newHGUARDS[i][3];
-    MEM[addr++] = (uint8_t)newHGUARDS[i][4];
-    MEM[addr++] = (uint8_t)newHGUARDS[i][5];
+    speccy.memory[addr++] = (uint8_t)newHGUARDS[i][2];
+    speccy.memory[addr++] = (uint8_t)newHGUARDS[i][3];
+    speccy.memory[addr++] = (uint8_t)newHGUARDS[i][4];
+    speccy.memory[addr++] = (uint8_t)newHGUARDS[i][5];
   }
 
   // DEFB 255               // Terminator
-  MEM[addr++] = 255;
+  speccy.memory[addr++] = 255;
 
   // The next two bytes are copied to EUGDIR and EUGHGT but are not used.
   EUGDIR = 0;               // Unused
   EUGHGT = 0;
-  MEM[addr++] = 0;
-  MEM[addr++] = 0;
+  speccy.memory[addr++] = 0;
+  speccy.memory[addr++] = 0;
 
   // The next byte is copied to VGUARDS and indicates that there are no vertical
   // guardians in this cavern.
@@ -977,12 +978,12 @@ void initialize_cavern0() {
   }
 
   // DEFB 255               // Terminator
-  MEM[addr++] = 255;
+  speccy.memory[addr++] = 255;
 
   // The next two bytes are unused.
   // DEFB 0,0               // Unused
-  MEM[addr++] = 0;
-  MEM[addr++] = 0;
+  speccy.memory[addr++] = 0;
+  speccy.memory[addr++] = 0;
 
   // The next 32 bytes define the swordfish graphic that appears in The Final
   // Barrier when the game is completed.
@@ -994,7 +995,7 @@ void initialize_cavern0() {
   };
   for (int i = 0; i < 32; i++) {
     SWORDFISH[i] = newSWORDFISH[i];
-    MEM[addr++] = newSWORDFISH[i];
+    speccy.memory[addr++] = newSWORDFISH[i];
   }
 
   // FIXME: GGDATA is for "either" HGUARDS or VGUARDS. We'll need a more generic
@@ -1042,12 +1043,12 @@ void initialize_cavern0() {
 
     // Adds the sprites to our only Guardian: HGUARDS[0]
     HGUARDS[0].GGDATA[i] = newGGDATA[i];
-    MEM[addr++] = newGGDATA[i];
+    speccy.memory[addr++] = newGGDATA[i];
   }
 
   int total = addr - 32768;
   if (total != 512) {
-    restore_terminal();
+    Terminal_exit();
     printf("Incorrect number of bytes assigned in cavern init: %d - %d = %d\n", addr, 32768, total);
     exit(-1);
   }

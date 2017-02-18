@@ -3,6 +3,7 @@
 
 #include "headers.h"
 
+#include "speccy.h"
 #include "cavern.h"
 #include "conveyor.h"
 #include "game.h"
@@ -13,6 +14,7 @@
 #include "willy.h"
 
 // Setup all game objects
+Speccy speccy;
 Cavern cavern;
 Game game;
 GuardianHorizontal HGUARDS[4];

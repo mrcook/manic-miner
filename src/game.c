@@ -2,8 +2,10 @@
 
 #include "externs.h"
 
+#include "terminal.h"
+
 void Game_initialize() {
-    initialize_curses();
+    Terminal_init(192, 512);
     Willy_initialize();
 
     // FIXME: no joystick support just yet! -MRC-
@@ -26,25 +28,23 @@ void Game_new() {
 
     // Prepare the screen; clear the entire Spectrum display file
     for (int i = 0; i < 6144; i++) {
-        MEM[16384 + i] = 0;
+        speccy.memory[16384 + i] = 0;
     }
 }
 
 void Game_play_intro() {
     // Clear the entire Spectrum display file
-    for (int i = 0; i < 6144; i++) {
-        MEM[16384 + i] = 0;
-    }
+    Speccy_clearScreen();
 
     // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file
     for (int i = 0; i < 2048; i++) {
-        MEM[16384 + i] = TITLESCR1[i];
+        Speccy_writeScreen(16384 + i, TITLESCR1[i]);
     }
     for (int i = 0; i < 2048; i++) {
-        MEM[16384 + 2048 + i] = TITLESCR2[i];
+        Speccy_writeScreen(16384 + 2048 + i, TITLESCR2[i]);
     }
 
-    redraw_screen();
+    Terminal_redraw();
 
     // Draw Willy at 18493 (9,29)
     DRWFIX(&willy.sprites[64], 18493, 0);
@@ -52,16 +52,16 @@ void Game_play_intro() {
     // Copy the attribute bytes from CAVERN19 to the top third of the attribute file
     uint16_t addr = 22528;
     for (int i = 0; i < 256; i++) {
-        MEM[addr + i] = CAVERN19[i];
+        Speccy_writeAttribute(addr + i, CAVERN19[i]);
     }
 
     // Copy LOWERATTRS to the bottom two-thirds of the attribute file
     addr += 256;
     for (int i = 0; i < 512; i++) {
-        MEM[addr + i] = LOWERATTRS[i];
+        Speccy_writeAttribute(addr + i, LOWERATTRS[i]);
     }
 
-    redraw_screen();
+    Terminal_redraw();
 
     // And finally, play the theme tune and check for key presses.
 
@@ -91,13 +91,13 @@ void Game_play_intro() {
         // Draw Willy at 18493 (9,29)
         DRWFIX(&willy.sprites[sprite_id], 18493, 0);
 
-        redraw_screen();
+        Terminal_redraw();
 
         // Pause for about 0.1s
         millisleep(72);
 
         // Is ENTER being pressed? If so, start the game
-        if (check_enter_keypress()) {
+        if (Terminal_keyEnter()) {
             game.DEMO = 0;
             break;
         }

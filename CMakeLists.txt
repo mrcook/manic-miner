@@ -12,16 +12,19 @@ set(CMAKE_C_STANDARD 11)
 set(SOURCE_FILES
         src/headers.h
         src/externs.h
-        src/io.c
-        src/emulator.c
         src/helpers.c
         src/globals.c
         src/character_set.c
         src/data.c
+        src/speccy.h
+        src/speccy.c
         src/terminal.h
         src/terminal.c
+        src/game.h
+        src/game.c
         src/conveyor.h
         src/cavern.h
+        src/cavern.c
         src/colour.h
         src/coord.h
         src/guardian_horizontal.h
@@ -32,7 +35,7 @@ set(SOURCE_FILES
         src/tile.h
         src/willy.h
         src/willy.c
-        src/main.c src/game.h src/game.c src/cavern.c)
+        src/main.c)
 
 add_executable(manic_miner ${SOURCE_FILES})
 

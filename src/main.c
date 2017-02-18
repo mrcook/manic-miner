@@ -8,6 +8,8 @@
 #include "headers.h"
 #include "externs.h"
 
+#include "terminal.h"
+
 const int FRAMES_PER_SECOND = 25;
 const int SKIP_TICKS = 1000 / FRAMES_PER_SECOND;
 
@@ -37,11 +39,12 @@ int main(void) {
         }
     }
 
-    restore_terminal();
+    Terminal_exit();
     return 0;
 }
 
 // Returning true quits the game!
+// FIXME: uses `goto` statements!
 bool play_new_cavern() {
   Cavern_initialize();
 
@@ -66,7 +69,7 @@ NEWSHT:
   // LDIR
   // FIXME: uses Attr Buff (Blank): Attr File = 22528
   for (int i = 0; i < 512; i++) {
-    MEM[24064 + i] = cavern.layout[i];
+      Speccy_writeAttribute(24064 + i, cavern.layout[i]);
   }
 
   // Copy the rest of the cavern definition into the game status buffer at 32768
@@ -87,7 +90,7 @@ NEWSHT:
   // LD (HL),0
   // LDIR
   for (int i = 0; i < 2048; i++) {
-    MEM[20480 + i] = 0;
+      Speccy_writeScreen(20480 + i, 0);
   }
 
   // Print the cavern name (see CAVERNNAME) at 20480 (16,0)
@@ -125,7 +128,8 @@ NEWSHT:
 
     // Draw a single row of pixels across C cells
     for (uint16_t i = 0; i < cavern.AIR - 36; i++) {
-      MEM[addr + i] = 255;
+      // speccy.memory[addr + i] = 255;
+      Speccy_writeScreen(addr + i, 255);
     }
 
     // INC A                   // Increment the display file address MSB in A (moving down to the next row of pixels)
@@ -140,7 +144,7 @@ NEWSHT:
   // CALL PMESS
   PMESS(&MESSHSSC, 20576, 32);
 
-  redraw_screen();
+    Terminal_redraw();
 
   // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
   // LD C,254                // Set the border colour
@@ -179,7 +183,7 @@ NEWSHT:
     // LDIR
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 512; i++) {
-      MEM[23552 + i] = MEM[24064 + i];
+      speccy.memory[23552 + i] = speccy.memory[24064 + i];
     }
 
     // LD HL,28672             // Copy the contents of the screen buffer at 28672
@@ -188,7 +192,7 @@ NEWSHT:
     // LDIR
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-      MEM[24576 + i] = MEM[28672 + i];
+      speccy.memory[24576 + i] = speccy.memory[28672 + i];
     }
 
     // CALL MOVEHG             // Move the horizontal guardians in the current cavern
@@ -283,9 +287,9 @@ LOOP_4:
     // LDIR
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-      MEM[16384 + i] = MEM[24576 + i];
+        Speccy_writeScreen(16384 + i, speccy.memory[24576 + i]);
     }
-    redraw_screen();
+    Terminal_redraw();
 
     // LD A,(FLASH)            // Pick up the screen flash counter from FLASH
     // OR A                    // Is it zero?
@@ -308,9 +312,9 @@ LOOP_4:
       // LDIR
     // FIXME: Uses Attr Buffer: Attr File= 22528
       for (int i = 0; i < 512; i++) {
-        MEM[23552 + i] = new_flash_value;
+        speccy.memory[23552 + i] = new_flash_value;
       }
-      redraw_screen();
+        Terminal_redraw();
     }
 
     // LOOP_5:
@@ -320,7 +324,7 @@ LOOP_4:
     // LDIR
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 512; i++) {
-      MEM[22528 + i] = MEM[23552 + i];
+        Speccy_writeAttribute(22528 + i, speccy.memory[23552 + i]);
     }
 
     // Print the score (see SCORBUF) at (19,26)
@@ -336,7 +340,7 @@ LOOP_4:
     // CALL PMESS
     PMESS(&HGHSCOR, 20587, 6);
 
-    redraw_screen();
+      Terminal_redraw();
 
     // Decrease the air remaining in the current cavern
     // Jump if there's no air left
@@ -395,7 +399,7 @@ LOOP_4:
     }
 
     // Check key press to toggle the in-game music.
-    if (check_mute_keypress()) {
+    if (Terminal_keyMuteMusic()) {
       game.playMusic = ~game.playMusic;
     }
 
@@ -474,7 +478,7 @@ LOOP_4:
       // AND 31                  // Are any keys being pressed?
       // CP 31
       // JP NZ,START             // If so, return to the title screen
-      if (check_any_keypress()) {
+      if (Terminal_keyAny()) {
         return false; // goto START, and don't quit!
       }
 
@@ -583,7 +587,7 @@ bool MANDEAD() {
 //    // LD (HL),A
 //    // LDIR
 //    for (int i = 0; i < 512; i++) {
-//      MEM[22528 + i] = attr;
+//      speccy.memory[22528 + i] = attr;
 //    }
 //
 //    // LD E,A                  // Save the attribute byte (64-71) in E for later retrieval
@@ -688,9 +692,9 @@ void ENDGAM() {
   // LD (HL),0
   // LDIR
   for (int i = 0; i < 4096; i++) {
-    MEM[16384 + i] = 0;
+      Speccy_writeScreen(16384 + i, 0);
   }
-  redraw_screen();
+    Terminal_redraw();
 
   // XOR A                   // Initialise the game status buffer variable at
   // LD (EUGHGT),A           // EUGHGT; this variable will determine the distance of the boot from the top of the screen
@@ -708,7 +712,7 @@ void ENDGAM() {
   // CALL DRWFIX
   DRWFIX(&PLINTH, 18639, 0);
 
-  redraw_screen();
+    Terminal_redraw();
 
   uint8_t msb, lsb;
   uint16_t addr;
@@ -772,7 +776,7 @@ void ENDGAM() {
     // LD (HL),A               // Copy this attribute value into the top two-thirds
     // LDIR                    // of the screen
     for (int i = 0; i < 512; i++) {
-      MEM[22528 + i] = distance;
+        Speccy_writeAttribute(22528 + i, distance);
     }
 
     // LD A,(EUGHGT)           // Add 4 to the distance variable at EUGHGT; this will
@@ -845,8 +849,8 @@ void ENDGAM() {
       // LD (22741),A
 
       // IMPORTANT: haha, and you think this is correct? -MRC-
-      MEM[22730 + a] = (uint8_t) (((d + a) & 7) | 64);
-      redraw_screen();
+      Speccy_writeAttribute(22730 + a, (uint8_t) (((d + a) & 7) | 64));
+      Terminal_redraw();
     }
 
     // DEC C                   // Decrement the counter in C
@@ -920,11 +924,11 @@ bool DECAIR() {
   for (uint8_t msb = 82; msb < 86; msb++) {
     // Draw the four rows of pixels at the right end of the air bar
     // LD (HL),E
-    MEM[build_address(msb, cavern.AIR)] = pixels;
+    Speccy_writeScreen(build_address(msb, cavern.AIR), pixels);
     // INC H
     // DJNZ DECAIR_3
   }
-  redraw_screen();
+  Terminal_redraw();
 
   // XOR A                   // Reset the zero flag to indicate that there is still
   // INC A                   // some air remaining; these instructions are redundant, since the zero flag is already reset at this point
@@ -975,7 +979,7 @@ void DRAWSHEET() {
     // Copy the graphic bytes to their destination cells
     uint16_t row_addr = addr;
     for (int b = 0; b < 8; b++) {
-      MEM[row_addr + offset] = sprite[b];
+      speccy.memory[row_addr + offset] = sprite[b];
       split_address(row_addr, &msb, &lsb);
       msb++;
       row_addr = build_address(msb, lsb);
@@ -997,7 +1001,7 @@ void DRAWSHEET() {
     // Copy the graphic data from TITLESCR1 to the top half of the screen buffer at 28672
     // FIXME: Blank Screen Buffer: Screen File = 16384
     for (int i = 0; i <= 2048; i++) {
-      MEM[28672 + i] = TITLESCR1[i];
+      speccy.memory[28672 + i] = TITLESCR1[i];
     }
   }
 }
@@ -1082,7 +1086,7 @@ bool MOVEWILLY() {
     // INC HL                  // Point HL at the top-right cell occupied by Willy's sprite
     // CP (HL)                 // Is the top-right cell of Willy's sprite overlapping a wall tile?
     // JP Z,MOVEWILLY_10       // Jump if so
-    if ( memcmp(&MEM[willy.PIXEL_Y/2], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 || memcmp(&MEM[(willy.PIXEL_Y/2) + 1], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
+    if ( memcmp(&speccy.memory[willy.PIXEL_Y/2], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 || memcmp(&speccy.memory[(willy.PIXEL_Y/2) + 1], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
       MOVEWILLY_10();
       return false;
     }
@@ -1175,15 +1179,15 @@ bool MOVEWILLY() {
     // LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
     // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
     // CALL Z,CRUMBLE          // If so, make it crumble
-    if ( memcmp(&MEM[addr], cavern.CRUMBLING.sprite, sizeof(cavern.CRUMBLING.sprite)) == 0 ) {
+    if ( memcmp(&speccy.memory[addr], cavern.CRUMBLING.sprite, sizeof(cavern.CRUMBLING.sprite)) == 0 ) {
       CRUMBLE(addr);
     }
 
-    if ( memcmp(&MEM[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) != 0 ) {
+    if ( memcmp(&speccy.memory[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) != 0 ) {
       // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
       // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
       // JR Z,MOVEWILLY_4        // Jump if so
-    } else if ( memcmp(&MEM[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0 ) {
+    } else if ( memcmp(&speccy.memory[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0 ) {
       // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
       // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
       // JR Z,MOVEWILLY_4        // Jump if so
@@ -1194,15 +1198,15 @@ bool MOVEWILLY() {
       // LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
       // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
       // CALL Z,CRUMBLE          // If so, make it crumble
-      if ( memcmp(&MEM[addr], cavern.CRUMBLING.sprite, sizeof(cavern.CRUMBLING.sprite)) == 0 ) {
+      if ( memcmp(&speccy.memory[addr], cavern.CRUMBLING.sprite, sizeof(cavern.CRUMBLING.sprite)) == 0 ) {
         CRUMBLE(addr);
       }
 
-      if ( memcmp(&MEM[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0 ) {
+      if ( memcmp(&speccy.memory[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0 ) {
         // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
         // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
         // JR Z,MOVEWILLY_4        // Jump if so
-      } else if ( memcmp(&MEM[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0 ) {
+      } else if ( memcmp(&speccy.memory[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0 ) {
         // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
         // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
         // JR Z,MOVEWILLY_4        // Jump if so
@@ -1211,13 +1215,13 @@ bool MOVEWILLY() {
         // CP (HL)                 // Set the zero flag if the right-hand cell below Willy's sprite is empty
         // DEC HL                  // Point HL at the left-hand cell below Willy's sprite
         // JP NZ,MOVEWILLY2        // Jump if the right-hand cell below Willy's sprite is not empty
-        if ( memcmp(&MEM[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0 ) {
+        if ( memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0 ) {
           return MOVEWILLY2((uint8_t)(addr - 1));
         }
         addr--;
         // CP (HL)                 // Is the left-hand cell below Willy's sprite empty?
         // JP NZ,MOVEWILLY2        // Jump if not
-        if ( memcmp(&MEM[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0 ) {
+        if ( memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0 ) {
           return MOVEWILLY2(addr);
         }
       }
@@ -1387,7 +1391,7 @@ void CRUMBLE(uint16_t addr) {
     // INC B                   // Copy these pixels into the row below it
     // LD (BC),A
     // DEC B                   // Point BC at the next row of pixels up
-    MEM[build_address(msb, lsb)] = MEM[build_address((uint8_t)(msb + 1), lsb)];
+    speccy.memory[build_address(msb, lsb)] = speccy.memory[build_address((uint8_t)(msb + 1), lsb)];
 
     // LD A,B                  // Have we dealt with the bottom seven pixel rows of
     // AND 7                   // the crumbling floor tile yet?
@@ -1399,7 +1403,7 @@ void CRUMBLE(uint16_t addr) {
 
   // XOR A                   // Clear the top row of pixels in the crumbling floor
   // LD (BC),A               // tile
-  MEM[build_address(msb, lsb)] = 0;
+  speccy.memory[build_address(msb, lsb)] = 0;
 
   // LD A,B                  // Point BC at the bottom row of pixels in the
   // ADD A,7                 // crumbling floor tile
@@ -1409,7 +1413,7 @@ void CRUMBLE(uint16_t addr) {
   // LD A,(BC)               // Pick up the bottom row of pixels in A
   // OR A                    // Is the bottom row clear?
   // RET NZ                  // Return if not
-  if (MEM[build_address(msb, lsb)] == 0) {
+  if (speccy.memory[build_address(msb, lsb)] == 0) {
     return;
   }
 
@@ -1422,7 +1426,7 @@ void CRUMBLE(uint16_t addr) {
   // LD (HL),A               // Set the attribute at this location to that of the background tile
   // DEC H                   // Set HL back to the address of the crumbling floor
   // DEC H                   // tile's location in the attribute buffer at 23552
-  memcpy(&MEM[build_address((uint8_t)(msb + 2), lsb)], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+  memcpy(&speccy.memory[build_address((uint8_t)(msb + 2), lsb)], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
 
   // RET
 }
@@ -1457,7 +1461,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // INC HL                  // Point HL at the right-hand cell below Willy's sprite
   // CP (HL)                 // Does the attribute byte of the right-hand cell below Willy's sprite match that of the conveyor tile?
   // JR NZ,MOVEWILLY2_1      // Jump if not
-  if ( memcmp(&MEM[addr], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0 || memcmp(&MEM[addr + 1], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0 ) {
+  if ( memcmp(&speccy.memory[addr], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0 || memcmp(&speccy.memory[addr + 1], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0 ) {
     // MOVEWILLY2_0:
     // LD A,(CONVDIR)          // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
     // SUB 3                   // Now E=253 (bit 1 reset) if the conveyor is moving
@@ -1525,9 +1529,9 @@ bool MOVEWILLY2(uint16_t addr) {
   // SET 3,C                 // Set bit 3 of C: Willy is moving right
   // FIXME: this is not yet handling the CONVDIR direction movement from above.
   uint8_t movement = 0;
-  if (check_left_keypress()) {
+  if (Terminal_keyLeft()) {
     movement = 4;
-  } else if (check_right_keypress()) {
+  } else if (Terminal_keyRight()) {
     movement = 8;
   }
 
@@ -1561,7 +1565,7 @@ bool MOVEWILLY2(uint16_t addr) {
   // IN A,(C)
   // BIT 4,A                 // Is the fire button being pressed?
   // JR Z,MOVEWILLY2_6       // Jump if not
-  if (check_jump_keypress()) {
+  if (Terminal_keyJump()) {
     // A jump key or the fire button is being pressed. Time to make Willy jump.
     // MOVEWILLY2_5:
     // XOR A                   // Initialise the jumping animation counter at JUMPING
@@ -1623,7 +1627,7 @@ void MOVEWILLY2_7() {
   // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if ( memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
+  if ( memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
     return;
   }
 
@@ -1635,7 +1639,7 @@ void MOVEWILLY2_7() {
     // ADD HL,DE               // Point HL at the cell at (x-1,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
     // RET Z                   // Return if so without moving Willy (his path is blocked)
-    if ( memcmp(&MEM[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
+    if ( memcmp(&speccy.memory[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
       return;
     }
 
@@ -1652,7 +1656,7 @@ void MOVEWILLY2_7() {
   addr -= 32;
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if ( memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
+  if ( memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
     return;
   }
 
@@ -1696,7 +1700,7 @@ void MOVEWILLY2_10() {
   addr += 32;
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if ( memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
+  if ( memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
     return;
   }
 
@@ -1708,7 +1712,7 @@ void MOVEWILLY2_10() {
     // ADD HL,DE               // Point HL at the cell at (x+2,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
     // RET Z                   // Return if so without moving Willy (his path is blocked)
-    if ( memcmp(&MEM[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
+    if ( memcmp(&speccy.memory[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
       return;
     }
     // OR A                    // Clear the carry flag for subtraction
@@ -1722,7 +1726,7 @@ void MOVEWILLY2_10() {
   addr -= 32;
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if ( memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
+  if ( memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
     return;
   }
 
@@ -1979,14 +1983,14 @@ void LIGHTBEAM() {
     // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the cavern from WALL
     // CP (HL)                 // Does HL point at a wall tile?
     // RET Z                   // Return if so (the light beam stops here)
-    if ( memcmp(&MEM[addr], cavern.FLOOR.sprite, sizeof(cavern.FLOOR.sprite)) == 0 || memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
+    if ( memcmp(&speccy.memory[addr], cavern.FLOOR.sprite, sizeof(cavern.FLOOR.sprite)) == 0 || memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
       return;
     }
 
     // LD A,39                 // A=39 (INK 7: PAPER 4)
     // CP (HL)                 // Does HL point at a tile with this attribute value?
     // JR NZ,LIGHTBEAM_1       // Jump if not (the light beam is not touching Willy)
-    if (MEM[addr] == 39) {
+    if (speccy.memory[addr] == 39) {
       // EXX                     // Switch to the shadow registers briefly (to preserve DE and HL)
       // CALL DECAIR             // Decrease the air supply by four units
       DECAIR();
@@ -2003,7 +2007,7 @@ void LIGHTBEAM() {
       // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the cavern from BACKGROUND
       // CP (HL)                 // Does HL point at a background tile?
       // JR Z,LIGHTBEAM_2        // Jump if so (the light beam will not be reflected at this point)
-      if ( memcmp(&MEM[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) == 0 ) {
+      if ( memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) == 0 ) {
         // LD A,E                  // Toggle the value in DE between 32 and -1 (and
         // XOR 223                 // therefore the direction of the light beam between
         dir ^= 223;
@@ -2017,7 +2021,7 @@ void LIGHTBEAM() {
 
     // LIGHTBEAM_2:
     // LD (HL),119             // Draw a portion of the light beam with attribute value 119 (INK 7: PAPER 6: BRIGHT 1)
-    MEM[addr] = 119;
+    speccy.memory[addr] = 119;
     // ADD HL,DE               // Point HL at the cell where the next portion of the light beam will be drawn
     addr += dir;
     // JR LIGHTBEAM_0          // Jump back to draw the next portion of the light beam
@@ -2060,21 +2064,21 @@ bool DRAWHG() {
     // AND 127                 // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
     attr &= 127;
     // LD (HL),A               // Set the attribute bytes for the guardian in the
-    MEM[addr] = attr;
+    speccy.memory[addr] = attr;
     // INC HL                  // buffer at 23552
     addr++;
     // LD (HL),A
-    MEM[addr] = attr;
+    speccy.memory[addr] = attr;
 
     // ADD HL,DE
     addr += 31;
     // LD (HL),A
-    MEM[addr] = attr;
+    speccy.memory[addr] = attr;
 
     // INC HL
     addr++;
     // LD (HL),A
-    MEM[addr] = attr;
+    speccy.memory[addr] = attr;
 
     // LD C,1                  // Prepare C for the call to the drawing routine at DRWFIX later on
 
@@ -2257,40 +2261,40 @@ bool EUGENE() {
 // KONGBEAST (to set the attributes for the Kong Beast).
 void EUGENE_3(uint16_t addr, uint8_t ink_color) {
   // LD (HL),A               // Save the INK colour in the attribute buffer temporarily
-  MEM[addr] = ink_color;
+  speccy.memory[addr] = ink_color;
 
   // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   // AND 248                 // Combine its PAPER colour with the chosen INK colour
   // OR (HL)
   // LD (HL),A               // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552
-  MEM[addr] = (uint8_t)((cavern.BACKGROUND.sprite[0] & 248) | MEM[addr]);
+  speccy.memory[addr] = (uint8_t)((cavern.BACKGROUND.sprite[0] & 248) | speccy.memory[addr]);
 
   // LD DE,31                // Prepare DE for addition
 
   // INC HL                  // Set the attribute byte for the top-right cell of
   addr++;
   // LD (HL),A               // the sprite in the attribute buffer at 23552
-  MEM[addr] = ink_color;
+  speccy.memory[addr] = ink_color;
 
   // ADD HL,DE               // Set the attribute byte for the middle-left cell of
   addr += 31;
   // LD (HL),A               // the sprite in the attribute buffer at 23552
-  MEM[addr] = ink_color;
+  speccy.memory[addr] = ink_color;
 
   // INC HL                  // Set the attribute byte for the middle-right cell of
   addr++;
   // LD (HL),A               // the sprite in the attribute buffer at 23552
-  MEM[addr] = ink_color;
+  speccy.memory[addr] = ink_color;
 
   // ADD HL,DE               // Set the attribute byte for the bottom-left cell of
   addr += 31;
   // LD (HL),A               // the sprite in the attribute buffer at 23552
-  MEM[addr] = ink_color;
+  speccy.memory[addr] = ink_color;
 
   // INC HL                  // Set the attribute byte for the bottom-right cell of
   addr++;
   // LD (HL),A               // the sprite in the attribute buffer at 23552
-  MEM[addr] = ink_color;
+  speccy.memory[addr] = ink_color;
 
   // RET
 }
@@ -2591,7 +2595,7 @@ void DRAWITEMS() {
     // AND 7                   // Is the INK white (which happens if Willy is
     // CP 7                    // touching the item)?
     // JR NZ,DRAWITEMS_1       // Jump if not
-    if ((MEM[addr] & 7) == 7) {
+    if ((speccy.memory[addr] & 7) == 7) {
       // Willy is touching this item, so add it to his collection.
       // LD HL,33836             // Add 100 to the score
       // CALL INCSCORE_0
@@ -2617,7 +2621,7 @@ void DRAWITEMS() {
       cavern.ITEMS[i].attribute = attribute;
 
       // LD (DE),A               // Update the attribute byte at the item's location in the buffer at 23552
-      MEM[addr] = attribute;
+      speccy.memory[addr] = attribute;
 
       // LD (ITEMATTR),A         // Store the new attribute byte at ITEMATTR as well
       game.ITEMATTR = attribute;
@@ -2700,20 +2704,20 @@ bool CHKPORTAL() {
   // CHKPORTAL_0:
   // LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
   // LD (HL),A               // Set the attribute bytes for the portal in the
-  MEM[addr] = cavern.portal.PORTAL;
+  speccy.memory[addr] = cavern.portal.PORTAL;
   // INC HL                  // buffer at 23552
   addr++;
   // LD (HL),A
-  MEM[addr] = cavern.portal.PORTAL;
+  speccy.memory[addr] = cavern.portal.PORTAL;
   // LD DE,31
   // ADD HL,DE
   addr += 31;
   // LD (HL),A
-  MEM[addr] = cavern.portal.PORTAL;
+  speccy.memory[addr] = cavern.portal.PORTAL;
   // INC HL
   addr++;
   // LD (HL),A
-  MEM[addr] = cavern.portal.PORTAL;
+  speccy.memory[addr] = cavern.portal.PORTAL;
 
   // LD DE,PORTALG           // Point DE at the graphic data for the portal at PORTALG
   // LD HL,(PORTALLOC2)      // Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2
@@ -2752,16 +2756,16 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
   for (int i = 0; i < 32; i += 2) {
     // Are we in blend mode?
     if (mode == 1) {
-      if (sprite[i] & MEM[addr] || sprite[i + 1] & MEM[addr + 1]) {
+      if (sprite[i] & Speccy_readScreen(addr) || sprite[i + 1] & Speccy_readScreen(addr + 1)) {
         return true; // collision detected
       }
-      sprite[i] |= MEM[addr];
-      sprite[i + 1] |= MEM[addr + 1];
+      sprite[i] |= Speccy_readScreen(addr);
+      sprite[i + 1] |= Speccy_readScreen(addr + 1);
     }
 
     // Copy the graphic bytes to their destination cells
-    MEM[addr] = sprite[i];
-    MEM[addr + 1] = sprite[i + 1];
+    Speccy_writeScreen(addr, sprite[i]);
+    Speccy_writeScreen(addr + 1, sprite[i + 1]);
 
     // Move down to the next pixel row
     split_address(addr, &msb, &lsb);
@@ -2808,17 +2812,17 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
 //    if (mode == 1) {
 //      // AND (HL)                // Return with the zero flag reset if any of the set
 //      // RET NZ                  // bits in the sprite graphic byte collide with a set bit in the background (e.g. in Willy's sprite)
-//      if (sprite[i] & MEM[addr]) {
+//      if (sprite[i] & speccy.memory[addr]) {
 //        return true;
 //      }
 //      // LD A,(DE)               // Pick up the sprite graphic byte again
 //      // OR (HL)                 // Blend it with the background byte
-//      sprite[i] |= MEM[addr];
+//      sprite[i] |= speccy.memory[addr];
 //    }
 //
 //    // DRWFIX_1:
 //    // LD (HL),A               // Copy the graphic byte to its destination cell
-//    MEM[addr] = sprite[i];
+//    speccy.memory[addr] = sprite[i];
 //
 //    // INC L                   // Move HL along to the next cell on the right
 //    lsb++;
@@ -2833,17 +2837,17 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
 //    if (mode == 1) {
 //      // AND (HL)                // Return with the zero flag reset if any of the set
 //      // RET NZ                  // bits in the sprite graphic byte collide with a set bit in the background (e.g. in Willy's sprite)
-//      if (sprite[i] & MEM[addr]) {
+//      if (sprite[i] & speccy.memory[addr]) {
 //        return true;
 //      }
 //      // LD A,(DE)               // Pick up the sprite graphic byte again
 //      // OR (HL)                 // Blend it with the background byte
-//      sprite[i] |= MEM[addr];
+//      sprite[i] |= speccy.memory[addr];
 //    }
 //
 //    // DRWFIX_2:
 //    // LD (HL),A               // Copy the graphic byte to its destination cell
-//    MEM[addr] = sprite[i];
+//    speccy.memory[addr] = sprite[i];
 //
 //    // DEC L                   // Move HL to the next pixel row down in the cell on
 //    lsb--;
@@ -2930,19 +2934,19 @@ bool NXSHEET() {
       addr = 22611;
 
       // LD (HL),47              // Set the attributes for the upper half of Willy's
-      MEM[addr] = 47;
+      Speccy_writeAttribute(addr, 47);
       // INC HL                  // sprite at (2,19) and (2,20) to 47 (INK 7: PAPER 5)
       addr++;
       // LD (HL),47
-      MEM[addr] = 47;
+      Speccy_writeAttribute(addr, 47);
       // ADD HL,DE               // Set the attributes for the lower half of Willy's
       addr += 31;
       // LD (HL),39              // sprite at (3,19) and (3,20) to 39 (INK 7: PAPER 4)
-      MEM[addr] = 39;
+      Speccy_writeAttribute(addr, 39);
       // INC HL
       addr++;
       // LD (HL),39
-      MEM[addr] = 39;
+      Speccy_writeAttribute(addr, 39);
       // ADD HL,DE               // Point HL at (5,19) in the attribute file
       addr += 31;
       // INC HL
@@ -2950,27 +2954,27 @@ bool NXSHEET() {
       // ADD HL,DE
       addr += 31;
       // LD (HL),69              // Set the attributes for the fish at (5,19) and
-      MEM[addr] = 69;
+      Speccy_writeAttribute(addr, 69);
       // INC HL                  // (5,20) to 69 (INK 5: PAPER 0: BRIGHT 1)
       addr++;
       // LD (HL),69
-      MEM[addr] = 69;
+      Speccy_writeAttribute(addr, 69);
       // ADD HL,DE               // Set the attribute for the handle of the sword at
       addr += 31;
       // LD (HL),70              // (6,19) to 70 (INK 6: PAPER 0: BRIGHT 1)
-      MEM[addr] = 70;
+      Speccy_writeAttribute(addr, 70);
       // INC HL                  // Set the attribute for the blade of the sword at
       addr++;
       // LD (HL),71              // (6,20) to 71 (INK 7: PAPER 0: BRIGHT 1)
-      MEM[addr] = 71;
+      Speccy_writeAttribute(addr, 71);
       // ADD HL,DE               // Set the attributes at (7,19) and (7,20) to 0 (to
       addr += 31;
       // LD (HL),0               // hide Willy's feet just below where the portal was)
-      MEM[addr] = 0;
+      Speccy_writeAttribute(addr, 0);
       // INC HL
       addr++;
       // LD (HL),0
-      MEM[addr] = 0;
+      Speccy_writeAttribute(addr, 0);
 
       // LD BC,0                 // Prepare C and D for the celebratory sound effect
       // LD D,50
@@ -3027,7 +3031,7 @@ bool NXSHEET() {
     // LD (HL),A
     // LDIR
     for (int i = 0; i < 512; i++) {
-      MEM[22528 + i] = ink;
+      Speccy_writeAttribute(22528 + i, ink);
     }
 
     //   LD BC,4                 // Pause for about 0.004s
@@ -3039,7 +3043,7 @@ bool NXSHEET() {
 
     // DEC A                   // Decrement the attribute value in A
     // JR NZ,NXSHEET_4         // Jump back until we've gone through all attribute values from 63 down to 1
-    redraw_screen();
+      Terminal_redraw();
   }
 
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
@@ -3121,13 +3125,13 @@ void INCSCORE_0(uint16_t addr) {
 
   for (;;) {
     // Pick up a digit of the score, is it '9'?
-    if (MEM[addr] < 57) {
-      MEM[addr]++;
+    if (speccy.memory[addr] < 57) {
+      speccy.memory[addr]++;
       return;
     }
 
     // Roll the digit over from '9' to '0'
-    MEM[addr] = 48;
+    speccy.memory[addr] = 48;
 
     // Point HL at the next digit to the left
     addr--;
@@ -3195,7 +3199,7 @@ void MVCONVEYOR() {
     // LD A,(HL)               // Copy the first pixel row of the conveyor tile to A
     // RLC A                   // Rotate it left twice
     // RLC A
-    pixels_a = rotl(MEM[row_hl], 2);
+    pixels_a = rotl(speccy.memory[row_hl], 2);
 
     split_address(row_hl, &h, &l);
     // INC H                   // Point HL at the third pixel row of the conveyor
@@ -3206,7 +3210,7 @@ void MVCONVEYOR() {
     // LD C,(HL)               // Copy this pixel row to C
     // RRC C                   // Rotate it right twice
     // RRC C
-    pixels_c = rotr(MEM[row_hl], 2);
+    pixels_c = rotr(speccy.memory[row_hl], 2);
 
     // IMPORTANT: moved MVCONVEYOR_0 below, as the `else` takes card of the needed jumps and RET.
 
@@ -3217,7 +3221,7 @@ void MVCONVEYOR() {
     // LD A,(HL)               // Copy the first pixel row of the conveyor tile to A
     // RRC A                   // Rotate it right twice
     // RRC A
-    pixels_a = rotr(MEM[row_hl], 2);
+    pixels_a = rotr(speccy.memory[row_hl], 2);
 
     split_address(row_hl, &h, &l);
     // INC H                   // Point HL at the third pixel row of the conveyor
@@ -3228,7 +3232,7 @@ void MVCONVEYOR() {
     // LD C,(HL)               // Copy this pixel row to C
     // RLC C                   // Rotate it left twice
     // RLC C
-    pixels_c = rotl(MEM[row_hl], 2);
+    pixels_c = rotl(speccy.memory[row_hl], 2);
 
     // JR MVCONVEYOR_0         // Jump back to update the first and third pixel rows of every conveyor tile
   }
@@ -3238,10 +3242,10 @@ void MVCONVEYOR() {
   // MVCONVEYOR_0:
   for (int b = cavern.CONVEYOR.CONVLEN; b > 0; b--) {
     // LD (DE),A               // Update the first and third pixel rows of every
-    MEM[row_de] = pixels_a;
+    speccy.memory[row_de] = pixels_a;
 
     // LD (HL),C               // conveyor tile in the screen buffer at 28672
-    MEM[row_hl] = pixels_c;
+    speccy.memory[row_hl] = pixels_c;
 
     split_address(row_hl, &h, &l);
     // INC L
@@ -3282,7 +3286,7 @@ bool KONGBEAST() {
   // CP 16                   // Has the switch been flipped?
   // JP Z,KONGBEAST_8        // Jump if not
   // FIXME: Blank Screen Buffer: Screen File = 17670
-  if (MEM[29958] != 16) {
+  if (speccy.memory[29958] != 16) {
     return KONGBEAST_8();  // return dead-ness state of Willy! -MRC-
   }
 
@@ -3292,7 +3296,7 @@ bool KONGBEAST() {
   // OR A                    // Has the wall there been removed yet?
   // JR Z,KONGBEAST_2        // Jump if so
   // FIXME: Blank Screen Buffer: Screen File = 22897
-  if (MEM[24433] != 0) {
+  if (speccy.memory[24433] != 0) {
     // LD HL,32625             // Point HL at the bottom row of pixels of the wall tile at (11,17) in the screen buffer at 28672
   // FIXME: Blank Screen Buffer: Screen File = 20337
     addr = 32625;
@@ -3304,11 +3308,11 @@ bool KONGBEAST() {
       // LD A,(HL)               // Pick up a pixel row
       // OR A                    // Is it blank yet?
       // JR NZ,KONGBEAST_1       // Jump if not
-      if (MEM[addr] != 0) {
+      if (speccy.memory[addr] != 0) {
         // IMPORTANT: moving KONGBEAST_1 as it's the only place that calls it, and it saves some goto's -MRC-
         // KONGBEAST_1:
         // LD (HL),0               // Clear a pixel row of the wall tile at (11,17) in the screen buffer at 28672
-        MEM[addr] = 0;
+        speccy.memory[addr] = 0;
 
         // LD L,145                // Point HL at the opposite pixel row of the wall tile
         lsb = 145;
@@ -3319,7 +3323,7 @@ bool KONGBEAST() {
         addr = build_address(msb, lsb);
 
         // LD (HL),0               // Clear that pixel row as well
-        MEM[addr] = 0;
+        speccy.memory[addr] = 0;
 
         break;
       }
@@ -3339,15 +3343,15 @@ bool KONGBEAST() {
     // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // LD (24433),A            // Change the attributes at (11,17) and (12,17) in the
     // FIXME: Blank Screen Buffer: Screen File = 22897
-    memcpy(&MEM[24433], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+    memcpy(&speccy.memory[24433], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
     // LD (24465),A            // buffer at 24064 to match the background tile (the wall there is now gone)
     // FIXME: Blank Screen Buffer: Screen File = 22929
-    memcpy(&MEM[24465], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+    memcpy(&speccy.memory[24465], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
 
     // FIXME: I guess we need to update HGUARD2 directly rather than this memeory address.
     // LD A,114                // Update the seventh byte of the guardian definition
     // LD (32971),A            // at HGUARD2 so that the guardian moves through the opening in the wall
-    MEM[32971] = 114;
+    speccy.memory[32971] = 114;
 
     // JR KONGBEAST_2
 
@@ -3374,10 +3378,10 @@ bool KONGBEAST() {
     // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // LD (24143),A            // Change the attributes of the floor beneath the Kong
     // FIXME: Blank Screen Buffer: Screen File = 22607
-    memcpy(&MEM[24143], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+    memcpy(&speccy.memory[24143], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
     // LD (24144),A            // Beast in the buffer at 24064 to match that of the background tile
     // FIXME: Blank Screen Buffer: Screen File = 16463
-    memcpy(&MEM[24144], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+    memcpy(&speccy.memory[24144], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
 
     // LD HL,28751             // Point HL at (2,15) in the screen buffer at 28672
     // FIXME: Blank Screen Buffer: Screen File = 22608
@@ -3388,14 +3392,14 @@ bool KONGBEAST() {
       split_address(addr, &msb, &lsb);
 
       // LD (HL),0               // floor beneath the Kong Beast
-      MEM[addr] = 0;
+      speccy.memory[addr] = 0;
 
       // INC L
       lsb++;
       addr = build_address(msb, lsb);
 
       // LD (HL),0
-      MEM[addr] = 0;
+      speccy.memory[addr] = 0;
 
       // DEC L
       // INC H
@@ -3534,11 +3538,11 @@ bool KONGBEAST_8() {
   // LD (23567),A
   // LD (23568),A
   // FIXME: Screen Buffer: Screen File = 22575
-  MEM[23599] = 68;
-  MEM[23600] = 68;
+  speccy.memory[23599] = 68;
+  speccy.memory[23600] = 68;
   // FIXME: Screen Buffer: Screen File = 22543
-  MEM[23567] = 68;
-  MEM[23568] = 68;
+  speccy.memory[23567] = 68;
+  speccy.memory[23568] = 68;
 
   // RET
   return false; // NOTE: willy is not dead.
@@ -3581,27 +3585,27 @@ bool CHKSWITCH(uint16_t addr) {
   addr = build_address(sw_msb, sw_lsb);
   // CP (HL)                 // Has the switch already been flipped?
   // RET NZ                  // Return (with the zero flag reset) if so
-  if (memcpy(&MEM[addr], cavern.EXTRA.sprite, sizeof(cavern.EXTRA.sprite)) == 0) {
+  if (memcpy(&speccy.memory[addr], cavern.EXTRA.sprite, sizeof(cavern.EXTRA.sprite)) == 0) {
     return true;
   }
 
   // Willy is flipping the switch.
   // LD (HL),8               // Update the sixth, seventh and eighth rows of pixels
-  MEM[addr] = 8;
+  speccy.memory[addr] = 8;
 
   // INC H                   // of the switch tile in the screen buffer at 28672 to
   sw_msb++;
 
   addr = build_address(sw_msb, sw_lsb);
   // LD (HL),6               // make it appear flipped
-  MEM[addr] = 6;
+  speccy.memory[addr] = 6;
 
   // INC H
   sw_msb++;
 
   addr = build_address(sw_msb, sw_lsb);
   // LD (HL),6
-  MEM[addr] = 6;
+  speccy.memory[addr] = 6;
 
   // XOR A                   // Set the zero flag: Willy has flipped the switch
   // OR A                    // This instruction is redundant
@@ -3690,7 +3694,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
   // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   // CP (HL)                 // Does this cell contain a background tile?
   // JR NZ,WILLYATTR_0       // Jump if not
-  if ( memcmp(&MEM[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) == 0 ) {
+  if ( memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) == 0 ) {
     // LD A,C                  // Set the zero flag if we are going to retain the INK
     // AND 15                  // colour in this cell; this happens only if the cell is in the bottom row and Willy's sprite is confined to the top two rows
     // JR Z,WILLYATTR_0        // Jump if we are going to retain the current INK colour in this cell
@@ -3698,7 +3702,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
       // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
       // OR 7                    // Set bits 0-2, making the INK white
       // LD (HL),A               // Set the attribute byte for this cell in the buffer at 23552
-      MEM[addr] = (uint8_t)(cavern.BACKGROUND.id | 7);
+      speccy.memory[addr] = (uint8_t)(cavern.BACKGROUND.id | 7);
     }
   }
 
@@ -3709,7 +3713,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
   // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
   // CP (HL)                 // Has Willy hit a nasty of the second kind?
   // JP Z,KILLWILLY          // Kill Willy if so
-  if ( memcmp(&MEM[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0 || memcmp(&MEM[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0 ) {
+  if ( memcmp(&speccy.memory[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0 || memcmp(&speccy.memory[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0 ) {
     KILLWILLY();
     return true;
   }
@@ -3767,7 +3771,7 @@ void DRAWWILLY() {
     // LD A,(DE)               // Pick up a sprite graphic byte
     // OR (HL)                 // Merge it with the background
     // LD (HL),A               // Save the resultant byte to the screen buffer
-    MEM[addr] = willy.sprites[frame] | MEM[addr];
+    speccy.memory[addr] = willy.sprites[frame] | speccy.memory[addr];
 
     // INC HL                  // Move HL along to the next cell to the right
     addr++;
@@ -3777,7 +3781,7 @@ void DRAWWILLY() {
     // LD A,(DE)               // Pick it up in A
     // OR (HL)                 // Merge it with the background
     // LD (HL),A               // Save the resultant byte to the screen buffer
-    MEM[addr] = willy.sprites[frame] | MEM[addr];
+    speccy.memory[addr] = willy.sprites[frame] | speccy.memory[addr];
 
     // INC IX                  // Point IX at the next entry in the screen buffer
     // INC IX                  // address lookup table at SBUFADDRS
@@ -3855,7 +3859,7 @@ void PRINTCHAR_0(void *character, uint16_t addr, uint8_t len) {
     // LD A,(HL)               // Copy the character bitmap to the screen (or item
     // LD (DE),A               // graphic to the screen buffer)
     // INC HL
-    MEM[addr] = chr[i];
+    speccy.memory[addr] = chr[i];
 
     // INC D
     split_address(addr, &msb, &lsb);
@@ -3899,7 +3903,7 @@ bool PLAYTUNE() {
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
     addr = PIANOKEY(freq1);
     // LD (HL),80              // Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1)
-    MEM[addr] = 80;
+    speccy.memory[addr] = 80;
 
     // LD E,(IY+2)             // Pick up the third byte of data for this note
     freq2 = note[2];
@@ -3908,7 +3912,7 @@ bool PLAYTUNE() {
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
     addr = PIANOKEY(freq2);
     // LD (HL),40              // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0)
-    MEM[addr] = 40;
+    speccy.memory[addr] = 40;
 
     // PLAYTUNE_0:
     for (uint8_t d = note[0]; d > 0; d--) {
@@ -3957,13 +3961,13 @@ bool PLAYTUNE() {
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
     addr = PIANOKEY(note[1]);
     // LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
-    MEM[addr] = 56;
+    speccy.memory[addr] = 56;
 
     // LD A,(IY+2)             // Pick up the third byte of data for this note
     // CALL PIANOKEY           // Calculate the attribute file address for the corresponding piano key
     addr = PIANOKEY(note[2]);
     // LD (HL),56              // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
-    MEM[addr] = 56;
+    speccy.memory[addr] = 56;
 
     // INC IY                  // Move IY along to the data for the next note in the
     // INC IY                  // tune
@@ -4020,7 +4024,7 @@ bool CHECKENTER() {
   // AND 1                   // Keep only bit 0 of the result (ENTER)
   // CP 1                    // Reset the zero flag if ENTER is being pressed
   // RET
-  if (check_enter_keypress()) {
+  if (Terminal_keyEnter()) {
     return true;
   } else {
     return false;
@@ -4044,10 +4048,10 @@ bool CHECKENTER() {
 // Tick the world over.
 // Call this whenever the display needs updating or FPS syncing.
 void tick() {
-  if (check_exit_keypress()) {
-    restore_terminal();
+  if (Terminal_keyExit()) {
+      Terminal_exit();
   }
-  redraw_screen();
+    Terminal_redraw();
 
   millisleep(29);
   return;
