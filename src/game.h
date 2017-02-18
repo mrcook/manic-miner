@@ -32,6 +32,15 @@ typedef struct Game_ {
 
     // Cheat code: 6031769 key counter
     uint8_t CHEAT;
+
+    // Game UI texts
+    char MESSAIR[3];
+    char HGHSCOR[6];
+    char SCORE[4];
+    char SCORBUF[6];
+    char MESSHSSC[32];
+    char MESSG[4];
+    char MESSO[4];
 } Game;
 
 // Initialize game "boot up" variables

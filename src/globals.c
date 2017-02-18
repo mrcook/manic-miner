@@ -21,12 +21,6 @@ GuardianHorizontal HGUARDS[4];
 GuardianVertical VGUARDS[4];
 Willy willy;
 
-// Attribute of the last item drawn
-//
-// Used by the routines at EUGENE and DRAWITEMS. Holds the attribute byte of the
-// last item drawn, or 0 if all the items have been collected.
-uint8_t ITEMATTR;
-
 // Eugene's direction or the Kong Beast's status
 //
 // Initialised by the routine at STARTGAME, and used by the routines at EUGENE
@@ -44,78 +38,9 @@ uint8_t EUGDIR;
 // y-coordinate).
 uint8_t EUGHGT;
 
-// Kong Beast Guardian graphic data
+// Now just the Kong Beast Guardian graphic data -- MRC
 uint8_t GGDATA[256];
 
 // IMPORTANT: not initialized anywhere, so let's do that here -MRC-
 // Swordfish graphic data
 uint8_t SWORDFISH[32];
-
-// 'AIR'
-//
-// Used by the routine at STARTGAME.
-char MESSAIR[] = "AIR";
-
-// Unused
-// DEFM "0000"
-
-// High score
-//
-// Used by the routine at LOOP and updated by the routine at ENDGAM.
-char HGHSCOR[] = "000000";
-
-// Score
-//
-// Initialised by the routine at STARTGAME, and used by the routines at LOOP,
-// ENDGAM, NXSHEET and INCSCORE.
-char SCORE[] = "0000";             // Overflow digits (these may be updated, but are never printed)
-char SCORBUF[] = "000000";
-
-// 'High Score 000000   Score 000000'
-//
-// Used by the routine at STARTGAME.
-char MESSHSSC[] = "High Score 000000   Score 000000";
-
-// ----------------------------
-//  IMPORTANT: custom scoring
-int current_score;
-int highscore;
-// ----------------------------
-
-// 'Game'
-//
-// Used by the routine at ENDGAM.
-char MESSG[] = "Game";
-
-// 'Over'
-//
-// Used by the routine at ENDGAM.
-char MESSO[] = "Over";
-
-// Screen flash counter
-//
-// Initialised by the routine at START, and used by the routines at LOOP and INCSCORE.
-uint8_t FLASH;
-
-// Kempston joystick indicator
-//
-// Initialised by the routine at START, and used by the routines at LOOP,
-// MOVEWILLY2 and CHECKENTER. Holds 1 if a joystick is present, 0 otherwise.
-uint8_t KEMP;
-
-// Game mode indicator
-//
-// Initialised by the routine at START, and used by the routines at STARTGAME,
-// LOOP and NXSHEET. Holds 0 when a game is in progress, or a value from 1 to 64
-// when in demo mode.
-uint8_t DEMO;
-
-// In-game music note index
-//
-// Initialised by the routine at START, and used and updated by the routine at LOOP.
-uint8_t NOTEINDEX;
-
-// 6031769 key counter
-//
-// Used by the routines at LOOP and NXSHEET.
-uint8_t CHEAT;

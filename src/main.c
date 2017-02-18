@@ -105,7 +105,7 @@ NEWSHT:
   // LD C,3
   // LD DE,20512
   // CALL PMESS
-  PMESS(&MESSAIR, 20512, 3);
+  PMESS(&game.MESSAIR, 20512, 3);
 
   // Initialise A to 82; this is the MSB of the display file address at which to start drawing the bar that represents the air supply
   // LD A,82
@@ -142,7 +142,7 @@ NEWSHT:
   // LD DE,20576
   // LD C,32
   // CALL PMESS
-  PMESS(&MESSHSSC, 20576, 32);
+  PMESS(&game.MESSHSSC, 20576, 32);
 
     Terminal_redraw();
 
@@ -332,13 +332,13 @@ LOOP_4:
     // LD DE,20602
     // LD C,6
     // CALL PMESS
-    PMESS(&SCORBUF, 20602, 6);
+    PMESS(&game.SCORBUF, 20602, 6);
 
     // LD IX,HGHSCOR           // Print the high score (see HGHSCOR) at (19,11)
     // LD DE,20587
     // LD C,6
     // CALL PMESS
-    PMESS(&HGHSCOR, 20587, 6);
+    PMESS(&game.HGHSCOR, 20587, 6);
 
       Terminal_redraw();
 
@@ -680,7 +680,7 @@ void ENDGAM() {
   //   LDIR
   if (game.current_score > game.highscore) {
     game.highscore = game.current_score;
-    memcpy(HGHSCOR, SCORBUF, sizeof(&SCORBUF));
+    memcpy(game.HGHSCOR, game.SCORBUF, sizeof(&game.SCORBUF));
   }
 
   // Now prepare the screen for the game over sequence.
@@ -696,9 +696,8 @@ void ENDGAM() {
   }
     Terminal_redraw();
 
-  // XOR A                   // Initialise the game status buffer variable at
-  // LD (EUGHGT),A           // EUGHGT; this variable will determine the distance of the boot from the top of the screen
-  EUGHGT = 0;
+  // determines the distance of the boot from the top of the screen
+  uint8_t bootDistanceFromTop = 0;
 
   // LD DE,WILLYR2           // Draw Willy at (12,15)
   // LD HL,18575
@@ -712,14 +711,14 @@ void ENDGAM() {
   // CALL DRWFIX
   DRWFIX(&PLINTH, 18639, 0);
 
-    Terminal_redraw();
+  Terminal_redraw();
 
   uint8_t msb, lsb;
   uint16_t addr;
 
   // The following loop draws the boot's descent onto the plinth that supports Willy.
   // LOOPFT:
-  for (EUGHGT = 0; EUGHGT < 98; EUGHGT += 4) {
+  for (bootDistanceFromTop = 0; bootDistanceFromTop < 98; bootDistanceFromTop += 4) {
     // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
     // LD C,A                  // Point BC at the corresponding entry in the screen
     // LD B,131                // buffer address lookup table at SBUFADDRS
@@ -730,7 +729,7 @@ void ENDGAM() {
     // LD A,(BC)
     // SUB 32
     // LD H,A
-    split_address(SBUFADDRS[EUGHGT], &msb, &lsb);
+    split_address(SBUFADDRS[bootDistanceFromTop], &msb, &lsb);
     addr = build_address(msb-32, lsb|15); // center of screen
 
     // LD DE,BOOT              // Draw the boot (see BOOT) at this location, without
@@ -740,7 +739,7 @@ void ENDGAM() {
 
     // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
     // CPL                     // A=255-A
-    uint8_t distance = (uint8_t)(255 - EUGHGT);
+    uint8_t distance = (uint8_t)(255 - bootDistanceFromTop);
 
     // LD E,A                  // Store this value (63-255) in E; it determines the (rising) pitch of the sound effect that will be made
     // XOR A                   // A=0 (black border)
@@ -768,7 +767,7 @@ void ENDGAM() {
     // LD BC,511
     // LD A,(EUGHGT)           // Pick up the distance variable from EUGHGT
     // AND 12                  // Keep only bits 2 and 3
-    distance = (uint8_t)(EUGHGT & 12);
+    distance = (uint8_t)(bootDistanceFromTop & 12);
     // RLCA                    // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3
     distance = rotl(distance, 1);
     // OR 71                   // Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
@@ -794,14 +793,14 @@ void ENDGAM() {
   // LD C,4
   // LD DE,16586
   // CALL PMESS
-  PMESS(&MESSG, 16586, 4);
+  PMESS(&game.MESSG, 16586, 4);
 
   // Print "Over" (see MESSO) at (6,18)
   // LD IX,MESSO
   // LD C,4
   // LD DE,16594
   // CALL PMESS
-  PMESS(&MESSO, 16594, 4);
+  PMESS(&game.MESSO, 16594, 4);
 
   // LD BC,0                 // Prepare the delay counters for the following loop;
   // LD D,6                  // the counter in C will also determine the INK colours to use for the "Game Over" message
@@ -3071,7 +3070,7 @@ bool NXSHEET() {
     // LD C,6
     // LD DE,20602
     // CALL PMESS
-    PMESS(&SCORBUF, 20602, 6);
+    PMESS(&game.SCORBUF, 20602, 6);
 
     // LD C,4                  // C=4; this value determines the duration of the sound effect
     uint8_t duration = 4;

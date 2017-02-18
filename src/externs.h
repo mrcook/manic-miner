@@ -24,13 +24,6 @@ extern uint8_t EUGDIR;
 extern uint8_t EUGHGT;
 extern uint8_t GGDATA[256]; // now only used for Kong Beast
 extern uint8_t SWORDFISH[32];
-extern char MESSAIR[];
-extern char HGHSCOR[];
-extern char SCORE[];
-extern char SCORBUF[];
-extern char MESSHSSC[];
-extern char MESSG[];
-extern char MESSO[];
 
 extern uint8_t LRMOVEMENT[16];
 

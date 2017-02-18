@@ -11,6 +11,21 @@ void Game_initialize() {
     // FIXME: no joystick support just yet! -MRC-
     // Now check whether there is a joystick connected.
     game.KEMP = false;
+
+    strcpy(game.MESSAIR, "AIR");
+
+    // High score default
+    strcpy(game.HGHSCOR, "000000");
+
+    // Score defaults
+    strcpy(game.SCORE, "0000"); // Overflow digits (these may be updated, but are never printed)
+    strcpy(game.SCORBUF, "000000");
+
+    // Scores text 'High Score 000000   Score 000000'
+    strcpy(game.MESSHSSC, "High Score 000000   Score 000000");
+
+    strcpy(game.MESSG, "Game");
+    strcpy(game.MESSO, "Over");
 }
 
 void Game_new() {
