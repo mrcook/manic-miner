@@ -31,7 +31,7 @@ typedef struct Game_ {
     bool playMusic;
 
     // Cheat code: 6031769 key counter
-    uint8_t CHEAT;
+    bool CHEAT;
 
     // Game UI texts
     char MESSAIR[3];
@@ -46,8 +46,12 @@ typedef struct Game_ {
 // Initialize game "boot up" variables
 void Game_initialize(void);
 
-// Called before each new game is started to reset vars: current_score, etc.
-void Game_new(void);
+// Tick the world over.
+// Call this whenever the display needs updating or FPS syncing.
+void Game_tick(void);
 
 // Plays the intro music and text message
 void Game_play_intro(void);
+
+// Play the game, or DEMO.
+bool Game_play(void);

@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include <string.h>
-#include <ncurses.h>
-
 #include "coord.h"
 
 void Terminal_init();
@@ -16,7 +13,7 @@ void Terminal_clear(void);
 
 void Terminal_refresh(void);
 
-chtype Terminal_readCharAt(Coord pos);
+char Terminal_readCharAt(Coord pos);
 
 void Terminal_printCharAt(char ch, Coord pos);
 

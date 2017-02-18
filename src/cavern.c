@@ -7,5 +7,8 @@
 // Initialize the cavern
 void Cavern_initialize() {
     // Initialise the current cavern number at SHEET
-    cavern.SHEET = 0;
+    cavern.SHEET = 0; // FIXME: defaults to CAVERN0
+
+    // Load all the cavern data
+    initialize_cavern0();
 }

@@ -2,13 +2,16 @@
 
 #include "headers.h"
 #include "externs.h"
-
 #include "terminal.h"
+
+// keep ncurses functions private to this file
+#include <ncurses.h>
 
 #ifdef _WIN32
 // this is defined in Windows and also in ncurses
 #undef KEY_EVENT
 #endif
+
 
 void Terminal_init() {
     static bool cursesStarted = false;
@@ -60,8 +63,8 @@ void Terminal_refresh() {
     refresh();
 }
 
-chtype Terminal_readCharAt(Coord pos) {
-    return mvinch(pos.Y, pos.X);
+char Terminal_readCharAt(Coord pos) {
+    return (char)mvinch(pos.Y, pos.X);
 }
 
 void Terminal_printCharAt(char ch, Coord pos) {

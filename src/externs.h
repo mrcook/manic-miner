@@ -50,7 +50,6 @@ extern uint8_t EUGENEG[32];
 extern uint8_t CAVERN19[512];
 
 // functions
-bool play_new_cavern();
 bool MANDEAD();
 void ENDGAM();
 bool DECAIR();
@@ -96,8 +95,6 @@ uint16_t PIANOKEY(uint8_t frequency);
 bool CHECKENTER();
 
 void initialize_cavern0();
-void draw_remaining_lives();
-void tick();
 
 // helpers.c
 void millisleep(int milliseconds);
