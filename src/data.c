@@ -960,14 +960,21 @@ void initialize_cavern0() {
   MEM[addr++] = 0;
   MEM[addr++] = 0;
 
-  //
-  // FIXEM: we need to fill 35 bytes before GGDATA, but also populate VGUARDS array
-  //
-
   // The next byte is copied to VGUARDS and indicates that there are no vertical
   // guardians in this cavern.
-  uint8_t newVGUARDS[4][7] = {};
-  memcpy(VGUARDS, newVGUARDS, sizeof(newVGUARDS));
+  for (int i = 0; i < 4; i++) {
+      VGUARDS[i].attribute = 0;
+      VGUARDS[i].frame = 0;
+      VGUARDS[i].yCoord = 0;
+      VGUARDS[i].xCoord = 0;
+      VGUARDS[i].yPixelIncrement = 0;
+      VGUARDS[i].yCoordMinimum = 0;
+      VGUARDS[i].yCoordMaximum = 0;
+      for (int j = 0; j < 256; j++) {
+          VGUARDS[i].sprites[j] = 0;
+      }
+  }
+
   // DEFB 255               // Terminator
   MEM[addr++] = 255;
 

@@ -4,6 +4,7 @@
 #include "headers.h"
 
 #include "guardian_horizontal.h"
+#include "guardian_vertical.h"
 #include "item.h"
 #include "portal.h"
 #include "willy.h"
@@ -11,7 +12,7 @@
 // Setup all game objects
 //Cavern cavern;
 GuardianHorizontal HGUARDS[4];
-//GuardianVertical VGUARDS[4];
+GuardianVertical VGUARDS[4];
 Item ITEMS[5];
 Portal portal;
 Willy willy;
@@ -93,41 +94,6 @@ uint8_t EUGDIR;
 // Eugene's pixel y-coordinate) and KONGBEAST (to hold the Kong Beast's pixel
 // y-coordinate).
 uint8_t EUGHGT;
-
-// Vertical guardians
-//
-// The vertical guardian definitions are copied here by the routine at
-// STARTGAME, and then used by the routines at SKYLABS and VGUARDIANS. There are
-// four slots, each one seven bytes long, used to hold the state of the vertical
-// guardians in the current cavern.
-//
-// For each vertical guardian, the seven bytes are used as follows:
-//
-// +------+------------------------------+
-// | Byte | Contents                     |
-// +------+------------------------------+
-// | 0    | Attribute                    |
-// | 1    | Animation frame              |
-// | 2    | Pixel y-coordinate           |
-// | 3    | x-coordinate                 |
-// | 4    | Pixel y-coordinate increment |
-// | 5    | Minimum pixel y-coordinate   |
-// | 6    | Maximum pixel y-coordinate   |
-// +------+------------------------------+
-//
-// In most of the caverns that do not have vertical guardians, this area is
-// overwritten by unused bytes from the cavern definition. The exception is
-// Eugene's Lair: the routine at STARTGAME copies the graphic data for the
-// Eugene sprite into the last 32 bytes of this area, where it is then used by
-// the routine at EUGENE.
-uint8_t VGUARDS[4][7];
-  // DEFS 7                  // Vertical guardian 1
-  // DEFS 7                  // Vertical guardian 2
-  // DEFS 7                  // Vertical guardian 3
-  // DEFS 7                  // Vertical guardian 4
-  // DEFB 0                  // Terminator (set to 255 in caverns that have four vertical guardians)
-  // DEFS 6                  // Spare
-// IMPORTANT: do we need to handle the "spare"? -MRC-
 
 // Guardian graphic data
 //

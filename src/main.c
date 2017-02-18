@@ -2541,43 +2541,46 @@ bool SKYLABS() {
   // The Skylab-moving loop begins here.
   // SKYLABS_0:
   for (int i = 0; i < 4; i++) {
+    GuardianVertical *guardian = &VGUARDS[i];
+
     // LD A,(IY+0)             // Pick up the first byte of the guardian definition
     // CP 255                  // Have we dealt with all the Skylabs yet?
     // JP Z,LOOP_3             // If so, re-enter the main loop
-
-    uint8_t *guardian = VGUARDS[i];
+    if (guardian->attribute == 255) {
+        break;
+    }
 
     // LD A,(IY+2)             // Pick up the Skylab's pixel y-coordinate
     // CP (IY+6)               // Has it reached its crash site yet?
     // JR NC,SKYLABS_1         // Jump if so
-    if (guardian[2] != guardian[6]) {
+    if (guardian->yCoord != guardian->yCoordMaximum) {
       // ADD A,(IY+4)            // Increment the Skylab's y-coordinate (moving it
       // LD (IY+2),A             // downwards)
-      guardian[2] += guardian[4];
+      guardian->yCoord += guardian->yPixelIncrement;
       // JR SKYLABS_2
     } else {
       // The Skylab has reached its crash site. Start or continue its disintegration.
       // SKYLABS_1:
       // INC (IY+1)              // Increment the animation frame
-      guardian[1]++;
+      guardian->frame++;
 
       // LD A,(IY+1)             // Pick up the animation frame
       // CP 8                    // Has the Skylab completely disintegrated yet?
       // JR NZ,SKYLABS_2         // Jump if not
-      if (guardian[1] == 8) {
+      if (guardian->frame == 8) {
         // LD A,(IY+5)             // Reset the Skylab's pixel y-coordinate
         // LD (IY+2),A
-        guardian[2] = guardian[5];
+        guardian->yCoord = guardian->yCoordMinimum;
 
         // LD A,(IY+3)             // Add 8 to the Skylab's x-coordinate (wrapping around
         // ADD A,8                 // at the right side of the screen)
-        guardian[3] += 8;
+        guardian->xCoord += 8;
         // AND 31
         // LD (IY+3),A
-        guardian[3] &= 31;
+        guardian->xCoord &= 31;
 
         // LD (IY+1),0             // Reset the animation frame to 0
-        guardian[1] = 0;
+        guardian->frame = 0;
       }
     }
 
@@ -2590,11 +2593,11 @@ bool SKYLABS() {
     // LD E,(IY+2)             // Pick up the Skylab's pixel y-coordinate in E
     // RLC E                   // Point DE at the entry in the screen buffer address
     // LD D,131                // lookup table at SBUFADDRS that corresponds to the Skylab's pixel y-coordinate
-    uint8_t y_coord = rotl(guardian[2], 1);
+    uint8_t y_coord = rotl(guardian->yCoord, 1);
     // LD A,(DE)               // Point HL at the address of the Skylab's location in
     addr = SBUFADDRS[y_coord];
     // ADD A,(IY+3)            // the screen buffer at 24576
-    addr += guardian[3];
+    addr += guardian->xCoord;
     split_address(addr, &msb, &lsb);
     // LD L,A
     // INC DE
@@ -2613,7 +2616,7 @@ bool SKYLABS() {
     // RRCA
     // LD E,A                  // Point DE at the graphic data for the corresponding
     // LD D,129                // Skylab sprite (at GGDATA+A)
-    uint8_t sprite_offset = rotr(guardian[1], 3);
+    uint8_t sprite_offset = rotr(guardian->frame, 3);
     // LD C,1                  // Draw the Skylab to the screen buffer at 24576
     // CALL DRWFIX
     bool kill_willy = DRWFIX(&GGDATA[sprite_offset], addr, 1);
@@ -2629,7 +2632,7 @@ bool SKYLABS() {
     // RLCA
     // ADD A,92
     // LD H,A
-    addr = (uint16_t)(rotl((uint8_t)(guardian[2] & 64), 2) + 92);
+    addr = (uint16_t)(rotl((uint8_t)(guardian->yCoord & 64), 2) + 92);
     split_address(addr, &msb, &lsb);
     uint8_t msb_bak = msb;
 
@@ -2637,16 +2640,16 @@ bool SKYLABS() {
     // RLCA
     // RLCA
     // AND 224
-    addr = (uint8_t)(rotl(guardian[2], 2) & 224);
+    addr = (uint8_t)(rotl(guardian->yCoord, 2) & 224);
     // OR (IY+3)
-    addr |= guardian[3];
+    addr |= guardian->xCoord;
     split_address(addr, &msb, &lsb);
     // LD L,A
     addr = build_address(msb_bak, lsb);
 
     // LD A,(IY+0)             // Pick up the Skylab's attribute byte
     // CALL EUGENE_3           // Set the attribute bytes for the Skylab
-    EUGENE_3(addr, guardian[0]);
+    EUGENE_3(addr, guardian->attribute);
 
     // The current guardian definition has been dealt with. Time for the next one.
     // LD DE,7                 // Point IY at the first byte of the next vertical
@@ -2670,39 +2673,44 @@ bool VGUARDIANS() {
   // The guardian-moving loop begins here.
   // VGUARDIANS_0:
   for (int i = 0; i < 4; i++) {
+    GuardianVertical *guardian = &VGUARDS[i];
+
     // LD A,(IY+0)             // Pick up the first byte of the guardian definition
     // CP 255                  // Have we dealt with all the guardians yet?
     // RET Z                   // Return if so
-
-    uint8_t *guardian = VGUARDS[i];
+    if (guardian->attribute == 255) {
+      return false;
+    }
 
     // INC (IY+1)              // Increment the guardian's animation frame
     // RES 2,(IY+1)            // Reset the animation frame to 0 if it overflowed to 4
-    if (guardian[1] < 3) {
-      guardian[1]++;
+    if (guardian->frame < 3) {
+      guardian->frame++;
     } else {
-      guardian[1] = 0;
+      guardian->frame = 0;
     }
 
     // LD A,(IY+2)             // Pick up the guardian's pixel y-coordinate
     // ADD A,(IY+4)            // Add the current y-coordinate increment
-    uint16_t y_coord = guardian[2] + guardian[4];
+    uint16_t y_coord = guardian->yCoord + guardian->yPixelIncrement;
 
     // FIXME: JR based on C(arry) flag
     // CP (IY+5)               // Has the guardian reached the highest point of its path (minimum y-coordinate)?
     // JR C,VGUARDIANS_1       // If so, jump to change its direction of movement
     // CP (IY+6)               // Has the guardian reached the lowest point of its path (maximum y-coordinate)?
     // JR NC,VGUARDIANS_1      // If so, jump to change its direction of movement
-    if (y_coord != guardian[5] && y_coord != guardian[6]) {
+    if (y_coord != guardian->yCoordMinimum && y_coord != guardian->yCoordMaximum) {
       // LD (IY+2),A             // Update the guardian's pixel y-coordinate
-      guardian[2] += y_coord;
+      guardian->yCoord += y_coord;
       // JR VGUARDIANS_2
     } else {
       // VGUARDIANS_1:
       // LD A,(IY+4)             // Negate the y-coordinate increment; this changes the
       // NEG                     // guardian's direction of movement
       // LD (IY+4),A
-      guardian[4] = (uint8_t)(-guardian[4]); // IMPORTANT: this of course should still be a positive number! -MRC-
+
+      // IMPORTANT: this of course should still be a positive number! -MRC-
+      guardian->yPixelIncrement = (uint8_t)(-guardian->yPixelIncrement);
     }
 
     // Now that the guardian's movement has been dealt with, time to draw it.
@@ -2710,7 +2718,7 @@ bool VGUARDIANS() {
     // LD A,(IY+2)             // Pick up the guardian's pixel y-coordinate
     // AND 127                 // Point DE at the entry in the screen buffer address
     // RLCA                    // lookup table at SBUFADDRS that corresponds to the
-    y_coord = rotl((uint8_t)(guardian[2] & 127), 1);
+    y_coord = rotl((uint8_t)(guardian->yCoord & 127), 1);
     // LD E,A                  // guardian's pixel y-coordinate
     // LD D,131
     // LD A,(DE)               // Point HL at the address of the guardian's location
@@ -2718,7 +2726,7 @@ bool VGUARDIANS() {
     split_address(addr, &msb, &lsb);
     // OR (IY+3)               // in the screen buffer at 24576
     // LD L,A
-    lsb_bak = lsb | guardian[3];
+    lsb_bak = lsb | guardian->xCoord;
     // INC DE
     y_coord++;
     // LD A,(DE)
@@ -2731,7 +2739,7 @@ bool VGUARDIANS() {
     // RRCA                    // Multiply it by 32
     // RRCA
     // RRCA
-    uint8_t anim_frame = rotr(guardian[1], 3);
+    uint8_t anim_frame = rotr(guardian->frame, 3);
     // LD E,A                  // Point DE at the graphic data for the appropriate
     // LD D,129                // guardian sprite (at GGDATA+A)
     // LD C,1                  // Draw the guardian to the screen buffer at 24576
@@ -2750,7 +2758,7 @@ bool VGUARDIANS() {
     // RLCA
     // ADD A,92
     // LD H,A
-    addr = (uint16_t)(rotl((uint8_t)(guardian[2] & 64), 2) + 92);
+    addr = (uint16_t)(rotl((uint8_t)(guardian->yCoord & 64), 2) + 92);
     split_address(addr, &msb, &lsb);
     msb_bak = msb;
 
@@ -2758,16 +2766,16 @@ bool VGUARDIANS() {
     // RLCA
     // RLCA
     // AND 224
-    addr = (uint16_t)(rotl(guardian[2], 2) & 224);
+    addr = (uint16_t)(rotl(guardian->yCoord, 2) & 224);
     split_address(addr, &msb, &lsb);
     // OR (IY+3)
-    lsb |= guardian[3];
+    lsb |= guardian->xCoord;
     // LD L,A
     addr = build_address(msb_bak, lsb);
 
     // LD A,(IY+0)             // Pick up the guardian's attribute byte
     // CALL EUGENE_3           // Set the attribute bytes for the guardian
-    EUGENE_3(addr, guardian[0]);
+    EUGENE_3(addr, guardian->attribute);
 
     // The current guardian definition has been dealt with. Time for the next one.
     //   LD DE,7                 // Point IY at the first byte of the next vertical
