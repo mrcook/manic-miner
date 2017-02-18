@@ -3,6 +3,7 @@
 
 #include "headers.h"
 
+#include "conveyor.h"
 #include "guardian_horizontal.h"
 #include "guardian_vertical.h"
 #include "item.h"
@@ -10,7 +11,7 @@
 #include "willy.h"
 
 // Setup all game objects
-//Cavern cavern;
+// Cavern cavern;
 GuardianHorizontal HGUARDS[4];
 GuardianVertical VGUARDS[4];
 Item ITEMS[5];
@@ -32,14 +33,14 @@ char *CAVERNNAME; // IMPORTANT: length is always 32.
 // Landing Bay and The Bank. It is also used in The Menagerie as spider silk,
 // and in Miner Willy meets the Kong Beast and Return of the Alien Kong Beast as
 // a switch.
-uint8_t BACKGROUND[9]; // Background tile (also used by the routines at MOVEWILLY, CRUMBLE, LIGHTBEAM, EUGENE, KONGBEAST and WILLYATTR)
-uint8_t FLOOR[9];      // Floor tile (also used by the routine at LIGHTBEAM)
-uint8_t CRUMBLING[9];  // Crumbling floor tile (also used by the routine at MOVEWILLY)
-uint8_t WALL[9];       // Wall tile (also used by the routines at MOVEWILLY, MOVEWILLY2 and LIGHTBEAM)
-uint8_t CONVEYOR[9];   // Conveyor tile (also used by the routine at MOVEWILLY2)
-uint8_t NASTY1[9];     // Nasty tile 1 (also used by the routines at MOVEWILLY and WILLYATTR)
-uint8_t NASTY2[9];     // Nasty tile 2 (also used by the routines at MOVEWILLY and WILLYATTR)
-uint8_t EXTRA[9];      // Extra tile (also used by the routine at CHKSWITCH)
+Tile BACKGROUND;       // Background tile (also used by the routines at MOVEWILLY, CRUMBLE, LIGHTBEAM, EUGENE, KONGBEAST and WILLYATTR)
+Tile FLOOR;            // Floor tile (also used by the routine at LIGHTBEAM)
+Tile CRUMBLING;        // Crumbling floor tile (also used by the routine at MOVEWILLY)
+Tile WALL;             // Wall tile (also used by the routines at MOVEWILLY, MOVEWILLY2 and LIGHTBEAM)
+ConveyorTile CONVEYOR; // Conveyor tile (also used by the routine at MOVEWILLY2)
+Tile NASTY1;           // Nasty tile 1 (also used by the routines at MOVEWILLY and WILLYATTR)
+Tile NASTY2;           // Nasty tile 2 (also used by the routines at MOVEWILLY and WILLYATTR)
+Tile EXTRA;            // Extra tile (also used by the routine at CHKSWITCH)
 
 // Conveyor definition
 //

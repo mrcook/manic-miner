@@ -6,22 +6,23 @@
 #include "tile.h"
 
 enum ConveyorDirection {
-    Left,
-    Right,
+    ConveyorLeft,
+    ConveyorRight,
 };
 
-typedef struct Conveyor_ {
+typedef struct ConveyorTile_ {
     // ID used to match the appropriate location in the cavern mapping.
     int id;
 
-    // The actual tile sprite
-    uint8_t sprite[8];
-
     // Direction (0=left, 1=right)
-    enum ConveyorDirection CONVDIR;
+    uint8_t CONVDIR;
 
     // Address of the conveyor's location in the screen buffer at 28672
     uint16_t CONVLOC;
 
     uint8_t CONVLEN;
-} Conveyor;
+
+    // The actual tile sprite
+    uint8_t sprite[8];
+
+} ConveyorTile;

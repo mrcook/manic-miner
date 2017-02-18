@@ -23,7 +23,7 @@ typedef struct Cavern_ {
     Tile FLOOR;
     Tile CRUMBLING;
     Tile WALL;
-    Conveyor CONVEYOR;
+    ConveyorTile CONVEYOR;
     Tile NASTY1;
     Tile NASTY2;
 

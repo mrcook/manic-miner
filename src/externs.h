@@ -3,6 +3,7 @@
 
 // globals.c
 
+#include "conveyor.h"
 #include "guardian_horizontal.h"
 #include "guardian_vertical.h"
 #include "item.h"
@@ -13,21 +14,20 @@
 //extern Cavern cavern;
 extern GuardianHorizontal HGUARDS[4];
 extern GuardianVertical VGUARDS[4];
-
-extern Portal portal;
 extern Item ITEMS[5];
+extern Portal portal;
 extern Willy willy;
 
 // Original globals
 extern char *CAVERNNAME;
-extern uint8_t BACKGROUND[9];
-extern uint8_t FLOOR[9];
-extern uint8_t CRUMBLING[9];
-extern uint8_t WALL[9];
-extern uint8_t CONVEYOR[9];
-extern uint8_t NASTY1[9];
-extern uint8_t NASTY2[9];
-extern uint8_t EXTRA[9];
+extern Tile BACKGROUND;
+extern Tile FLOOR;
+extern Tile CRUMBLING;
+extern Tile WALL;
+extern ConveyorTile CONVEYOR;
+extern Tile NASTY1;
+extern Tile NASTY2;
+extern Tile EXTRA;
 
 extern uint8_t CONVDIR;
 extern uint16_t CONVLOC;

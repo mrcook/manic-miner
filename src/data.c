@@ -749,43 +749,75 @@ void initialize_cavern0() {
   // The next 72 bytes are copied to BACKGROUND and contain the attributes and
   // graphic data for the tiles used to build the cavern.
   uint8_t newBACKGROUND[9] = {0,0,0,0,0,0,0,0,0};                // Background
+  BACKGROUND.id = newBACKGROUND[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
-    BACKGROUND[i] = newBACKGROUND[i];
+    // Skip the first entry, which is the cavern mapping ID
+    if (i > 0) {
+      BACKGROUND.sprite[i-1] = newBACKGROUND[i];
+    }
     MEM[addr++] = newBACKGROUND[i];
   }
   uint8_t newFLOOR[9] = {66,255,255,219,110,197,64,0,0};    // Floor
+  FLOOR.id = newFLOOR[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
-    FLOOR[i] = newFLOOR[i];
+    // Skip the first entry, which is the cavern mapping ID
+    if (i > 0) {
+      FLOOR.sprite[i-1] = newFLOOR[i];
+    }
     MEM[addr++] = newFLOOR[i];
   }
   uint8_t newCRUMBLING[9] = {2,255,219,165,36,82,32,8,0};       // Crumbling floor
+  CRUMBLING.id = newCRUMBLING[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
-    CRUMBLING[i] = newCRUMBLING[i];
+    // Skip the first entry, which is the cavern mapping ID
+    if (i > 0) {
+      CRUMBLING.sprite[i-1] = newCRUMBLING[i];
+    }
     MEM[addr++] = newCRUMBLING[i];
   }
   uint8_t newWALL[9] = {22,34,255,136,255,34,255,136,255}; // Wall
+  WALL.id = newWALL[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
-    WALL[i] = newWALL[i];
+    // Skip the first entry, which is the cavern mapping ID
+    if (i > 0) {
+      WALL.sprite[i-1] = newWALL[i];
+    }
     MEM[addr++] = newWALL[i];
   }
   uint8_t newCONVEYOR[9] = {4,240,102,240,102,0,153,255,0};    // Conveyor
+  CONVEYOR.id = newCONVEYOR[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
-    CONVEYOR[i] = newCONVEYOR[i];
+    // Skip the first entry, which is the cavern mapping ID
+    if (i > 0) {
+      CONVEYOR.sprite[i-1] = newCONVEYOR[i];
+    }
     MEM[addr++] = newCONVEYOR[i];
   }
   uint8_t newNASTY1[9] = {68,68,40,148,81,53,214,88,16};     // Nasty 1
+  NASTY1.id = newNASTY1[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
-    NASTY1[i] = newNASTY1[i];
+    // Skip the first entry, which is the cavern mapping ID
+    if (i > 0) {
+      NASTY1.sprite[i-1] = newNASTY1[i];
+    }
     MEM[addr++] = newNASTY1[i];
   }
   uint8_t newNASTY2[9] = {5,255,254,126,124,76,76,8,8};      // Nasty 2
+  NASTY2.id = newNASTY2[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
-    NASTY2[i] = newNASTY2[i];
+    // Skip the first entry, which is the cavern mapping ID
+    if (i > 0) {
+      NASTY2.sprite[i-1] = newNASTY2[i];
+    }
     MEM[addr++] = newNASTY2[i];
   }
   uint8_t newEXTRA[9] = {0,0,0,0,0,0,0,0,0};                // Extra (unused)
+  EXTRA.id = newEXTRA[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
-    EXTRA[i] = newEXTRA[i];
+    // Skip the first entry, which is the cavern mapping ID
+    if (i > 0) {
+      EXTRA.sprite[i-1] = newEXTRA[i];
+    }
     MEM[addr++] = newEXTRA[i];
   }
 
@@ -814,17 +846,17 @@ void initialize_cavern0() {
 
   // The next four bytes are copied to CONVDIR and specify the direction, location
   // and length of the conveyor.
-  CONVDIR = 0;              // Direction (left)
-  MEM[addr++] = CONVDIR;
+  CONVEYOR.CONVDIR = 0;              // Direction (left)
+  MEM[addr++] = CONVEYOR.CONVDIR;
 
   // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
-  CONVLOC = 30760;          // Location in the screen buffer at 28672: (9,8)
-  split_address(CONVLOC, &msb, &lsb);
+  CONVEYOR.CONVLOC = 30760;          // Location in the screen buffer at 28672: (9,8)
+  split_address(CONVEYOR.CONVLOC, &msb, &lsb);
   MEM[addr++] = msb;
   MEM[addr++] = lsb;
 
-  CONVLEN = 20;             // Length
-  MEM[addr++] = CONVLEN;
+  CONVEYOR.CONVLEN = 20;             // Length
+  MEM[addr++] = CONVEYOR.CONVLEN;
 
   // The next byte is copied to BORDER and specifies the border colour.
   BORDER = 2;               // Border colour
