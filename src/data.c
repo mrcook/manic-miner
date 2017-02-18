@@ -659,79 +659,6 @@ uint8_t TITLESCR2[2048] = {
   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 };
 
-// Central Cavern (teleport: 6)
-//
-// Used by the routine at STARTGAME.
-//
-// The first 512 bytes are the attributes that define the layout of the cavern.
-uint8_t CAVERN0[512] = {
-  22,0,0,0,0,0,0,0,   // Attributes
-  0,0,0,5,0,0,0,0,
-  5,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,68,
-  0,0,0,68,0,0,0,22,
-  22,66,66,66,66,66,66,66,
-  66,66,66,66,66,66,2,2,
-  2,2,66,2,2,2,2,66,
-  66,66,66,66,66,66,66,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,22,
-  22,66,66,66,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,22,22,22,0,68,0,0,
-  0,0,0,0,0,0,0,22,
-  22,66,66,66,66,0,0,0,
-  4,4,4,4,4,4,4,4,
-  4,4,4,4,4,4,4,4,
-  4,4,4,4,0,0,0,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,66,66,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,68,0,0,0,
-  0,0,0,0,22,22,22,2,
-  2,2,2,2,66,66,66,22,
-  22,0,0,0,0,66,66,66,
-  66,66,66,66,66,66,66,66,
-  66,66,66,66,0,0,0,0,
-  0,0,0,0,0,0,0,22,
-  22,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,22,
-  22,66,66,66,66,66,66,66,
-  66,66,66,66,66,66,66,66,
-  66,66,66,66,66,66,66,66,
-  66,66,66,66,66,66,66,22,
-};
-
-
 // IMPORTANT: until we get a proper implementation, we just wrap these initializations in a function.
 //
 // Initialize arrays and copy the cavern definition into the game status buffer.
@@ -741,82 +668,157 @@ void initialize_cavern0() {
   uint16_t addr = 32768;
 
   // The next 32 bytes are copied to CAVERNNAME and specify the cavern name.
-  CAVERNNAME = "         Central Cavern         "; // Cavern name
+  strcpy(cavern.CAVERNNAME, "         Central Cavern         "); // Cavern name
   for (int i = 0; i < 32; i++) {
-    MEM[addr++] = (uint8_t)CAVERNNAME[i];
+    MEM[addr++] = (uint8_t)cavern.CAVERNNAME[i];
+  }
+
+  // Central Cavern (teleport: 6)
+  //
+  // Used by the routine at STARTGAME.
+  //
+  // The first 512 bytes are the attributes that define the layout of the cavern.
+  uint8_t CAVERN0[512] = {
+          22,0,0,0,0,0,0,0,   // Attributes
+          0,0,0,5,0,0,0,0,
+          5,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,68,
+          0,0,0,68,0,0,0,22,
+          22,66,66,66,66,66,66,66,
+          66,66,66,66,66,66,2,2,
+          2,2,66,2,2,2,2,66,
+          66,66,66,66,66,66,66,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,22,
+          22,66,66,66,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,22,22,22,0,68,0,0,
+          0,0,0,0,0,0,0,22,
+          22,66,66,66,66,0,0,0,
+          4,4,4,4,4,4,4,4,
+          4,4,4,4,4,4,4,4,
+          4,4,4,4,0,0,0,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,66,66,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,68,0,0,0,
+          0,0,0,0,22,22,22,2,
+          2,2,2,2,66,66,66,22,
+          22,0,0,0,0,66,66,66,
+          66,66,66,66,66,66,66,66,
+          66,66,66,66,0,0,0,0,
+          0,0,0,0,0,0,0,22,
+          22,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,22,
+          22,66,66,66,66,66,66,66,
+          66,66,66,66,66,66,66,66,
+          66,66,66,66,66,66,66,66,
+          66,66,66,66,66,66,66,22,
+  };
+  for (int i = 0; i < 512; i++) {
+      cavern.layout[i] = CAVERN0[i];
   }
 
   // The next 72 bytes are copied to BACKGROUND and contain the attributes and
   // graphic data for the tiles used to build the cavern.
   uint8_t newBACKGROUND[9] = {0,0,0,0,0,0,0,0,0};                // Background
-  BACKGROUND.id = newBACKGROUND[0]; // First entry is the cavern map ID
+  cavern.BACKGROUND.id = newBACKGROUND[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
     // Skip the first entry, which is the cavern mapping ID
     if (i > 0) {
-      BACKGROUND.sprite[i-1] = newBACKGROUND[i];
+      cavern.BACKGROUND.sprite[i-1] = newBACKGROUND[i];
     }
     MEM[addr++] = newBACKGROUND[i];
   }
   uint8_t newFLOOR[9] = {66,255,255,219,110,197,64,0,0};    // Floor
-  FLOOR.id = newFLOOR[0]; // First entry is the cavern map ID
+  cavern.FLOOR.id = newFLOOR[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
     // Skip the first entry, which is the cavern mapping ID
     if (i > 0) {
-      FLOOR.sprite[i-1] = newFLOOR[i];
+      cavern.FLOOR.sprite[i-1] = newFLOOR[i];
     }
     MEM[addr++] = newFLOOR[i];
   }
   uint8_t newCRUMBLING[9] = {2,255,219,165,36,82,32,8,0};       // Crumbling floor
-  CRUMBLING.id = newCRUMBLING[0]; // First entry is the cavern map ID
+  cavern.CRUMBLING.id = newCRUMBLING[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
     // Skip the first entry, which is the cavern mapping ID
     if (i > 0) {
-      CRUMBLING.sprite[i-1] = newCRUMBLING[i];
+      cavern.CRUMBLING.sprite[i-1] = newCRUMBLING[i];
     }
     MEM[addr++] = newCRUMBLING[i];
   }
   uint8_t newWALL[9] = {22,34,255,136,255,34,255,136,255}; // Wall
-  WALL.id = newWALL[0]; // First entry is the cavern map ID
+  cavern.WALL.id = newWALL[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
     // Skip the first entry, which is the cavern mapping ID
     if (i > 0) {
-      WALL.sprite[i-1] = newWALL[i];
+      cavern.WALL.sprite[i-1] = newWALL[i];
     }
     MEM[addr++] = newWALL[i];
   }
   uint8_t newCONVEYOR[9] = {4,240,102,240,102,0,153,255,0};    // Conveyor
-  CONVEYOR.id = newCONVEYOR[0]; // First entry is the cavern map ID
+  cavern.CONVEYOR.id = newCONVEYOR[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
     // Skip the first entry, which is the cavern mapping ID
     if (i > 0) {
-      CONVEYOR.sprite[i-1] = newCONVEYOR[i];
+      cavern.CONVEYOR.sprite[i-1] = newCONVEYOR[i];
     }
     MEM[addr++] = newCONVEYOR[i];
   }
   uint8_t newNASTY1[9] = {68,68,40,148,81,53,214,88,16};     // Nasty 1
-  NASTY1.id = newNASTY1[0]; // First entry is the cavern map ID
+  cavern.NASTY1.id = newNASTY1[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
     // Skip the first entry, which is the cavern mapping ID
     if (i > 0) {
-      NASTY1.sprite[i-1] = newNASTY1[i];
+      cavern.NASTY1.sprite[i-1] = newNASTY1[i];
     }
     MEM[addr++] = newNASTY1[i];
   }
   uint8_t newNASTY2[9] = {5,255,254,126,124,76,76,8,8};      // Nasty 2
-  NASTY2.id = newNASTY2[0]; // First entry is the cavern map ID
+  cavern.NASTY2.id = newNASTY2[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
     // Skip the first entry, which is the cavern mapping ID
     if (i > 0) {
-      NASTY2.sprite[i-1] = newNASTY2[i];
+      cavern.NASTY2.sprite[i-1] = newNASTY2[i];
     }
     MEM[addr++] = newNASTY2[i];
   }
   uint8_t newEXTRA[9] = {0,0,0,0,0,0,0,0,0};                // Extra (unused)
-  EXTRA.id = newEXTRA[0]; // First entry is the cavern map ID
+  cavern.EXTRA.id = newEXTRA[0]; // First entry is the cavern map ID
   for (int i = 0; i < 9; i++) {
     // Skip the first entry, which is the cavern mapping ID
     if (i > 0) {
-      EXTRA.sprite[i-1] = newEXTRA[i];
+      cavern.EXTRA.sprite[i-1] = newEXTRA[i];
     }
     MEM[addr++] = newEXTRA[i];
   }
@@ -846,21 +848,21 @@ void initialize_cavern0() {
 
   // The next four bytes are copied to CONVDIR and specify the direction, location
   // and length of the conveyor.
-  CONVEYOR.CONVDIR = 0;              // Direction (left)
-  MEM[addr++] = CONVEYOR.CONVDIR;
+  cavern.CONVEYOR.CONVDIR = 0;              // Direction (left)
+  MEM[addr++] = cavern.CONVEYOR.CONVDIR;
 
   // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
-  CONVEYOR.CONVLOC = 30760;          // Location in the screen buffer at 28672: (9,8)
-  split_address(CONVEYOR.CONVLOC, &msb, &lsb);
+  cavern.CONVEYOR.CONVLOC = 30760;          // Location in the screen buffer at 28672: (9,8)
+  split_address(cavern.CONVEYOR.CONVLOC, &msb, &lsb);
   MEM[addr++] = msb;
   MEM[addr++] = lsb;
 
-  CONVEYOR.CONVLEN = 20;             // Length
-  MEM[addr++] = CONVEYOR.CONVLEN;
+  cavern.CONVEYOR.CONVLEN = 20;             // Length
+  MEM[addr++] = cavern.CONVEYOR.CONVLEN;
 
   // The next byte is copied to BORDER and specifies the border colour.
-  BORDER = 2;               // Border colour
-  MEM[addr++] = BORDER;
+  cavern.BORDER = 2;               // Border colour
+  MEM[addr++] = cavern.BORDER;
 
   // The next byte is copied to ITEMATTR, but is not used.
   ITEMATTR = 0;             // Unused
@@ -887,11 +889,11 @@ void initialize_cavern0() {
   uint8_t newITEM[8] = {48,72,136,144,104,4,10,4}; // Item graphic data
 
   for (int i = 0; i < 5; i++) {
-    ITEMS[i].attribute  = (uint8_t)newITEMS[i][0];
-    ITEMS[i].address    = newITEMS[i][1];
-    ITEMS[i].addressMSB = (uint8_t)newITEMS[i][2];
+    cavern.ITEMS[i].attribute  = (uint8_t)newITEMS[i][0];
+    cavern.ITEMS[i].address    = newITEMS[i][1];
+    cavern.ITEMS[i].addressMSB = (uint8_t)newITEMS[i][2];
     for (int j = 0; j < 8; j++) {
-        ITEMS[i].tile[j] = newITEM[j];
+      cavern.ITEMS[i].tile[j] = newITEM[j];
     }
 
     // Add items to the buffer memory
@@ -909,8 +911,8 @@ void initialize_cavern0() {
   MEM[addr++] = 255;
 
   // The next 37 bytes are copied to PORTAL and define the portal graphic and its location.
-  portal.PORTAL = 14;              // Attribute
-  MEM[addr++] = portal.PORTAL;
+  cavern.portal.PORTAL = 14;              // Attribute
+  MEM[addr++] = cavern.portal.PORTAL;
 
   uint8_t newPORTALG[32] = {           // Graphic data
       255,255,146,73,182,219,255,255,
@@ -919,17 +921,17 @@ void initialize_cavern0() {
       255,255,146,73,182,219,255,255,
   };
   for (int i = 0; i < 32; i++) {
-    portal.PORTALG[i] = newPORTALG[i];
+    cavern.portal.PORTALG[i] = newPORTALG[i];
     MEM[addr++] = newPORTALG[i];
   }
 
   // FIXME: are the MSB/LSB stored the right way round. MSB/LSB or LSB/MSB ??
-  portal.PORTALLOC1 = 23997;       // Location in the attribute buffer at 23552: (13,29)
-  portal.PORTALLOC2 = 26813;       // Location in the screen buffer at 24576: (13,29)
-  split_address(portal.PORTALLOC1, &msb, &lsb);
+  cavern.portal.PORTALLOC1 = 23997;       // Location in the attribute buffer at 23552: (13,29)
+  cavern.portal.PORTALLOC2 = 26813;       // Location in the screen buffer at 24576: (13,29)
+  split_address(cavern.portal.PORTALLOC1, &msb, &lsb);
   MEM[addr++] = msb;
   MEM[addr++] = lsb;
-  split_address(portal.PORTALLOC2, &msb, &lsb);
+  split_address(cavern.portal.PORTALLOC2, &msb, &lsb);
   MEM[addr++] = msb;
   MEM[addr++] = lsb;
 
@@ -942,12 +944,12 @@ void initialize_cavern0() {
 
   // The next byte is copied to AIR and specifies the initial air supply in the
   // cavern.
-  AIR = 63;                 // Air
-  MEM[addr++] = AIR;
+  cavern.AIR = 63;                 // Air
+  MEM[addr++] = cavern.AIR;
 
   // The next byte is copied to CLOCK and initialises the game clock.
-  CLOCK = 252;             // Game clock
-  MEM[addr++] = CLOCK;
+  cavern.CLOCK = 252;             // Game clock
+  MEM[addr++] = cavern.CLOCK;
 
   // The next 28 bytes are copied to HGUARDS and define the horizontal guardians.
   uint16_t newHGUARDS[4][6] = {
@@ -981,8 +983,8 @@ void initialize_cavern0() {
     MEM[addr++] = (uint8_t)newHGUARDS[i][3];
     MEM[addr++] = (uint8_t)newHGUARDS[i][4];
     MEM[addr++] = (uint8_t)newHGUARDS[i][5];
-
   }
+
   // DEFB 255               // Terminator
   MEM[addr++] = 255;
 

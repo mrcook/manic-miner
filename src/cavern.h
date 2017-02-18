@@ -3,20 +3,35 @@
 #pragma once
 
 #include "headers.h"
+
 #include "conveyor.h"
+#include "item.h"
 #include "portal.h"
 #include "tile.h"
-#include "item.h"
 
 typedef struct Cavern_ {
-    int SHEET;
+    // Current cavern number
+    uint8_t SHEET;
 
+    // Specify the cavern name
     char CAVERNNAME[32];
 
-    int CLOCK;
+    // Game clock
+    //
+    // Initialised by the routine at STARTGAME, updated on every pass through the
+    // main loop by the routine at DECAIR, and used for timing purposes by the
+    // routines at MOVEHG, EUGENE and KONGBEAST. Its value (which is always a
+    // multiple of 4) is also used by the routine at DECAIR to compute the amount of
+    // air to draw in the cell at the right end of the air bar.
+    uint8_t CLOCK;
 
-    int AIR;
+    // Remaining air supply (in practice, always set to 63)
+    // Its value ranges from 36 to 63 and is actually the LSB of the display file
+    // address for the cell at the right end of the air bar. The amount of air to
+    // draw in this cell is determined by the value of the game clock at CLOCK.
+    uint8_t AIR;
 
+    // Screen border colour
     uint8_t BORDER;
 
     Tile BACKGROUND;
@@ -37,5 +52,6 @@ typedef struct Cavern_ {
 
     Item ITEMS[5];
 
-    uint8_t map[512];
+    // Attributes that define the layout of the cavern. aka CAVERN0.
+    uint8_t layout[512];
 } Cavern;

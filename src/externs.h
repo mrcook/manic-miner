@@ -3,6 +3,7 @@
 
 // globals.c
 
+#include "cavern.h"
 #include "conveyor.h"
 #include "guardian_horizontal.h"
 #include "guardian_vertical.h"
@@ -11,37 +12,18 @@
 #include "willy.h"
 
 // Setup all game objects
-//extern Cavern cavern;
+extern Cavern cavern;
 extern GuardianHorizontal HGUARDS[4];
 extern GuardianVertical VGUARDS[4];
-extern Item ITEMS[5];
-extern Portal portal;
 extern Willy willy;
 
 // Original globals
-extern char *CAVERNNAME;
-extern Tile BACKGROUND;
-extern Tile FLOOR;
-extern Tile CRUMBLING;
-extern Tile WALL;
-extern ConveyorTile CONVEYOR;
-extern Tile NASTY1;
-extern Tile NASTY2;
-extern Tile EXTRA;
-
-extern uint8_t CONVDIR;
-extern uint16_t CONVLOC;
-extern uint8_t CONVLEN;
-extern uint8_t BORDER;
 extern uint8_t ITEMATTR;
-extern uint8_t AIR;
-extern uint8_t CLOCK;
 extern uint8_t EUGDIR;
 extern uint8_t EUGHGT;
-extern uint8_t GGDATA[256];
+extern uint8_t GGDATA[256]; // now only used for Kong Beast
 extern uint8_t SWORDFISH[32];
 
-extern uint8_t SHEET;
 extern uint8_t LRMOVEMENT[16];
 
 extern char MESSAIR[];
@@ -86,7 +68,6 @@ extern uint8_t LOWERATTRS[512];
 extern uint8_t TITLESCR1[2048];
 extern uint8_t TITLESCR2[2048];
 
-extern uint8_t CAVERN0[512];
 extern uint8_t PLINTH[32];
 extern uint8_t BOOT[32];
 extern uint8_t EUGENEG[32];

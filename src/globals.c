@@ -3,6 +3,7 @@
 
 #include "headers.h"
 
+#include "cavern.h"
 #include "conveyor.h"
 #include "guardian_horizontal.h"
 #include "guardian_vertical.h"
@@ -11,73 +12,16 @@
 #include "willy.h"
 
 // Setup all game objects
-// Cavern cavern;
+Cavern cavern;
 GuardianHorizontal HGUARDS[4];
 GuardianVertical VGUARDS[4];
-Item ITEMS[5];
-Portal portal;
 Willy willy;
-
-// Cavern name
-//
-// The cavern name is copied here and then used by the routine at STARTGAME.
-char *CAVERNNAME; // IMPORTANT: length is always 32.
-
-// Cavern tiles
-//
-// The cavern tiles are copied here by the routine at STARTGAME and then used to
-// draw the cavern by the routine at DRAWSHEET.
-//
-// The extra tile at EXTRA behaves like a floor tile, and is used as such in The
-// Endorian Forest, Attack of the Mutant Telephones, Ore Refinery, Skylab
-// Landing Bay and The Bank. It is also used in The Menagerie as spider silk,
-// and in Miner Willy meets the Kong Beast and Return of the Alien Kong Beast as
-// a switch.
-Tile BACKGROUND;       // Background tile (also used by the routines at MOVEWILLY, CRUMBLE, LIGHTBEAM, EUGENE, KONGBEAST and WILLYATTR)
-Tile FLOOR;            // Floor tile (also used by the routine at LIGHTBEAM)
-Tile CRUMBLING;        // Crumbling floor tile (also used by the routine at MOVEWILLY)
-Tile WALL;             // Wall tile (also used by the routines at MOVEWILLY, MOVEWILLY2 and LIGHTBEAM)
-ConveyorTile CONVEYOR; // Conveyor tile (also used by the routine at MOVEWILLY2)
-Tile NASTY1;           // Nasty tile 1 (also used by the routines at MOVEWILLY and WILLYATTR)
-Tile NASTY2;           // Nasty tile 2 (also used by the routines at MOVEWILLY and WILLYATTR)
-Tile EXTRA;            // Extra tile (also used by the routine at CHKSWITCH)
-
-// Conveyor definition
-//
-// The conveyor definition is copied here by the routine at STARTGAME.
-uint8_t CONVDIR;  // Direction (0=left, 1=right; used by the routines at MOVEWILLY2 and MVCONVEYOR)
-uint16_t CONVLOC; // Address of the conveyor's location in the screen buffer at 28672 (used by the routine at MVCONVEYOR)
-uint8_t CONVLEN;  // Length (used by the routine at MVCONVEYOR)
-
-// Border colour
-//
-// Initialised and used by the routine at STARTGAME, and also used by the
-// routines at LOOP, MOVEWILLY and KONGBEAST.
-uint8_t BORDER;
 
 // Attribute of the last item drawn
 //
 // Used by the routines at EUGENE and DRAWITEMS. Holds the attribute byte of the
 // last item drawn, or 0 if all the items have been collected.
 uint8_t ITEMATTR;
-
-// Remaining air supply
-//
-// Initialised (always to 63 in practice) and used by the routine at STARTGAME,
-// updated by the routine at DECAIR, and also used by the routine at NXSHEET.
-// Its value ranges from 36 to 63 and is actually the LSB of the display file
-// address for the cell at the right end of the air bar. The amount of air to
-// draw in this cell is determined by the value of the game clock at CLOCK.
-uint8_t AIR;
-
-// Game clock
-//
-// Initialised by the routine at STARTGAME, updated on every pass through the
-// main loop by the routine at DECAIR, and used for timing purposes by the
-// routines at MOVEHG, EUGENE and KONGBEAST. Its value (which is always a
-// multiple of 4) is also used by the routine at DECAIR to compute the amount of
-// air to draw in the cell at the right end of the air bar.
-uint8_t CLOCK;
 
 // Eugene's direction or the Kong Beast's status
 //
@@ -102,15 +46,6 @@ uint8_t GGDATA[256];
 // IMPORTANT: not initialized anywhere, so let's do that here -MRC-
 // Swordfish graphic data
 uint8_t SWORDFISH[32];
-
-
-
-
-// Current cavern number
-//
-// Initialised by the routine at START, used by the routines at STARTGAME, LOOP,
-// DRAWSHEET and DRAWHG, and updated by the routine at NXSHEET.
-uint8_t SHEET;
 
 // 'AIR'
 //

@@ -59,7 +59,7 @@ int main(void) {
     // Initialise the current cavern number at SHEET
     // XOR A                   // A=0
     // LD (SHEET),A
-    SHEET = 0;
+    cavern.SHEET = 0;
 
     // Initialise the Kempston joystick indicator at KEMP
     // LD (KEMP),A
@@ -279,7 +279,7 @@ NEWSHT:
   // LDIR
   // FIXME: uses Attr Buff (Blank): Attr File = 22528
   for (int i = 0; i < 512; i++) {
-    MEM[24064 + i] = CAVERN0[i];
+    MEM[24064 + i] = cavern.layout[i];
   }
 
   // Copy the rest of the cavern definition into the game status buffer at 32768
@@ -308,7 +308,7 @@ NEWSHT:
   // LD C,32
   // LD DE,20480
   // CALL PMESS
-  PMESS(CAVERNNAME, 20480, 32);
+  PMESS(cavern.CAVERNNAME, 20480, 32);
 
   // Print 'AIR' (see MESSAIR) at 20512 (17,0)
   // LD IX,MESSAIR
@@ -337,7 +337,7 @@ NEWSHT:
     // LDIR
 
     // Draw a single row of pixels across C cells
-    for (uint16_t i = 0; i < AIR - 36; i++) {
+    for (uint16_t i = 0; i < cavern.AIR - 36; i++) {
       MEM[addr + i] = 255;
     }
 
@@ -358,7 +358,7 @@ NEWSHT:
   // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
   // LD C,254                // Set the border colour
   // OUT (C),A
-  OUT(BORDER);
+  OUT(cavern.BORDER);
 
   // LD A,(DEMO)             // Pick up the game mode indicator from DEMO
   // OR A                    // Are we in demo mode?
@@ -429,7 +429,7 @@ NEWSHT:
     // CALL DRAWITEMS          // Draw the items in the current cavern and collect any that Willy is touching
     DRAWITEMS();
 
-    switch (SHEET) {
+    switch (cavern.SHEET) {
       case 4:
         // LD A,(SHEET)            // Pick up the number of the current cavern from SHEET
         // CP 4                    // Are we in Eugene's Lair?
@@ -650,7 +650,7 @@ LOOP_4:
       // LD HL,GAMETUNE
       //  ADD HL,DE
       //  LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-      uint8_t note = BORDER;
+      uint8_t note = cavern.BORDER;
       //  LD E,(HL)               // Initialise the pitch delay counter in E
       uint8_t pitch_delay_counter = GAMETUNE[index];
       //  LD BC,3                 // Initialise the duration delay counters in B (0) and C (3)
@@ -1101,27 +1101,27 @@ bool DECAIR() {
   // LD A,(CLOCK)            // Update the game clock at CLOCK
   // SUB 4
   // LD (CLOCK),A
-  CLOCK -= 4;
+  cavern.CLOCK -= 4;
   // CP 252                  // Was it just decreased from zero?
   // JR NZ,DECAIR_0          // Jump if not
-  if (CLOCK == 252) {
+  if (cavern.CLOCK == 252) {
     // LD A,(AIR)              // Pick up the value of the remaining air supply from AIR
     // CP 36                   // Has the air supply run out?
     // RET Z                   // Return (with the zero flag set) if so
-    if (AIR == 36) {
+    if (cavern.AIR == 36) {
       return true;
     }
 
     // DEC A                   // Decrement the air supply at AIR
     // LD (AIR),A
-    AIR--;
+    cavern.AIR--;
 
     // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
   }
 
   // DECAIR_0:
   // AND 224                 // A=INT(A/32); this value specifies how many pixels
-  uint8_t count = (uint8_t)(CLOCK & 224);
+  uint8_t count = (uint8_t)(cavern.CLOCK & 224);
   // RLCA                    // to draw from left to right in the cell at the right
   // RLCA                    // end of the air bar
   // RLCA
@@ -1151,7 +1151,7 @@ bool DECAIR() {
   for (uint8_t msb = 82; msb < 86; msb++) {
     // Draw the four rows of pixels at the right end of the air bar
     // LD (HL),E
-    MEM[build_address(msb, AIR)] = pixels;
+    MEM[build_address(msb, cavern.AIR)] = pixels;
     // INC H
     // DJNZ DECAIR_3
   }
@@ -1183,24 +1183,24 @@ void DRAWSHEET() {
       offset = 2048;
     }
 
-    uint8_t tile_id = CAVERN0[i];
+    uint8_t tile_id = cavern.layout[i];
 
-    if (BACKGROUND.id == tile_id) {
-      sprite = &BACKGROUND.sprite[0];
-    } else if (FLOOR.id == tile_id) {
-      sprite = &FLOOR.sprite[0];
-    } else if (CRUMBLING.id == tile_id) {
-      sprite = &CRUMBLING.sprite[0];
-    } else if (WALL.id == tile_id) {
-      sprite = &WALL.sprite[0];
-    } else if (CONVEYOR.id == tile_id) {
-      sprite = &CONVEYOR.sprite[0];
-    } else if (NASTY1.id == tile_id) {
-      sprite = &NASTY1.sprite[0];
-    } else if (NASTY2.id == tile_id) {
-      sprite = &NASTY2.sprite[0];
-    } else if (EXTRA.id == tile_id) {
-      sprite = &EXTRA.sprite[0];
+    if (cavern.BACKGROUND.id == tile_id) {
+      sprite = &cavern.BACKGROUND.sprite[0];
+    } else if (cavern.FLOOR.id == tile_id) {
+      sprite = &cavern.FLOOR.sprite[0];
+    } else if (cavern.CRUMBLING.id == tile_id) {
+      sprite = &cavern.CRUMBLING.sprite[0];
+    } else if (cavern.WALL.id == tile_id) {
+      sprite = &cavern.WALL.sprite[0];
+    } else if (cavern.CONVEYOR.id == tile_id) {
+      sprite = &cavern.CONVEYOR.sprite[0];
+    } else if (cavern.NASTY1.id == tile_id) {
+      sprite = &cavern.NASTY1.sprite[0];
+    } else if (cavern.NASTY2.id == tile_id) {
+      sprite = &cavern.NASTY2.sprite[0];
+    } else if (cavern.EXTRA.id == tile_id) {
+      sprite = &cavern.EXTRA.sprite[0];
     }
 
     // Copy the graphic bytes to their destination cells
@@ -1224,7 +1224,7 @@ void DRAWSHEET() {
 
   // The empty cavern has been drawn to the screen buffer at 28672.
   // If we're in The Final Barrier, however, there is further work to do.
-  if (SHEET == 19) {
+  if (cavern.SHEET == 19) {
     // Copy the graphic data from TITLESCR1 to the top half of the screen buffer at 28672
     // FIXME: Blank Screen Buffer: Screen File = 16384
     for (int i = 0; i <= 2048; i++) {
@@ -1313,7 +1313,7 @@ bool MOVEWILLY() {
     // INC HL                  // Point HL at the top-right cell occupied by Willy's sprite
     // CP (HL)                 // Is the top-right cell of Willy's sprite overlapping a wall tile?
     // JP Z,MOVEWILLY_10       // Jump if so
-    if ( memcmp(&MEM[willy.PIXEL_Y/2], WALL.sprite, sizeof(WALL.sprite)) == 0 || memcmp(&MEM[(willy.PIXEL_Y/2) + 1], WALL.sprite, sizeof(WALL.sprite)) == 0 ) {
+    if ( memcmp(&MEM[willy.PIXEL_Y/2], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 || memcmp(&MEM[(willy.PIXEL_Y/2) + 1], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
       MOVEWILLY_10();
       return false;
     }
@@ -1349,7 +1349,7 @@ bool MOVEWILLY() {
 
     // Pick up the border colour for the current cavern from BORDER
     // LD A,(BORDER)
-    uint8_t border = BORDER;
+    uint8_t border = cavern.BORDER;
 
     // MOVEWILLY_1:
     for (int i = 32; i > 0; i--) {
@@ -1406,15 +1406,15 @@ bool MOVEWILLY() {
     // LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
     // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
     // CALL Z,CRUMBLE          // If so, make it crumble
-    if ( memcmp(&MEM[addr], CRUMBLING.sprite, sizeof(CRUMBLING.sprite)) == 0 ) {
+    if ( memcmp(&MEM[addr], cavern.CRUMBLING.sprite, sizeof(cavern.CRUMBLING.sprite)) == 0 ) {
       CRUMBLE(addr);
     }
 
-    if ( memcmp(&MEM[addr], NASTY1.sprite, sizeof(NASTY1.sprite)) != 0 ) {
+    if ( memcmp(&MEM[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) != 0 ) {
       // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
       // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
       // JR Z,MOVEWILLY_4        // Jump if so
-    } else if ( memcmp(&MEM[addr], NASTY2.sprite, sizeof(NASTY2.sprite)) == 0 ) {
+    } else if ( memcmp(&MEM[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0 ) {
       // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
       // CP (HL)                 // Does the left-hand cell below Willy's sprite contain a nasty tile?
       // JR Z,MOVEWILLY_4        // Jump if so
@@ -1425,15 +1425,15 @@ bool MOVEWILLY() {
       // LD A,(CRUMBLING)        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
       // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
       // CALL Z,CRUMBLE          // If so, make it crumble
-      if ( memcmp(&MEM[addr], CRUMBLING.sprite, sizeof(CRUMBLING.sprite)) == 0 ) {
+      if ( memcmp(&MEM[addr], cavern.CRUMBLING.sprite, sizeof(cavern.CRUMBLING.sprite)) == 0 ) {
         CRUMBLE(addr);
       }
 
-      if ( memcmp(&MEM[addr], NASTY1.sprite, sizeof(NASTY1.sprite)) == 0 ) {
+      if ( memcmp(&MEM[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0 ) {
         // LD A,(NASTY1)           // Pick up the attribute byte of the first nasty tile for the current cavern from NASTY1
         // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
         // JR Z,MOVEWILLY_4        // Jump if so
-      } else if ( memcmp(&MEM[addr], NASTY2.sprite, sizeof(NASTY2.sprite)) == 0 ) {
+      } else if ( memcmp(&MEM[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0 ) {
         // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
         // CP (HL)                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
         // JR Z,MOVEWILLY_4        // Jump if so
@@ -1442,13 +1442,13 @@ bool MOVEWILLY() {
         // CP (HL)                 // Set the zero flag if the right-hand cell below Willy's sprite is empty
         // DEC HL                  // Point HL at the left-hand cell below Willy's sprite
         // JP NZ,MOVEWILLY2        // Jump if the right-hand cell below Willy's sprite is not empty
-        if ( memcmp(&MEM[addr], BACKGROUND.sprite, sizeof(BACKGROUND.sprite)) != 0 ) {
+        if ( memcmp(&MEM[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0 ) {
           return MOVEWILLY2((uint8_t)(addr - 1));
         }
         addr--;
         // CP (HL)                 // Is the left-hand cell below Willy's sprite empty?
         // JP NZ,MOVEWILLY2        // Jump if not
-        if ( memcmp(&MEM[addr], BACKGROUND.sprite, sizeof(BACKGROUND.sprite)) != 0 ) {
+        if ( memcmp(&MEM[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0 ) {
           return MOVEWILLY2(addr);
         }
       }
@@ -1490,7 +1490,7 @@ bool MOVEWILLY() {
   // LD C,32                 // C=32; this value determines the duration of the falling sound effect
 
   // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-  uint8_t border = BORDER;
+  uint8_t border = cavern.BORDER;
 
   // MOVEWILLY_5:
   for (int i = 32; i > 0; i--) {
@@ -1653,7 +1653,7 @@ void CRUMBLE(uint16_t addr) {
   // LD (HL),A               // Set the attribute at this location to that of the background tile
   // DEC H                   // Set HL back to the address of the crumbling floor
   // DEC H                   // tile's location in the attribute buffer at 23552
-  memcpy(&MEM[build_address((uint8_t)(msb + 2), lsb)], BACKGROUND.sprite, sizeof(BACKGROUND.sprite));
+  memcpy(&MEM[build_address((uint8_t)(msb + 2), lsb)], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
 
   // RET
 }
@@ -1688,12 +1688,12 @@ bool MOVEWILLY2(uint16_t addr) {
   // INC HL                  // Point HL at the right-hand cell below Willy's sprite
   // CP (HL)                 // Does the attribute byte of the right-hand cell below Willy's sprite match that of the conveyor tile?
   // JR NZ,MOVEWILLY2_1      // Jump if not
-  if ( memcmp(&MEM[addr], CONVEYOR.sprite, sizeof(CONVEYOR.sprite)) == 0 || memcmp(&MEM[addr + 1], CONVEYOR.sprite, sizeof(CONVEYOR.sprite)) == 0 ) {
+  if ( memcmp(&MEM[addr], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0 || memcmp(&MEM[addr + 1], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0 ) {
     // MOVEWILLY2_0:
     // LD A,(CONVDIR)          // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
     // SUB 3                   // Now E=253 (bit 1 reset) if the conveyor is moving
     // LD E,A                  // left, or 254 (bit 0 reset) if it's moving right
-    input = (uint8_t)(CONVEYOR.CONVDIR - 3);
+    input = (uint8_t)(cavern.CONVEYOR.CONVDIR - 3);
   }
   // MOVEWILLY2_1:
   // LD BC,57342             // Read keys P-O-I-U-Y (right, left, right, left,
@@ -1854,7 +1854,7 @@ void MOVEWILLY2_7() {
   // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the current cavern from WALL
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if ( memcmp(&MEM[addr], WALL.sprite, sizeof(WALL.sprite)) == 0 ) {
+  if ( memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
     return;
   }
 
@@ -1866,7 +1866,7 @@ void MOVEWILLY2_7() {
     // ADD HL,DE               // Point HL at the cell at (x-1,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
     // RET Z                   // Return if so without moving Willy (his path is blocked)
-    if ( memcmp(&MEM[addr + 32], WALL.sprite, sizeof(WALL.sprite)) == 0 ) {
+    if ( memcmp(&MEM[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
       return;
     }
 
@@ -1883,7 +1883,7 @@ void MOVEWILLY2_7() {
   addr -= 32;
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if ( memcmp(&MEM[addr], WALL.sprite, sizeof(WALL.sprite)) == 0 ) {
+  if ( memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
     return;
   }
 
@@ -1927,7 +1927,7 @@ void MOVEWILLY2_10() {
   addr += 32;
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if ( memcmp(&MEM[addr], WALL.sprite, sizeof(WALL.sprite)) == 0 ) {
+  if ( memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
     return;
   }
 
@@ -1939,7 +1939,7 @@ void MOVEWILLY2_10() {
     // ADD HL,DE               // Point HL at the cell at (x+2,y+2)
     // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
     // RET Z                   // Return if so without moving Willy (his path is blocked)
-    if ( memcmp(&MEM[addr + 32], WALL.sprite, sizeof(WALL.sprite)) == 0 ) {
+    if ( memcmp(&MEM[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
       return;
     }
     // OR A                    // Clear the carry flag for subtraction
@@ -1953,7 +1953,7 @@ void MOVEWILLY2_10() {
   addr -= 32;
   // CP (HL)                 // Is there a wall tile in the cell pointed to by HL?
   // RET Z                   // Return if so without moving Willy (his path is blocked)
-  if ( memcmp(&MEM[addr], WALL.sprite, sizeof(WALL.sprite)) == 0 ) {
+  if ( memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
     return;
   }
 
@@ -2013,7 +2013,7 @@ void MOVEHG() {
         continue;
     }
 
-    uint8_t current_clock = CLOCK;
+    uint8_t current_clock = cavern.CLOCK;
     current_clock &= 4;
     current_clock = rotr(current_clock, 3);
 
@@ -2101,7 +2101,7 @@ void MOVEHG_XX() {
     }
 
       // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
-    uint8_t current_clock = CLOCK;
+    uint8_t current_clock = cavern.CLOCK;
     // AND 4                   // Move bit 2 (which is toggled on each pass through
     current_clock &= 4;
     // RRCA                    // the main loop) to bit 7 and clear all the other
@@ -2210,7 +2210,7 @@ void LIGHTBEAM() {
     // LD A,(WALL)             // Pick up the attribute byte of the wall tile for the cavern from WALL
     // CP (HL)                 // Does HL point at a wall tile?
     // RET Z                   // Return if so (the light beam stops here)
-    if ( memcmp(&MEM[addr], FLOOR.sprite, sizeof(FLOOR.sprite)) == 0 || memcmp(&MEM[addr], WALL.sprite, sizeof(WALL.sprite)) == 0 ) {
+    if ( memcmp(&MEM[addr], cavern.FLOOR.sprite, sizeof(cavern.FLOOR.sprite)) == 0 || memcmp(&MEM[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ) {
       return;
     }
 
@@ -2234,7 +2234,7 @@ void LIGHTBEAM() {
       // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the cavern from BACKGROUND
       // CP (HL)                 // Does HL point at a background tile?
       // JR Z,LIGHTBEAM_2        // Jump if so (the light beam will not be reflected at this point)
-      if ( memcmp(&MEM[addr], BACKGROUND.sprite, sizeof(BACKGROUND.sprite)) == 0 ) {
+      if ( memcmp(&MEM[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) == 0 ) {
         // LD A,E                  // Toggle the value in DE between 32 and -1 (and
         // XOR 223                 // therefore the direction of the light beam between
         dir ^= 223;
@@ -2324,7 +2324,7 @@ bool DRAWHG() {
     // JR Z,DRAWHG_1           // Jump if so
     // CP 15                   // Are we in The Sixteenth Cavern?
     // JR Z,DRAWHG_1           // Jump if so
-    if (SHEET == 7 || SHEET == 9 || SHEET == 15) {
+    if (cavern.SHEET == 7 || cavern.SHEET == 9 || cavern.SHEET == 15) {
       // SET 7,E                 // Add 128 to E (the horizontal guardians in this cavern use frames 4-7 only)
       anim_frame |= (1 << 7);
     }
@@ -2475,7 +2475,7 @@ bool EUGENE() {
     // RRCA                    // Move bits 2-4 into bits 0-2 and clear the other
     // RRCA                    // bits; this value (which decreases by one on each
     // AND 7                   // pass through the main loop) will be Eugene's INK colour
-    ink_color = (uint8_t)(rotr(CLOCK, 2) & 7);
+    ink_color = (uint8_t)(rotr(cavern.CLOCK, 2) & 7);
   }
   EUGENE_3(addr, ink_color); // IMPORTANT: implicit jump -MRC-
 
@@ -2494,7 +2494,7 @@ void EUGENE_3(uint16_t addr, uint8_t ink_color) {
   // AND 248                 // Combine its PAPER colour with the chosen INK colour
   // OR (HL)
   // LD (HL),A               // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552
-  MEM[addr] = (uint8_t)((BACKGROUND.sprite[0] & 248) | MEM[addr]);
+  MEM[addr] = (uint8_t)((cavern.BACKGROUND.sprite[0] & 248) | MEM[addr]);
 
   // LD DE,31                // Prepare DE for addition
 
@@ -2810,13 +2810,13 @@ void DRAWITEMS() {
 
     // OR A                    // Has this item already been collected?
     // JR Z,DRAWITEMS_2        // If so, skip it and consider the next one
-    if (ITEMS[i].attribute == 0) {
+    if (cavern.ITEMS[i].attribute == 0) {
       continue;
     }
 
     // LD E,(IY+1)             // Point DE at the address of the item's location in
     // LD D,(IY+2)             // the attribute buffer at 23552
-    addr = ITEMS[i].address;
+    addr = cavern.ITEMS[i].address;
 
     // LD A,(DE)               // Pick up the current attribute byte at the item's location
     // AND 7                   // Is the INK white (which happens if Willy is
@@ -2830,7 +2830,7 @@ void DRAWITEMS() {
       INCSCORE_0(33836);
 
       // LD (IY+0),0             // Set the item's attribute byte to 0 so that it will be skipped the next time
-        ITEMS[i].attribute = 0;
+      cavern.ITEMS[i].attribute = 0;
       // JR DRAWITEMS_2          // Jump forward to consider the next item
     } else {
       // This item has not been collected yet.
@@ -2839,13 +2839,13 @@ void DRAWITEMS() {
       // AND 248                 // Keep the BRIGHT and PAPER bits, and set the INK to
       // OR 3                    // 3 (magenta)
       // LD B,A                  // Store this value in B
-      uint8_t attribute = (uint8_t)((ITEMS[i].attribute & 248) | 3);
+      uint8_t attribute = (uint8_t)((cavern.ITEMS[i].attribute & 248) | 3);
       // LD A,(IY+0)             // Pick up the item's current attribute byte again
       // AND 3                   // Keep only bits 0 and 1 and add the value in B; this
       // ADD A,B                 // maintains the BRIGHT and PAPER bits, and cycles the INK colour through 3, 4, 5 and 6
-      attribute += (ITEMS[i].attribute & 3);
+      attribute += (cavern.ITEMS[i].attribute & 3);
       // LD (IY+0),A             // Store the new attribute byte
-        ITEMS[i].attribute = attribute;
+      cavern.ITEMS[i].attribute = attribute;
 
       // LD (DE),A               // Update the attribute byte at the item's location in the buffer at 23552
       MEM[addr] = attribute;
@@ -2855,12 +2855,12 @@ void DRAWITEMS() {
 
       // LD D,(IY+3)             // Point DE at the address of the item's location in the screen buffer at 24576
       split_address(addr, &msb, &lsb);
-      msb = (uint8_t)ITEMS[i].addressMSB;
+      msb = (uint8_t)cavern.ITEMS[i].addressMSB;
       addr = build_address(msb, lsb);
       // LD HL,ITEM              // Point HL at the item graphic for the current cavern (at ITEM)
       // LD B,8                  // There are eight pixel rows to copy
       // CALL PRINTCHAR_0        // Draw the item to the screen buffer at 24576
-      PRINTCHAR_0(ITEMS[i].tile, addr, 8);
+      PRINTCHAR_0(cavern.ITEMS[i].tile, addr, 8);
     }
 
     // The current item definition has been dealt with. Time for the next one.
@@ -2884,7 +2884,7 @@ void DRAWITEMS() {
 
   // LD HL,PORTAL            // Ensure that the portal is flashing by setting bit 7
   // SET 7,(HL)              // of its attribute byte at PORTAL
-  portal.PORTAL |= (1 << 7);
+  cavern.portal.PORTAL |= (1 << 7);
 
   // RET
 }
@@ -2899,7 +2899,7 @@ bool CHKPORTAL() {
   uint8_t w_msb, w_lsb;
 
   // LD HL,(PORTALLOC1)      // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
-  uint16_t addr = portal.PORTALLOC1;
+  uint16_t addr = cavern.portal.PORTALLOC1;
   split_address(addr, &msb, &lsb);
 
   // LD A,(LOCATION)         // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
@@ -2916,7 +2916,7 @@ bool CHKPORTAL() {
       // LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
       // BIT 7,A                 // Is the portal flashing?
       // JR Z,CHKPORTAL_0        // Jump if not
-      if (((portal.PORTAL >> 7) & 1) == 1) {
+      if (((cavern.portal.PORTAL >> 7) & 1) == 1) {
         // POP HL                  // Drop the return address from the stack
         // JP NXSHEET              // Move Willy to the next cavern
 
@@ -2931,25 +2931,25 @@ bool CHKPORTAL() {
   // CHKPORTAL_0:
   // LD A,(PORTAL)           // Pick up the portal's attribute byte from PORTAL
   // LD (HL),A               // Set the attribute bytes for the portal in the
-  MEM[addr] = portal.PORTAL;
+  MEM[addr] = cavern.portal.PORTAL;
   // INC HL                  // buffer at 23552
   addr++;
   // LD (HL),A
-  MEM[addr] = portal.PORTAL;
+  MEM[addr] = cavern.portal.PORTAL;
   // LD DE,31
   // ADD HL,DE
   addr += 31;
   // LD (HL),A
-  MEM[addr] = portal.PORTAL;
+  MEM[addr] = cavern.portal.PORTAL;
   // INC HL
   addr++;
   // LD (HL),A
-  MEM[addr] = portal.PORTAL;
+  MEM[addr] = cavern.portal.PORTAL;
 
   // LD DE,PORTALG           // Point DE at the graphic data for the portal at PORTALG
   // LD HL,(PORTALLOC2)      // Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2
   // LD C,0                  // C=0: overwrite mode
-  DRWFIX(&portal.PORTALG, portal.PORTALLOC2, 0);
+  DRWFIX(&cavern.portal.PORTALG, cavern.portal.PORTALLOC2, 0);
   // This routine continues into the one at DRWFIX.
 
   return false; // NOTE: callers should not `goto NEWSHT`.
@@ -3243,7 +3243,7 @@ bool NXSHEET() {
 
   // NXSHEET_3:
   // LD (SHEET),A            // Update the cavern number at SHEET
-  SHEET = next_sheet;
+  cavern.SHEET = next_sheet;
 
   // The next section of code cycles the INK and PAPER colours of the current cavern.
 
@@ -3308,7 +3308,7 @@ bool NXSHEET() {
     // AND 63                  // sound effect (which decreases with the amount of
     // RLC A                   // air remaining)
     // LD D,A
-    uint8_t pitch = rotl((uint8_t)(~AIR & 63), 1);
+    uint8_t pitch = rotl((uint8_t)(~cavern.AIR & 63), 1);
 
     // NXSHEET_7:
     for (int i = duration; i > 0; i--) {
@@ -3409,10 +3409,10 @@ void MVCONVEYOR() {
   uint8_t pixels_a, pixels_c;
 
   // LD HL,(CONVLOC)         // Pick up the address of the conveyor's location in the screen buffer at 28672 from CONVLOC
-  uint16_t row_hl = CONVEYOR.CONVLOC;
+  uint16_t row_hl = cavern.CONVEYOR.CONVLOC;
   // LD E,L                  // Copy this address to DE
   // LD D,H
-  uint16_t row_de = CONVEYOR.CONVLOC;
+  uint16_t row_de = cavern.CONVEYOR.CONVLOC;
 
   // NOTE: using CONVLEN directly in loop below. -MRC-
   // LD A,(CONVLEN)          // Pick up the length of the conveyor from CONVLEN
@@ -3421,7 +3421,7 @@ void MVCONVEYOR() {
   // LD A,(CONVDIR)          // Pick up the direction of the conveyor from CONVDIR
   // OR A                    // Is the conveyor moving right?
   // JR NZ,MVCONVEYOR_1      // Jump if so
-  if (CONVEYOR.CONVDIR == 0) {
+  if (cavern.CONVEYOR.CONVDIR == 0) {
     // The conveyor is moving left.
     // LD A,(HL)               // Copy the first pixel row of the conveyor tile to A
     // RLC A                   // Rotate it left twice
@@ -3467,7 +3467,7 @@ void MVCONVEYOR() {
   // IMPORTANT: moved here so both if/else blocks can use it, without the need of goto's.
 
   // MVCONVEYOR_0:
-  for (int b = CONVEYOR.CONVLEN; b > 0; b--) {
+  for (int b = cavern.CONVEYOR.CONVLEN; b > 0; b--) {
     // LD (DE),A               // Update the first and third pixel rows of every
     MEM[row_de] = pixels_a;
 
@@ -3570,10 +3570,10 @@ bool KONGBEAST() {
     // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // LD (24433),A            // Change the attributes at (11,17) and (12,17) in the
     // FIXME: Blank Screen Buffer: Screen File = 22897
-    memcpy(&MEM[24433], BACKGROUND.sprite, sizeof(BACKGROUND.sprite));
+    memcpy(&MEM[24433], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
     // LD (24465),A            // buffer at 24064 to match the background tile (the wall there is now gone)
     // FIXME: Blank Screen Buffer: Screen File = 22929
-    memcpy(&MEM[24465], BACKGROUND.sprite, sizeof(BACKGROUND.sprite));
+    memcpy(&MEM[24465], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
 
     // FIXME: I guess we need to update HGUARD2 directly rather than this memeory address.
     // LD A,114                // Update the seventh byte of the guardian definition
@@ -3605,10 +3605,10 @@ bool KONGBEAST() {
     // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // LD (24143),A            // Change the attributes of the floor beneath the Kong
     // FIXME: Blank Screen Buffer: Screen File = 22607
-    memcpy(&MEM[24143], BACKGROUND.sprite, sizeof(BACKGROUND.sprite));
+    memcpy(&MEM[24143], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
     // LD (24144),A            // Beast in the buffer at 24064 to match that of the background tile
     // FIXME: Blank Screen Buffer: Screen File = 16463
-    memcpy(&MEM[24144], BACKGROUND.sprite, sizeof(BACKGROUND.sprite));
+    memcpy(&MEM[24144], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
 
     // LD HL,28751             // Point HL at (2,15) in the screen buffer at 28672
     // FIXME: Blank Screen Buffer: Screen File = 22608
@@ -3659,7 +3659,7 @@ bool KONGBEAST() {
 
     // LD D,16                 // D=16; this value determines the duration of the sound effect
     // LD A,(BORDER)           // Pick up the border colour for the current cavern from BORDER
-    uint8_t border = BORDER;
+    uint8_t border = cavern.BORDER;
 
     // KONGBEAST_5:
     for (int i = 0; i < 16; i++) {
@@ -3693,7 +3693,7 @@ bool KONGBEAST() {
     // AND 32                  // the main loop) to point DE at the graphic data for
     // OR 64                   // the appropriate Kong Beast sprite
     // LD E,A
-    uint16_t sprite_id = (uint16_t)((CLOCK & 32) | 64);
+    uint16_t sprite_id = (uint16_t)((cavern.CLOCK & 32) | 64);
     // LD C,0                  // Draw the Kong Beast to the screen buffer at 24576
     // CALL DRWFIX
     DRWFIX(&GGDATA[sprite_id], addr, 0);
@@ -3746,7 +3746,7 @@ bool KONGBEAST_8() {
   // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
   // AND 32                  // Use bit 5 of this value (which is toggled once
   // LD E,A                  // every eight passes through the main loop) to point
-  uint8_t sprite_id = (uint8_t)(CLOCK & 32);
+  uint8_t sprite_id = (uint8_t)(cavern.CLOCK & 32);
   // LD D,129                // DE at the graphic data for the appropriate Kong Beast sprite
   // LD HL,24591             // Draw the Kong Beast at (0,15) in the screen buffer
   // LD C,1                  // at 24576
@@ -3812,7 +3812,7 @@ bool CHKSWITCH(uint16_t addr) {
   addr = build_address(sw_msb, sw_lsb);
   // CP (HL)                 // Has the switch already been flipped?
   // RET NZ                  // Return (with the zero flag reset) if so
-  if (memcpy(&MEM[addr], EXTRA.sprite, sizeof(EXTRA.sprite)) == 0) {
+  if (memcpy(&MEM[addr], cavern.EXTRA.sprite, sizeof(cavern.EXTRA.sprite)) == 0) {
     return true;
   }
 
@@ -3921,7 +3921,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
   // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
   // CP (HL)                 // Does this cell contain a background tile?
   // JR NZ,WILLYATTR_0       // Jump if not
-  if ( memcmp(&MEM[addr], BACKGROUND.sprite, sizeof(BACKGROUND.sprite)) == 0 ) {
+  if ( memcmp(&MEM[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) == 0 ) {
     // LD A,C                  // Set the zero flag if we are going to retain the INK
     // AND 15                  // colour in this cell; this happens only if the cell is in the bottom row and Willy's sprite is confined to the top two rows
     // JR Z,WILLYATTR_0        // Jump if we are going to retain the current INK colour in this cell
@@ -3929,7 +3929,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
       // LD A,(BACKGROUND)       // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
       // OR 7                    // Set bits 0-2, making the INK white
       // LD (HL),A               // Set the attribute byte for this cell in the buffer at 23552
-      MEM[addr] = (uint8_t)(BACKGROUND.id | 7);
+      MEM[addr] = (uint8_t)(cavern.BACKGROUND.id | 7);
     }
   }
 
@@ -3940,7 +3940,7 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
   // LD A,(NASTY2)           // Pick up the attribute byte of the second nasty tile for the current cavern from NASTY2
   // CP (HL)                 // Has Willy hit a nasty of the second kind?
   // JP Z,KILLWILLY          // Kill Willy if so
-  if ( memcmp(&MEM[addr], NASTY1.sprite, sizeof(NASTY1.sprite)) == 0 || memcmp(&MEM[addr], NASTY2.sprite, sizeof(NASTY2.sprite)) == 0 ) {
+  if ( memcmp(&MEM[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0 || memcmp(&MEM[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0 ) {
     KILLWILLY();
     return true;
   }
