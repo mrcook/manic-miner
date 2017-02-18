@@ -3,13 +3,14 @@
 
 // globals.c
 
+#include "guardian_horizontal.h"
 #include "item.h"
 #include "portal.h"
 #include "willy.h"
 
 // Setup all game objects
 //extern Cavern cavern;
-//extern GuardianHorizontal HGUARDS[4];
+extern GuardianHorizontal HGUARDS[4];
 //extern GuardianVertical VGUARDS[4];
 
 extern Portal portal;
@@ -17,7 +18,7 @@ extern Item ITEMS[5];
 extern Willy willy;
 
 //extern uint16_t ITEMS[5][5];
-extern uint16_t HGUARDS[4][6];
+//extern uint16_t HGUARDS[4][6];
 extern uint8_t VGUARDS[4][7];
 
 

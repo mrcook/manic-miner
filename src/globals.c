@@ -3,13 +3,14 @@
 
 #include "headers.h"
 
+#include "guardian_horizontal.h"
 #include "item.h"
 #include "portal.h"
 #include "willy.h"
 
 // Setup all game objects
 //Cavern cavern;
-//GuardianHorizontal HGUARDS[4];
+GuardianHorizontal HGUARDS[4];
 //GuardianVertical VGUARDS[4];
 Item ITEMS[5];
 Portal portal;
@@ -75,39 +76,6 @@ uint8_t AIR;
 // multiple of 4) is also used by the routine at DECAIR to compute the amount of
 // air to draw in the cell at the right end of the air bar.
 uint8_t CLOCK;
-
-// Horizontal guardians
-//
-// The horizontal guardian definitions are copied here by the routine at
-// STARTGAME, and then used by the routines at MOVEHG and DRAWHG. There are four
-// slots, each one seven bytes long, used to hold the state of the horizontal
-// guardians in the current cavern.
-//
-// For each horizontal guardian, the seven bytes are used as follows:
-//
-// +------+--------------------------------------------------------------------+
-// | Byte | Contents                                                           |
-// +------+--------------------------------------------------------------------+
-// | 0    | Bit 7: animation speed (0=normal, 1=slow)                          |
-// |      | Bits 0-6: attribute (BRIGHT, PAPER and INK)                        |
-// | 1,2  | Address of the guardian's location in the attribute buffer at      |
-// |      | 23552                                                              |
-// | 3    | MSB of the address of the guardian's location in the screen buffer |
-// |      | at 24576                                                           |
-// | 4    | Animation frame                                                    |
-// | 5    | LSB of the address of the leftmost point of the guardian's path in |
-// |      | the attribute buffer                                               |
-// | 6    | LSB of the address of the rightmost point of the guardian's path   |
-// |      | in the attribute buffer                                            |
-// +------+--------------------------------------------------------------------+
-// IMPORTANT: we probably want to store them all in HGUARDS array. -MRC-
-// IMPORTANT: 2nd entry is an address so 4x6 of uint16_t types.
-uint16_t HGUARDS[4][6];       // Horizontal guardian 1
-// HGUARD2:
-//   DEFS 7                  // Horizontal guardian 2
-//   DEFS 7                  // Horizontal guardian 3
-//   DEFS 7                  // Horizontal guardian 4
-//   DEFB 0                  // Terminator (set to 255)
 
 // Eugene's direction or the Kong Beast's status
 //

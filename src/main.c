@@ -2007,10 +2007,10 @@ void MOVEHG() {
 
   // The guardian-moving loop begins here.
   for (int i = 0; i < 4; i++) {
-    uint16_t *guardian = HGUARDS[i];
+    GuardianHorizontal *guardian = &HGUARDS[i];
 
-    if (guardian[0] == 0 && guardian[1] == 0 && guardian[2] == 0 && guardian[3] == 0 && guardian[4] == 0 && guardian[5] == 0) {
-      continue;
+    if (GuardianH_is_blank(guardian)) {
+        continue;
     }
 
     uint8_t current_clock = CLOCK;
@@ -2018,7 +2018,7 @@ void MOVEHG() {
     current_clock = rotr(current_clock, 3);
 
     // Jump to consider the next guardian if this one is not due to be moved on this pass
-    if ((current_clock & guardian[0])) {
+    if ((current_clock & guardian->speedColour)) {
       continue;
     }
 
@@ -2027,49 +2027,49 @@ void MOVEHG() {
 
     // Is it 3 (the terminal frame for a guardian moving right)?
     // If so move the guardian right across a cell boundary or turn it round
-    if (guardian[3] == 3) {
+    if (guardian->frame == 3) {
       // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
-      split_address(guardian[1], &msb, &lsb);
+      split_address(guardian->attributeAddress, &msb, &lsb);
 
       // Has the guardian reached the rightmost point in its path?
-      if (lsb == guardian[5]) {
+      if (lsb == guardian->addressRightLSB) {
         // Set the animation frame to 7 (turning the guardian round to face left)
-        guardian[3] = 7;
+        guardian->frame = 7;
         // Jump forward to consider the next guardian
       } else {
         // Set the animation frame to 0 (the initial frame for a guardian moving right)
-        guardian[3] = 0;
+        guardian->frame = 0;
         // Increment the guardian's x-coordinate (moving it right across a cell boundary)
         lsb++;
-        guardian[1] = build_address(msb, lsb);
+        guardian->attributeAddress = build_address(msb, lsb);
         // Jump forward to consider the next guardian
       }
 
     // Is the current animation frame 4 (the terminal frame for a guardian moving left)?
     // If so move the guardian left across a cell boundary or turn it round
-    } else if (guardian[3] == 4) {
+    } else if (guardian->frame == 4) {
       // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
-      split_address(guardian[1], &msb, &lsb);
+      split_address(guardian->attributeAddress, &msb, &lsb);
 
       // Has the guardian reached the leftmost point in its path?
-      if (lsb == guardian[4]) {
+      if (lsb == guardian->addressLeftLSB) {
         // Set the animation frame to 0 (turning the guardian round to face right)
-        guardian[3] = 0;
+        guardian->frame = 0;
       } else {
         // Set the animation frame to 7 (the initial frame for a guardian moving left)
-        guardian[3] = 7;
+        guardian->frame = 7;
         // Decrement the guardian's x-coordinate (moving it left across a cell boundary)
         lsb--;
-        guardian[1] = build_address(msb, lsb);
+        guardian->attributeAddress = build_address(msb, lsb);
       }
 
     // Jump if the animation frame is 5, 6 or 7
-    } else if (guardian[3] == 5 || guardian[3] == 6 || guardian[3] == 7) {
+    } else if (guardian->frame == 5 || guardian->frame == 6 || guardian->frame == 7) {
       // Decrement the animation frame (this guardian is moving left)
-      guardian[3]--;
+      guardian->frame--;
     } else {
       // Increment the animation frame (this guardian is moving right)
-      guardian[3]++;
+      guardian->frame++;
     }
 
     // The current guardian definition has been dealt with. Time for the next one.
@@ -2092,15 +2092,15 @@ void MOVEHG_XX() {
     // CP 255                  // Have we dealt with all the guardians yet?
     // RET Z                   // Return if so
 
-    uint16_t *guardian = HGUARDS[i];
+    GuardianHorizontal *guardian = &HGUARDS[i];
 
     // OR A                    // Is this guardian definition blank?
     // JR Z,MOVEHG_6           // If so, skip it and consider the next one
-    if (guardian[0] == 0 && guardian[1] == 0 && guardian[2] == 0 && guardian[3] == 0 && guardian[4] == 0 && guardian[5] == 0) {
-      continue;
+    if (GuardianH_is_blank(guardian)) {
+        continue;
     }
 
-    // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
+      // LD A,(CLOCK)            // Pick up the value of the game clock at CLOCK
     uint8_t current_clock = CLOCK;
     // AND 4                   // Move bit 2 (which is toggled on each pass through
     current_clock &= 4;
@@ -2112,7 +2112,7 @@ void MOVEHG_XX() {
     // AND (IY+0)              // Combine this bit with bit 7 of the first byte of the guardian definition,]
                                // which specifies the guardian's animation speed: 0=normal, 1=slow
     // JR NZ,MOVEHG_6          // Jump to consider the next guardian if this one is not due to be moved on this pass
-    if ((current_clock & guardian[0])) {
+    if ((current_clock & guardian->speedColour)) {
         continue;
     }
 
@@ -2120,20 +2120,20 @@ void MOVEHG_XX() {
     // LD A,(IY+4)             // Pick up the current animation frame (0-7)
     // CP 3                    // Is it 3 (the terminal frame for a guardian moving right)?
     // JR Z,MOVEHG_2           // Jump if so to move the guardian right across a cell boundary or turn it round
-    if (guardian[3] != 3) {
+    if (guardian->frame != 3) {
       // CP 4                    // Is the current animation frame 4 (the terminal frame for a guardian moving left)?
       // JR Z,MOVEHG_4           // Jump if so to move the guardian left across a cell boundary or turn it round
-      if (guardian[3] != 4) {
+      if (guardian->frame != 4) {
         // JR NC,MOVEHG_1          // Jump if the animation frame is 5, 6 or 7
-        if (guardian[3] == 5 || guardian[3] == 6 || guardian[3] == 7) {
+        if (guardian->frame == 5 || guardian->frame == 6 || guardian->frame == 7) {
           // MOVEHG_1:
           // DEC (IY+4)              // Decrement the animation frame (this guardian is moving left)
-          guardian[3]--;
+          guardian->frame--;
           // JR MOVEHG_6             // Jump forward to consider the next guardian
           continue;
         } else {
           // INC (IY+4)              // Increment the animation frame (this guardian is moving right)
-          guardian[3]++;
+          guardian->frame++;
           // JR MOVEHG_6             // Jump forward to consider the next guardian
           continue;
         }
@@ -2141,22 +2141,22 @@ void MOVEHG_XX() {
     } else {
       // MOVEHG_2:
       // LD A,(IY+1)             // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
-      split_address(guardian[1], &msb, &lsb);
+      split_address(guardian->attributeAddress, &msb, &lsb);
 
       // CP (IY+6)               // Has the guardian reached the rightmost point in its path?
       // JR NZ,MOVEHG_3          // Jump if not
-      if (lsb == guardian[5]) {
+      if (lsb == guardian->addressRightLSB) {
         // LD (IY+4),7             // Set the animation frame to 7 (turning the guardian round to face left)
-        guardian[3] = 7;
+        guardian->frame = 7;
         // JR MOVEHG_6             // Jump forward to consider the next guardian
         continue;
       } else {
         // MOVEHG_3:
         // LD (IY+4),0             // Set the animation frame to 0 (the initial frame for a guardian moving right)
-        guardian[3] = 0;
+        guardian->frame = 0;
         // INC (IY+1)              // Increment the guardian's x-coordinate (moving it right across a cell boundary)
         lsb++;
-        guardian[1] = build_address(msb, lsb);
+        guardian->attributeAddress = build_address(msb, lsb);
         // JR MOVEHG_6             // Jump forward to consider the next guardian
         continue;
       }
@@ -2164,22 +2164,22 @@ void MOVEHG_XX() {
 
     // MOVEHG_4:
     // LD A,(IY+1)             // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
-    split_address(guardian[1], &msb, &lsb);
+    split_address(guardian->attributeAddress, &msb, &lsb);
 
     // CP (IY+5)               // Has the guardian reached the leftmost point in its path?
     // JR NZ,MOVEHG_5          // Jump if not
-    if (lsb == guardian[4]) {
+    if (lsb == guardian->addressLeftLSB) {
       // LD (IY+4),0             // Set the animation frame to 0 (turning the guardian round to face right)
-      guardian[3] = 0;
+      guardian->frame = 0;
       // JR MOVEHG_6             // Jump forward to consider the next guardian
       continue;
     } else {
       // MOVEHG_5:
       // LD (IY+4),7             // Set the animation frame to 7 (the initial frame for a guardian moving left)
-      guardian[3] = 7;
+      guardian->frame = 7;
       // DEC (IY+1)              // Decrement the guardian's x-coordinate (moving it left across a cell boundary)
       lsb--;
-      guardian[1] = build_address(msb, lsb);
+      guardian->attributeAddress = build_address(msb, lsb);
     }
 
     // The current guardian definition has been dealt with. Time for the next one.
@@ -2273,11 +2273,11 @@ bool DRAWHG() {
     // CP 255                  // Have we dealt with all the guardians yet?
     // RET Z                   // Return if so
 
-    uint16_t *guardian = HGUARDS[i];
+    GuardianHorizontal *guardian = &HGUARDS[i];
 
     // OR A                    // Is this guardian definition blank?
     // JR Z,DRAWHG_2           // If so, skip it and consider the next one
-    if (guardian[1] == 0) {
+    if (guardian->attributeAddress == 0) {
       continue;
     }
 
@@ -2285,9 +2285,9 @@ bool DRAWHG() {
 
     // LD L,(IY+1)             // Point HL at the address of the guardian's location
     // LD H,(IY+2)             // in the attribute buffer at 23552
-    addr = guardian[1];
+    addr = guardian->attributeAddress;
 
-    uint8_t attr = (uint8_t)guardian[0];
+    uint8_t attr = (uint8_t)guardian->speedColour;
     // AND 127                 // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
     attr &= 127;
     // LD (HL),A               // Set the attribute bytes for the guardian in the
@@ -2310,7 +2310,7 @@ bool DRAWHG() {
     // LD C,1                  // Prepare C for the call to the drawing routine at DRWFIX later on
 
     // LD A,(IY+4)             // Pick up the animation frame (0-7)
-    uint8_t anim_frame = (uint8_t)guardian[3];
+    uint8_t anim_frame = (uint8_t)guardian->frame;
     // RRCA                    // Multiply it by 32
     // RRCA
     // RRCA
@@ -2333,8 +2333,8 @@ bool DRAWHG() {
     // LD D,129                // Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E)
     // LD L,(IY+1)             // Point HL at the address of the guardian's location
     // LD H,(IY+3)             // in the screen buffer at 24576
-    split_address(guardian[1], &msb, &lsb);
-    addr = build_address((uint8_t)guardian[2], lsb);
+    split_address(guardian->attributeAddress, &msb, &lsb);
+    addr = build_address((uint8_t)guardian->addressMSB, lsb);
 
     // CALL DRWFIX             // Draw the guardian to the screen buffer at 24576
     bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);

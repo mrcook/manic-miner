@@ -3,7 +3,6 @@
 #pragma once
 
 #include "headers.h"
-#include "colour.h"
 
 /*
     Horizontal guardians
@@ -30,18 +29,20 @@
 */
 
 typedef struct GuardianHorizontal_ {
-    // animation speed (0=normal, 1=slow)
-    bool slow;
-
-    Colour colour;
-
-    uint8_t frame;
+//    // animation speed (0=normal, 1=slow)
+//    bool slow;
+//    // Colour attribute (BRIGHT, PAPER and INK)
+//    Colour colour;
+    uint8_t speedColour;
 
     // Address of the guardian's location in the attribute buffer at 23552
     uint16_t attributeAddress;
     // MSB of the address of the guardian's location in the screen buffer at 24576
     uint8_t addressMSB;
     // LSB of the address of the leftmost point of the guardian's path in the attribute buffer
+
+    uint8_t frame;
+
     uint8_t addressLeftLSB;
     // LSB of the address of the rightmost point of the guardian's path in the attribute buffer
     uint8_t addressRightLSB;
@@ -49,3 +50,5 @@ typedef struct GuardianHorizontal_ {
     // Guardian graphic data
     uint8_t sprites[256];
 } GuardianHorizontal;
+
+bool GuardianH_is_blank(GuardianHorizontal *guardian);

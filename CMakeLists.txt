@@ -25,6 +25,7 @@ set(SOURCE_FILES
         src/colour.h
         src/coord.h
         src/guardian_horizontal.h
+        src/guardian_horizontal.c
         src/guardian_vertical.h
         src/item.h
         src/portal.h

@@ -932,21 +932,22 @@ void initialize_cavern0() {
     {0,0,0,0,0,0},        // Horizontal guardian 4 (unused)
   };
   for (int i = 0; i < 4; i++) {
-    HGUARDS[i][0] = newHGUARDS[i][0];
+    HGUARDS[i].speedColour = (uint8_t)newHGUARDS[i][0];
+    HGUARDS[i].attributeAddress = newHGUARDS[i][1];
+    HGUARDS[i].addressMSB = (uint8_t)newHGUARDS[i][2];
+    HGUARDS[i].frame = (uint8_t)newHGUARDS[i][3];
+    HGUARDS[i].addressLeftLSB = (uint8_t)newHGUARDS[i][4];
+    HGUARDS[i].addressRightLSB = (uint8_t)newHGUARDS[i][5];
+
     MEM[addr++] = (uint8_t)newHGUARDS[i][0];
 
-    HGUARDS[i][1] = newHGUARDS[i][1];
     split_address(newHGUARDS[i][1], &msb, &lsb);
     MEM[addr++] = msb;
     MEM[addr++] = lsb;
 
-    HGUARDS[i][2] = newHGUARDS[i][2];
     MEM[addr++] = (uint8_t)newHGUARDS[i][2];
-    HGUARDS[i][3] = newHGUARDS[i][3];
     MEM[addr++] = (uint8_t)newHGUARDS[i][3];
-    HGUARDS[i][4] = newHGUARDS[i][4];
     MEM[addr++] = (uint8_t)newHGUARDS[i][4];
-    HGUARDS[i][5] = newHGUARDS[i][5];
     MEM[addr++] = (uint8_t)newHGUARDS[i][5];
 
   }
