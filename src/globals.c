@@ -95,10 +95,7 @@ uint8_t EUGDIR;
 // y-coordinate).
 uint8_t EUGHGT;
 
-// Guardian graphic data
-//
-// The guardian graphic data is copied here by the routine at STARTGAME, and
-// then used by the routines at DRAWHG, SKYLABS, VGUARDIANS and KONGBEAST.
+// Kong Beast Guardian graphic data
 uint8_t GGDATA[256];
 
 // IMPORTANT: not initialized anywhere, so let's do that here -MRC-

@@ -47,8 +47,8 @@ typedef struct GuardianHorizontal_ {
     // LSB of the address of the rightmost point of the guardian's path in the attribute buffer
     uint8_t addressRightLSB;
 
-    // Guardian graphic data
-    uint8_t sprites[256];
+    // Guardian graphic data (yes, it uses more memory, but gives greater flexibility)
+    uint8_t GGDATA[256];
 } GuardianHorizontal;
 
 bool GuardianH_is_blank(GuardianHorizontal *guardian);

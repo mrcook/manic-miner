@@ -2337,7 +2337,7 @@ bool DRAWHG() {
     addr = build_address((uint8_t)guardian->addressMSB, lsb);
 
     // CALL DRWFIX             // Draw the guardian to the screen buffer at 24576
-    bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);
+    bool kill_willy = DRWFIX(&guardian->GGDATA[anim_frame], addr, 1);
 
     // JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
     if (kill_willy) {
@@ -2619,7 +2619,7 @@ bool SKYLABS() {
     uint8_t sprite_offset = rotr(guardian->frame, 3);
     // LD C,1                  // Draw the Skylab to the screen buffer at 24576
     // CALL DRWFIX
-    bool kill_willy = DRWFIX(&GGDATA[sprite_offset], addr, 1);
+    bool kill_willy = DRWFIX(&guardian->GGDATA[sprite_offset], addr, 1);
     if (kill_willy) {
       // JP NZ,KILLWILLY_1       // Kill Willy if the Skylab collided with him
       KILLWILLY_0();
@@ -2744,7 +2744,7 @@ bool VGUARDIANS() {
     // LD D,129                // guardian sprite (at GGDATA+A)
     // LD C,1                  // Draw the guardian to the screen buffer at 24576
     // CALL DRWFIX
-    bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);
+    bool kill_willy = DRWFIX(&guardian->GGDATA[anim_frame], addr, 1);
 
     // JP NZ,KILLWILLY_0       // Kill Willy if the guardian collided with him
     if (kill_willy) {

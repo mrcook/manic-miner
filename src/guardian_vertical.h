@@ -34,5 +34,5 @@ typedef struct GuardianVertical_ {
     uint8_t yCoordMaximum;
 
     // Guardian graphic data
-    uint8_t sprites[256];
+    uint8_t GGDATA[256];
 } GuardianVertical;

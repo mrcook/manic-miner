@@ -971,7 +971,7 @@ void initialize_cavern0() {
       VGUARDS[i].yCoordMinimum = 0;
       VGUARDS[i].yCoordMaximum = 0;
       for (int j = 0; j < 256; j++) {
-          VGUARDS[i].sprites[j] = 0;
+          VGUARDS[i].GGDATA[j] = 0;
       }
   }
 
@@ -995,6 +995,10 @@ void initialize_cavern0() {
     SWORDFISH[i] = newSWORDFISH[i];
     MEM[addr++] = newSWORDFISH[i];
   }
+
+  // FIXME: GGDATA is for "either" HGUARDS or VGUARDS. We'll need a more generic
+  // way of initializing as we only ever use one or the other (H/V Guardians).
+  // For CAVERN0, this sprite data is for the Horizontal Guardian.
 
   // The next 256 bytes are copied to GGDATA and define the guardian graphics.
   uint8_t newGGDATA[256] = {           // Guardian graphic data
@@ -1032,7 +1036,11 @@ void initialize_cavern0() {
     5,221,3,142,1,4,0,136,
   };
   for (int i = 0; i < 256; i++) {
+    // Some places still use GDATA. e.g. Kong Beast
     GGDATA[i] = newGGDATA[i];
+
+    // Adds the sprites to our only Guardian: HGUARDS[0]
+    HGUARDS[0].GGDATA[i] = newGGDATA[i];
     MEM[addr++] = newGGDATA[i];
   }
 
