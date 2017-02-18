@@ -10,6 +10,10 @@ void Willy_initialize() {
     willy.AIRBORNE = 0;
     willy.LOCATION = 23970;
     willy.JUMPING = 0;
+
+    for (int i = 0; i < 256; i++) {
+        willy.sprites[i] = WILLYDATA[i];
+    }
 }
 
 // Left-right movement table

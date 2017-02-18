@@ -41,7 +41,7 @@ clock_t current_time;
 
 
 int main(void) {
-    Willy_initialize();
+  Willy_initialize();
 
   initialize_curses();
 
@@ -113,7 +113,7 @@ int main(void) {
     // LD DE,WILLYR2
     // LD C,0
     // CALL DRWFIX
-    DRWFIX(&WILLYR2, 18493, 0);
+    DRWFIX(&willy.sprites[64], 18493, 0);
 
     // Copy the attribute bytes from CAVERN19 to the top third of the attribute file
     // LD HL,CAVERN19
@@ -194,7 +194,7 @@ int main(void) {
       // LD HL,18493
       // LD C,0
       // CALL DRWFIX
-      DRWFIX(&WILLYDATA[sprite_id], 18493, 0);
+      DRWFIX(&willy.sprites[sprite_id], 18493, 0);
 
       redraw_screen();
 
@@ -931,7 +931,7 @@ void ENDGAM() {
   // LD HL,18575
   // LD C,0
   // CALL DRWFIX
-  DRWFIX(&WILLYR2, 18575, 0);
+  DRWFIX(&willy.sprites[64], 18575, 0);
 
   // LD DE,PLINTH            // Draw the plinth (see PLINTH) underneath Willy at
   // LD HL,18639             // (14,15)
@@ -3148,7 +3148,7 @@ bool NXSHEET() {
       // LD DE,WILLYR3
       // LD HL,16467
       // CALL DRWFIX
-      DRWFIX(&WILLYR3, 16467, 0);
+      DRWFIX(&willy.sprites[96], 16467, 0);
 
       // LD DE,SWORDFISH         // Draw the swordfish graphic (see SWORDFISH) over the
       // LD HL,16563             // portal
@@ -3998,7 +3998,7 @@ void DRAWWILLY() {
     // LD A,(DE)               // Pick up a sprite graphic byte
     // OR (HL)                 // Merge it with the background
     // LD (HL),A               // Save the resultant byte to the screen buffer
-    MEM[addr] = WILLYDATA[frame] | MEM[addr];
+    MEM[addr] = willy.sprites[frame] | MEM[addr];
 
     // INC HL                  // Move HL along to the next cell to the right
     addr++;
@@ -4008,7 +4008,7 @@ void DRAWWILLY() {
     // LD A,(DE)               // Pick it up in A
     // OR (HL)                 // Merge it with the background
     // LD (HL),A               // Save the resultant byte to the screen buffer
-    MEM[addr] = WILLYDATA[frame] | MEM[addr];
+    MEM[addr] = willy.sprites[frame] | MEM[addr];
 
     // INC IX                  // Point IX at the next entry in the screen buffer
     // INC IX                  // address lookup table at SBUFADDRS
@@ -4320,7 +4320,7 @@ void draw_remaining_lives() {
     // LD E,A                  // Point DE at the corresponding Willy sprite (at MANDAT+A)
     // LD D,130
     // IMPORTANT: swap MANDAT with new WILLYDATA, to access all anim frames -MRC-
-    uint8_t *sprite = &WILLYDATA[anim_frame];
+    uint8_t *sprite = &willy.sprites[anim_frame];
 
     // CALL DRWFIX             // Draw the Willy sprite on the screen
     DRWFIX(sprite, addr, 0);

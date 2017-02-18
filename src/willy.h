@@ -41,6 +41,18 @@ typedef struct Willy_ {
 
     // Current Jumping animation counter. Possible values: 0-17.
     uint8_t JUMPING;
+
+    // Willy sprite graphic data (NOTE: combines the original MANDAT, WILLYR2, WILLYR3)
+    //
+    // 32 bytes per frame (16x16 pixels)
+    // Each pair of bytes is a row of pixels.
+    //
+    // MANDAT  ( 0-31): Walk Right frame 1
+    // MANDAT  (32-63): Walk Right frame 2
+    // WILLYR2 ( 0-31): Walk Right frame 3
+    // WILLYR3 ( 0-31): Walk Right frame 4
+    // WILLYR3 (32...): Walk Left  frames 1 - 4
+    uint8_t sprites[256];
 } Willy;
 
 void Willy_initialize();
