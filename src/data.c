@@ -3,7 +3,6 @@
 
 #include "headers.h"
 #include "externs.h"
-#include "terminal.h"
 
 // Willy sprite graphic data
 //

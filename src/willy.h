@@ -40,6 +40,7 @@ typedef struct Willy_ {
     uint16_t LOCATION;
 
     // Current Jumping animation counter. Possible values: 0-17.
+    // FIXME: another part of the program says, Possible values: 1-18.
     uint8_t JUMPING;
 
     // Willy sprite graphic data (NOTE: combines the original MANDAT, WILLYR2, WILLYR3)
