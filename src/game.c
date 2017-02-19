@@ -13,58 +13,6 @@ uint8_t EUGDIR;
 // KONGBEAST - to hold the Kong Beast's pixel y-coordinate
 uint8_t EUGHGT;
 
-// private functions
-
-// Draws the AIR bar graphics to the screen
-static void drawAirBar(void);
-
-// Draws the remaining lives at the bottom of the screen
-static void drawRemainingLives(void);
-
-// check if the user has entered the cheat code
-static bool checkCheatCode(void);
-static bool MANDEAD();
-static void ENDGAM();
-static bool DECAIR();
-static void DRAWSHEET();
-static bool MOVEWILLY();
-static void MOVEWILLY_7(uint8_t y_coord);
-static void MOVEWILLY_10();
-static void CRUMBLE(uint16_t addr);
-static bool MOVEWILLY2(uint16_t addr);
-static void MOVEWILLY2_6();
-static void MOVEWILLY2_7();
-static void MOVEWILLY2_9();
-static void MOVEWILLY2_10();
-static bool KILLWILLY();
-static bool KILLWILLY_0();
-static bool KILLWILLY_1();
-static void MOVEHG();
-static void LIGHTBEAM();
-static bool DRAWHG();
-static bool EUGENE();
-static void EUGENE_3(uint16_t addr, uint8_t ink_color);
-static bool SKYLABS();
-static bool VGUARDIANS();
-static void DRAWITEMS();
-static bool CHKPORTAL();
-static bool DRWFIX(void *sprite, uint16_t addr, uint8_t mode);
-static bool NXSHEET();
-static void INCSCORE_0(uint16_t addr);
-static void MVCONVEYOR();
-static bool KONGBEAST();
-static bool KONGBEAST_8();
-static bool CHKSWITCH(uint16_t addr);
-static bool WILLYATTRS();
-static bool WILLYATTR(uint16_t addr, uint8_t ink);
-static void DRAWWILLY();
-static void PMESS(void *msg, uint16_t addr, uint8_t len);
-static void PRINTCHAR(char ch, uint16_t addr);
-static void PRINTCHAR_0(void *chr, uint16_t addr, uint8_t len);
-static bool PLAYTUNE();
-static uint16_t PIANOKEY(uint8_t frequency);
-static bool CHECKENTER();
-
 bool game_is_running = true;
 
 void Game_initialize() {
@@ -92,6 +40,8 @@ void Game_initialize() {
 // Returning true quits the game!
 // FIXME: uses `goto` statements!
 bool Game_play() {
+    static bool cavernFinished = true;
+
     game.DEMO = 0; // FIXME: temporarily disable DEMO mode, delete this before release!
 
     // Initialise the in-game music note index at NOTEINDEX
@@ -107,82 +57,34 @@ bool Game_play() {
     game.current_score = 0;
 
     // Prepare the screen; clear the entire Spectrum display file
-    for (int i = 0; i < 6144; i++) {
-        speccy.memory[16384 + i] = 0;
-    }
+    Speccy_clearScreen();
 
-    // This entry point is used by the routines at LOOP (when teleporting into a cavern
-    // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
-NEWSHT:
 
-    // FIXME: only using CAVERN0, while porting -MRC-
-
-    // Copy the cavern definition into the game status buffer at 32768
-    Cavern_initialize();
-
-    //
-    // Now, draw the screen
-    //
-
-    // Copy the cavern's attribute bytes into the buffer at 24064
-    // FIXME: uses Attr Buff (Blank): Attr File = 22528
-    for (int i = 0; i < 512; i++) {
-        Speccy_writeAttribute(24064 + i, cavern.layout[i]);
-    }
-
-    // Draw the current cavern to the screen buffer at 28672
-    DRAWSHEET();
-
-    // Clear the bottom third of the display file
-    for (int i = 0; i < 2048; i++) {
-        Speccy_writeScreen(20480 + i, 0);
-    }
-
-    // Print the cavern name (see CAVERNNAME) at 20480 (16,0)
-    PMESS(cavern.CAVERNNAME, 20480, 32);
-
-    // Print 'AIR' (see MESSAIR) at 20512 (17,0)
-    PMESS(&game.airLabel, 20512, 3);
-
-    drawAirBar();
-
-    // Print scores text at 20576 (19,0)
-    PMESS(&game.MESSHSSC, 20576, 32);
-
-    // Set the border colour
-    OUT(cavern.BORDER);
-
-    Terminal_redraw();
-
-    // Are we in demo mode?
-    if (game.DEMO > 0) {
-        // Reset the game mode indicator (we're in demo mode)
-        game.DEMO = 64;
-    }
-
-    //
-    // Main loop
-    //
-
-    // The first thing to do is check whether there are any
-    // remaining lives to draw at the bottom of the screen.
+    // The Main Loop
     while (true) {
+        if (cavernFinished) {
+            loadCavern();
+            cavernFinished = false;
+        }
+
+        // The first thing to do is check whether there are any
+        // remaining lives to draw at the bottom of the screen.
         drawRemainingLives();
 
         // Next, prepare the screen and attribute buffers for drawing to the screen.
+        resetScreenAttrBuffers();
 
-        // Copy contents of attribute buffer at 24064 (the empty cavern) into the
-        // attribute buffer at 23552
-        // FIXME: all good, uses the Display File
-        for (int i = 0; i < 512; i++) {
-            speccy.memory[23552 + i] = speccy.memory[24064 + i];
+        // Check key press to toggle the in-game music.
+        if (Terminal_keyMuteMusic()) {
+            game.playMusic = ~game.playMusic;
         }
-
-        // Copy the contents of the screen buffer at 28672 (empty cavern tiles)
-        // into the screen buffer at 24576
-        // FIXME: all good, uses the Display File
-        for (int i = 0; i < 4096; i++) {
-            speccy.memory[24576 + i] = speccy.memory[28672 + i];
+        if (Terminal_keyQuit()) {
+            return true; // goto START, and make sure to quit the game!
+        }
+        if (Terminal_keyPaused()) {
+            do {
+                millisleep(50); // keep the FPS under control
+            } while (!Terminal_keyAny());
         }
 
         // Move the horizontal guardians in the current cavern
@@ -192,9 +94,11 @@ NEWSHT:
         // If not, check and set the attribute bytes for Willy's sprite in the
         // buffer at 23552, and draw Willy to the screen buffer at 24576.
         if (game.DEMO == 0) {
+            // Move Willy
             if (MOVEWILLY()) {
                 goto LOOP_4; // Willy has died!
             }
+            // Draw Willy
             if (WILLYATTRS()) {
                 goto LOOP_4; // Willy has died!
             }
@@ -244,50 +148,27 @@ NEWSHT:
                 // Solar Power Generator
                 LIGHTBEAM();
                 break;
-            default:; // NOOP
+            default:
+                ; // NOOP
         }
 
+        // FIXME: this should be moved up, directly after moving Willy...?
         // Draw the portal, or move to the next cavern if Willy has entered it
         if (CHKPORTAL()) {
-            goto NEWSHT;
+            cavernFinished = true;
+            continue;
         }
 
-        // This entry point is used by the routine at KILLWILLY.
-LOOP_4:
-        // Copy the contents of the screen buffer at 24576 to the display file
-        // FIXME: all good, uses the Display File
-        for (int i = 0; i < 4096; i++) {
-            Speccy_writeScreen(16384 + i, speccy.memory[24576 + i]);
-        }
+LOOP_4: // This entry point is used by the routine at KILLWILLY.
+        copyScrBufToDisplayFile();
 
         Terminal_redraw();
 
-        if (game.FLASH > 0) {
-            game.FLASH--;
+        flashScreen(); // redraws the screen too!
 
-            // Move bits 0-2 into bits 3-5 and clear all the other bits
-            uint8_t new_flash_value = (uint8_t) (rotl(game.FLASH, 3) & 56);
+        copyAttrBufToAttrFile();
 
-            // Set every attribute byte in the buffer at 23552 to this value
-            // FIXME: Uses Attr Buffer: Attr File= 22528
-            for (int i = 0; i < 512; i++) {
-                speccy.memory[23552 + i] = new_flash_value;
-            }
-
-            Terminal_redraw();
-        }
-
-        // Copy the contents of the attribute buffer at 23552 to the attribute file
-        // FIXME: all good, uses the Display File
-        for (int i = 0; i < 512; i++) {
-            Speccy_writeAttribute(22528 + i, speccy.memory[23552 + i]);
-        }
-
-        // Print the score (see SCORBUF) at (19,26)
-        PMESS(&game.SCORBUF, 20602, 6);
-
-        // Print the high score (see HGHSCOR) at (19,11)
-        PMESS(&game.HGHSCOR, 20587, 6);
+        printScores();
 
         Terminal_redraw();
 
@@ -296,18 +177,9 @@ LOOP_4:
             if (MANDEAD()) {
                 return false; // goto START, and don't quit!
             } else {
-                goto NEWSHT;
+                cavernFinished = true;
+                continue;
             }
-        }
-
-        if (Terminal_keyQuit()) {
-            return true; // goto START, and make sure to quit the game!
-        }
-
-        if (Terminal_keyPaused()) {
-            do {
-                millisleep(50); // keep the FPS under control
-            } while (!Terminal_keyPaused());
         }
 
         // Here we check whether Willy has had a fatal accident.
@@ -316,56 +188,27 @@ LOOP_4:
             if (MANDEAD()) {
                 return false; // goto START, and don't quit!
             } else {
-                goto NEWSHT;
+                cavernFinished = true;
+                continue;
             }
-        }
-
-        // Check key press to toggle the in-game music.
-        if (Terminal_keyMuteMusic()) {
-            game.playMusic = ~game.playMusic;
         }
 
         // Play some music, unless in-game music been switched off
         if (game.playMusic) {
-            // Increment the in-game music note index at NOTEINDEX
-            game.NOTEINDEX++;
-
-            // Point HL at the appropriate entry in the tune data table at GAMETUNE
-            uint8_t index = rotr((uint8_t) (game.NOTEINDEX & 126), 1);
-
-            // Pick up the border colour for the current cavern from BORDER
-            uint8_t note = cavern.BORDER;
-
-            // Initialise the pitch delay counter in E
-            uint8_t pitch_delay_counter = GAMETUNE[index];
-
-            // Initialise the duration delay counters in B (0) and C (3)
-            for (int i = 0; i < 3; i++) {
-                // Produce a note of the in-game music
-                OUT(note);
-
-                pitch_delay_counter--;
-
-                if (pitch_delay_counter > 0) {
-                    pitch_delay_counter = GAMETUNE[index];
-                    note ^= 24;
-                }
-
-                millisleep(1);
-            }
+            playGameMusic();
         }
 
-        // If we're in demo mode, check the keyboard and return
-        // to the title screen if there's any input.
+        // If we're in demo mode, return to the title screen if user presses a key
         if (game.DEMO > 0) {
             // We're in demo mode; is it time to show the next cavern?
-            if (game.DEMO - 1 == 0) {
+            if (game.DEMO == 1) {
                 if (MANDEAD()) {
                     return false; // goto START, and don't quit!
-                } else {
-                    goto NEWSHT;
                 }
+                cavernFinished = true;
+                continue;
             }
+
             // Update the game mode indicator at DEMO
             game.DEMO--;
 
@@ -380,112 +223,71 @@ LOOP_4:
     } // end main loop
 }
 
-bool checkCheatCode() {
-    // IMPORTANT: not handling cheat codes just yet -MRC-
-    /* TODO
-      // Here we check the teleport keys.
-      // NODEM1:
-      LD BC,61438             // Read keys 6-7-8-9-0
-      IN A,(C)
-      BIT 4,A                 // Is '6' (the activator key) being pressed?
-      JP NZ,CKCHEAT           // Jump if not
-      LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
-      CP 7                    // Has 6031769 been keyed in yet?
-      JP NZ,CKCHEAT           // Jump if not
-      LD B,247                // Read keys 1-2-3-4-5
-      IN A,(C)
-      CPL                     // Keep only bits 0-4 and flip them
-      AND 31
-      CP 20                   // Is the result 20 or greater?
-      JP NC,CKCHEAT           // Jump if so (this is not a cavern number)
-      LD (SHEET),A            // Store the cavern number at SHEET
-      JP NEWSHT               // Teleport into the cavern
+// Load the cavern data (was NEWSHT)
+void loadCavern() {
+    // This entry point is used by the routines at LOOP (when teleporting into a cavern
+    // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
 
-    // Now check the 6031769 keys.
-    CKCHEAT:
-      LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
-      CP 7                    // Has 6031769 been keyed in yet?
-      JP Z,LOOP               // If so, jump back to the start of the main loop
-      RLCA                    // Point IX at the corresponding entry in the 6031769
-      LD E,A                  // table at CHEATDT
-      LD D,0
-      LD IX,CHEATDT
-      ADD IX,DE
-      LD BC,63486             // Read keys 1-2-3-4-5
-      IN A,(C)
-      AND 31                  // Keep only bits 0-4
-      CP (IX+0)               // Does this match the first byte of the entry in the 6031769 table?
-      JR Z,CKNXCHT            // Jump if so
-      CP 31                   // Are any of the keys 1-2-3-4-5 being pressed?
-      JP Z,LOOP               // If not, jump back to the start of the main loop
-      CP (IX-2)               // Does the keyboard reading match the first byte of the previous entry in the 6031769 table?
-      JP Z,LOOP               // If so, jump back to the start of the main loop
-      XOR A                   // Reset the 6031769 key counter at CHEAT to 0 (an
-      LD (CHEAT),A            // incorrect key is being pressed)
-      JP LOOP                 // Jump back to the start of the main loop
-    CKNXCHT:
-      LD B,239                // Read keys 6-7-8-9-0
-      IN A,(C)
-      AND 31                  // Keep only bits 0-4
-      CP (IX+1)               // Does this match the second byte of the entry in the 6031769 table?
-      JR Z,INCCHT             // If so, jump to increment the 6031769 key counter
-      CP 31                   // Are any of the keys 6-7-8-9-0 being pressed?
-      JP Z,LOOP               // If not, jump back to the start of the main loop
-      CP (IX-1)               // Does the keyboard reading match the second byte of the previous entry in the 6031769 table?
-      JP Z,LOOP               // If so, jump back to the start of the main loop
-      XOR A                   // Reset the 6031769 key counter at CHEAT to 0 (an
-      LD (CHEAT),A            // incorrect key is being pressed)
-      JP LOOP                 // Jump back to the start of the main loop
-    INCCHT:
-      LD A,(CHEAT)            // Increment the 6031769 key counter at CHEAT (the
-      INC A                   // next key in the sequence is being pressed)
-      LD (CHEAT),A
-    */
+    // FIXME: only using CAVERN0, while porting -MRC-
 
-    return false;
+    // Copy the cavern definition into the game status buffer at 32768
+    Cavern_initialize();
+
+    //
+    // Now, draw the screen
+    //
+
+    // Copy the cavern's attribute bytes into the buffer at 24064
+    // FIXME: uses Attr Buff (Blank): Attr File = 22528
+    for (int i = 0; i < 512; i++) {
+        Speccy_writeAttribute(24064 + i, cavern.layout[i]);
+    }
+
+    // Draw the current cavern to the screen buffer at 28672
+    DRAWSHEET();
+
+    // Clear the bottom third of the display file
+    for (int i = 0; i < 2048; i++) {
+        Speccy_writeScreen(20480 + i, 0);
+    }
+
+    // Print the cavern name (see CAVERNNAME) at 20480 (16,0)
+    PMESS(cavern.CAVERNNAME, 20480, 32);
+
+    // Print 'AIR' (see MESSAIR) at 20512 (17,0)
+    PMESS(&game.airLabel, 20512, 3);
+
+    drawAirBar();
+
+    // Print scores text at 20576 (19,0)
+    PMESS(&game.MESSHSSC, 20576, 32);
+
+    // Set the border colour
+    OUT(cavern.BORDER);
+
+    Terminal_redraw();
+
+    // Are we in demo mode?
+    if (game.DEMO > 0) {
+        // Reset the game mode indicator (we're in demo mode)
+        game.DEMO = 64;
+    }
 }
 
-void drawAirBar() {
-    // Initialise A to 82 (is 20992); this is the MSB of the display file address
-    // at which to start drawing the bar that represents the air supply.
-    for (uint8_t a = 82; a < 86; a++) {
-        uint16_t addr = build_address(a, 36);
+void flashScreen() {
+    if (game.FLASH > 0) {
+        game.FLASH--;
 
-        // Draw a single row of pixels across C cells
-        for (uint16_t i = 0; i < cavern.AIR - 36; i++) {
-            Speccy_writeScreen(addr + i, 255);
+        // Move bits 0-2 into bits 3-5 and clear all the other bits
+        uint8_t new_flash_value = (uint8_t) (rotl(game.FLASH, 3) & 56);
+
+        // Set every attribute byte in the buffer at 23552 to this value
+        // FIXME: Uses Attr Buffer: Attr File= 22528
+        for (int i = 0; i < 512; i++) {
+            speccy.memory[23552 + i] = new_flash_value;
         }
-    }
-}
 
-void drawRemainingLives() {
-    // Set address to the display file address at which to draw the first Willy sprite
-    uint16_t addr = 20640;
-
-    // The following loop draws the remaining lives at the bottom of the screen.
-    for (int i = 0; i < willy.NOMEN; i++) {
-        // LD C,0                  // C=0; this tells the sprite-drawing routine at DRWFIX to overwrite any existing graphics
-
-        // PUSH HL                 // Save HL and BC briefly
-        // PUSH BC
-        // LD A,(NOTEINDEX)        // Pick up the in-game music note index from NOTEINDEX; this will determine the animation frame for the Willy sprites
-        // RLCA                    // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96 (frame 3)
-        // RLCA
-        // RLCA
-        // AND 96
-        uint8_t anim_frame = (uint8_t) (rotl(game.NOTEINDEX, 3) & 96);
-
-        uint8_t *sprite = &willy.sprites[anim_frame];
-        DRWFIX(sprite, addr, 0);
-
-        // Move to the location at which to draw the next Willy sprite
-        addr += 2;
-    }
-
-    // If cheat mode has been activated draw the boot at the bottom
-    // of the screen next to the remaining lives.
-    if (game.CHEAT) {
-        DRWFIX(&BOOT, addr, 0);
+        Terminal_redraw();
     }
 }
 
@@ -2941,5 +2743,179 @@ void Game_play_intro() {
             game.DEMO = 0;
             break;
         }
+    }
+}
+
+bool checkCheatCode() {
+    // IMPORTANT: not handling cheat codes just yet -MRC-
+    /* TODO
+      // Here we check the teleport keys.
+      // NODEM1:
+      LD BC,61438             // Read keys 6-7-8-9-0
+      IN A,(C)
+      BIT 4,A                 // Is '6' (the activator key) being pressed?
+      JP NZ,CKCHEAT           // Jump if not
+      LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
+      CP 7                    // Has 6031769 been keyed in yet?
+      JP NZ,CKCHEAT           // Jump if not
+      LD B,247                // Read keys 1-2-3-4-5
+      IN A,(C)
+      CPL                     // Keep only bits 0-4 and flip them
+      AND 31
+      CP 20                   // Is the result 20 or greater?
+      JP NC,CKCHEAT           // Jump if so (this is not a cavern number)
+      LD (SHEET),A            // Store the cavern number at SHEET
+      JP NEWSHT               // Teleport into the cavern
+
+    // Now check the 6031769 keys.
+    CKCHEAT:
+      LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
+      CP 7                    // Has 6031769 been keyed in yet?
+      JP Z,LOOP               // If so, jump back to the start of the main loop
+      RLCA                    // Point IX at the corresponding entry in the 6031769
+      LD E,A                  // table at CHEATDT
+      LD D,0
+      LD IX,CHEATDT
+      ADD IX,DE
+      LD BC,63486             // Read keys 1-2-3-4-5
+      IN A,(C)
+      AND 31                  // Keep only bits 0-4
+      CP (IX+0)               // Does this match the first byte of the entry in the 6031769 table?
+      JR Z,CKNXCHT            // Jump if so
+      CP 31                   // Are any of the keys 1-2-3-4-5 being pressed?
+      JP Z,LOOP               // If not, jump back to the start of the main loop
+      CP (IX-2)               // Does the keyboard reading match the first byte of the previous entry in the 6031769 table?
+      JP Z,LOOP               // If so, jump back to the start of the main loop
+      XOR A                   // Reset the 6031769 key counter at CHEAT to 0 (an
+      LD (CHEAT),A            // incorrect key is being pressed)
+      JP LOOP                 // Jump back to the start of the main loop
+    CKNXCHT:
+      LD B,239                // Read keys 6-7-8-9-0
+      IN A,(C)
+      AND 31                  // Keep only bits 0-4
+      CP (IX+1)               // Does this match the second byte of the entry in the 6031769 table?
+      JR Z,INCCHT             // If so, jump to increment the 6031769 key counter
+      CP 31                   // Are any of the keys 6-7-8-9-0 being pressed?
+      JP Z,LOOP               // If not, jump back to the start of the main loop
+      CP (IX-1)               // Does the keyboard reading match the second byte of the previous entry in the 6031769 table?
+      JP Z,LOOP               // If so, jump back to the start of the main loop
+      XOR A                   // Reset the 6031769 key counter at CHEAT to 0 (an
+      LD (CHEAT),A            // incorrect key is being pressed)
+      JP LOOP                 // Jump back to the start of the main loop
+    INCCHT:
+      LD A,(CHEAT)            // Increment the 6031769 key counter at CHEAT (the
+      INC A                   // next key in the sequence is being pressed)
+      LD (CHEAT),A
+    */
+
+    return false;
+}
+
+void drawAirBar() {
+    // Initialise A to 82 (is 20992); this is the MSB of the display file address
+    // at which to start drawing the bar that represents the air supply.
+    for (uint8_t a = 82; a < 86; a++) {
+        uint16_t addr = build_address(a, 36);
+
+        // Draw a single row of pixels across C cells
+        for (uint16_t i = 0; i < cavern.AIR - 36; i++) {
+            Speccy_writeScreen(addr + i, 255);
+        }
+    }
+}
+
+void drawRemainingLives() {
+    // Set address to the display file address at which to draw the first Willy sprite
+    uint16_t addr = 20640;
+
+    // The following loop draws the remaining lives at the bottom of the screen.
+    for (int i = 0; i < willy.NOMEN; i++) {
+        // Pick up the in-game music note index from NOTEINDEX;
+        // this will determine the animation frame for the Willy sprites
+        // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96 (frame 3)
+        uint8_t anim_frame = (uint8_t) (rotl(game.NOTEINDEX, 3) & 96);
+
+        uint8_t *sprite = &willy.sprites[anim_frame];
+
+        // C=0; this tells DRWFIX to overwrite any existing graphics
+        DRWFIX(sprite, addr, 0);
+
+        // Move to the location at which to draw the next Willy sprite
+        addr += 2;
+    }
+
+    // If cheat mode has been activated draw the boot at the bottom
+    // of the screen next to the remaining lives.
+    if (game.CHEAT) {
+        DRWFIX(&BOOT, addr, 0);
+    }
+}
+
+void printScores() {
+    // Print the score (see SCORBUF) at (19,26)
+    PMESS(&game.SCORBUF, 20602, 6);
+
+    // Print the high score (see HGHSCOR) at (19,11)
+    PMESS(&game.HGHSCOR, 20587, 6);
+}
+
+void playGameMusic() {
+    // Increment the in-game music note index at NOTEINDEX
+    game.NOTEINDEX++;
+
+    // Point HL at the appropriate entry in the tune data table at GAMETUNE
+    uint8_t index = rotr((uint8_t) (game.NOTEINDEX & 126), 1);
+
+    // Pick up the border colour for the current cavern from BORDER
+    uint8_t note = cavern.BORDER;
+
+    // Initialise the pitch delay counter in E
+    uint8_t pitch_delay_counter = GAMETUNE[index];
+
+    // Initialise the duration delay counters in B (0) and C (3)
+    for (int i = 0; i < 3; i++) {
+        // Produce a note of the in-game music
+        OUT(note);
+
+        pitch_delay_counter--;
+
+        if (pitch_delay_counter > 0) {
+            pitch_delay_counter = GAMETUNE[index];
+            note ^= 24;
+        }
+
+        millisleep(1);
+    }
+}
+
+void copyScrBufToDisplayFile() {
+    // Copy the contents of the screen buffer at 24576 to the display file
+    // FIXME: all good, uses the Display File
+    for (int i = 0; i < 4096; i++) {
+        Speccy_writeScreen(16384 + i, speccy.memory[24576 + i]);
+    }
+}
+
+void copyAttrBufToAttrFile() {
+    // Copy the contents of the attribute buffer at 23552 to the attribute file
+    for (int i = 0; i < 512; i++) {
+        Speccy_writeAttribute(22528 + i, speccy.memory[23552 + i]);
+    }
+}
+
+void resetScreenAttrBuffers() {
+    // FIXME: aren't these just clearing the buffers?
+
+    // Copy contents of attribute buffer at 24064 (the empty cavern)
+    // into the attribute buffer at 23552.
+    // FIXME: all good, uses the Display File
+    for (int i = 0; i < 512; i++) {
+        speccy.memory[23552 + i] = speccy.memory[24064 + i];
+    }
+    // Copy the contents of the screen buffer at 28672 (empty cavern tiles)
+    // into the screen buffer at 24576
+    // FIXME: all good, uses the Display File
+    for (int i = 0; i < 4096; i++) {
+        speccy.memory[24576 + i] = speccy.memory[28672 + i];
     }
 }

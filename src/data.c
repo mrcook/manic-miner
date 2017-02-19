@@ -4,6 +4,8 @@
 #include "headers.h"
 #include "externs.h"
 
+#include "terminal.h"
+
 // Willy sprite graphic data
 //
 // 32 bytes per frame (16x16 pixels)

@@ -52,6 +52,7 @@ void Speccy_write(int address, uint8_t byte);
 // Display specific memory. Addresses will be adjusted accordingly,
 // so just use whatever was given in the assembly code.
 
+// Clear the entire Spectrum display file
 void Speccy_clearScreen();
 
 uint8_t Speccy_readScreen(int address);
