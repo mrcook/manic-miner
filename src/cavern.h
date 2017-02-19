@@ -59,3 +59,4 @@ typedef struct Cavern_ {
 } Cavern;
 
 void Cavern_initialize(void);
+bool Cavern_isAirDepleted(void);

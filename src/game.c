@@ -172,19 +172,13 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
 
         Terminal_redraw();
 
+        // FIXME: could probably have a `Cavern_isAirDepleted()` function, so `DECAIR()` doesn't need to return a bool.
         // Decrease the air remaining in the current cavern
-        if (DECAIR()) {
-            if (MANDEAD()) {
-                return false; // goto START, and don't quit!
-            } else {
-                cavernFinished = true;
-                continue;
-            }
-        }
+        DECAIR();
 
-        // Here we check whether Willy has had a fatal accident.
+        // Has willy ran our of air or had a fatal accident?
         // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
-        if (willy.AIRBORNE == 255) {
+        if (Cavern_isAirDepleted() || willy.AIRBORNE == 255) {
             if (MANDEAD()) {
                 return false; // goto START, and don't quit!
             } else {
@@ -502,19 +496,16 @@ void ENDGAM() {
     // IMPORTANT: caller must return to START
 }
 
-
-
 // Decrease the air remaining in the current cavern
-// Returns with the zero flag set if there is no air remaining.
-bool DECAIR() {
+void DECAIR() {
     // Update the game clock at CLOCK
     cavern.CLOCK -= 4;
 
     // Was it just decreased from zero?
     if (cavern.CLOCK == 252) {
         // Has the air supply run out?
-        if (cavern.AIR == 36) {
-            return true;
+        if (Cavern_isAirDepleted()) {
+            return;
         }
         cavern.AIR--;
     }
@@ -545,9 +536,6 @@ bool DECAIR() {
         Speccy_writeScreen(build_address(msb, cavern.AIR), pixels);
     }
     Terminal_redraw();
-
-    // Return false to indicate that there is still some air remaining
-    return false;
 }
 
 // Draw the current cavern to the screen buffer at 28672
@@ -1988,8 +1976,10 @@ bool NXSHEET() {
     // The following loop increases the score and decreases the air supply until it runs out.
     while (true) {
         // Decrease the air remaining in the current cavern
-        if (DECAIR()) {
-            // Move to the next cavern if the air supply is now gone
+        DECAIR();
+
+        // Move to the next cavern if the air supply is now gone
+        if (Cavern_isAirDepleted()) {
             return true;
         }
 

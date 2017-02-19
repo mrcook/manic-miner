@@ -91,7 +91,7 @@ void playGameMusic(void);
 
 bool MANDEAD(void);
 void ENDGAM(void);
-bool DECAIR(void);
+void DECAIR(void);
 void DRAWSHEET(void);
 bool MOVEWILLY(void);
 void MOVEWILLY_7(uint8_t y_coord);

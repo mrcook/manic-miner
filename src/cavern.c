@@ -12,3 +12,8 @@ void Cavern_initialize() {
     // Load all the cavern data
     initialize_cavern0();
 }
+
+bool Cavern_isAirDepleted() {
+    // For some reason 36 means no air left
+    return cavern.AIR == 36;
+}
