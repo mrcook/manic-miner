@@ -34,7 +34,7 @@ typedef struct Game_ {
     bool CHEAT;
 
     // Game UI texts
-    char MESSAIR[3];
+    char airLabel[3]; // was MESSAIR
     char HGHSCOR[6];
     char SCORE[4];
     char SCORBUF[6];
@@ -45,10 +45,6 @@ typedef struct Game_ {
 
 // Initialize game "boot up" variables
 void Game_initialize(void);
-
-// Tick the world over.
-// Call this whenever the display needs updating or FPS syncing.
-void Game_tick(void);
 
 // Plays the intro music and text message
 void Game_play_intro(void);

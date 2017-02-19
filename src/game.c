@@ -5,21 +5,12 @@
 
 #include "terminal.h"
 
-// Eugene's direction or the Kong Beast's status
-//
-// Initialised by the routine at STARTGAME, and used by the routines at EUGENE
-// (to hold Eugene's direction: 0=down, 1=up) and KONGBEAST (to hold the Kong
-// Beast's status: 0=on the ledge, 1=falling, 2=dead).
+// EUGENE    - to hold Eugene's direction: 0=down, 1=up
+// KONGBEAST - to hold the Kong Beast's status: 0=on the ledge, 1=falling, 2=dead
 uint8_t EUGDIR;
 
-// Eugene's or the Kong Beast's pixel y-coordinate
-//
-// Initialised by the routine at STARTGAME, and used by the routines at START
-// (to hold the index into the message scrolled across the screen after the
-// theme tune has finished playing), ENDGAM (to hold the distance of the boot
-// from the top of the screen as it descends onto Willy), EUGENE (to hold
-// Eugene's pixel y-coordinate) and KONGBEAST (to hold the Kong Beast's pixel
-// y-coordinate).
+// EUGENE    - to hold Eugene's pixel y-coordinate
+// KONGBEAST - to hold the Kong Beast's pixel y-coordinate
 uint8_t EUGHGT;
 
 // private functions
@@ -76,11 +67,7 @@ static bool PLAYTUNE();
 static uint16_t PIANOKEY(uint8_t frequency);
 static bool CHECKENTER();
 
-//static const int FRAMES_PER_SECOND = 30;
-//static const int SKIP_TICKS = 1000 / FRAMES_PER_SECOND;
-// returns the current number of clock ticks
-// that have elapsed since the system was started
-// clock_t current_time;
+bool game_is_running = true;
 
 void Game_initialize() {
     Terminal_init();
@@ -88,7 +75,7 @@ void Game_initialize() {
 
     Willy_initialize();
 
-    strcpy(game.MESSAIR, "AIR");
+    strcpy(game.airLabel, "AIR");
 
     // High score default
     strcpy(game.HGHSCOR, "000000");
@@ -102,108 +89,12 @@ void Game_initialize() {
 
     strcpy(game.MESSG, "Game");
     strcpy(game.MESSO, "Over");
-
-    // Set initial clock tick value - for calculating FSP.
-    // current_time = clock();
-}
-
-void Game_tick() {
-    if (Terminal_keyExit()) {
-        Terminal_exit();
-    }
-    Terminal_redraw();
-
-    millisleep(60);
-    return;
-
-//    clock_t last_tick = clock();
-//    int sleep_time = SKIP_TICKS - timediff(current_time, last_tick);
-//
-//    if (sleep_time > 0) {
-//        usleep((useconds_t) sleep_time * 1000);
-//        current_time = clock();
-//    } else {
-//        // Shit, we are running behind!
-//    }
-}
-
-void Game_play_intro() {
-    // Clear the entire Spectrum display file
-    Speccy_clearScreen();
-
-    // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file
-    for (int i = 0; i < 2048; i++) {
-        Speccy_writeScreen(16384 + i, TITLESCR1[i]);
-    }
-    for (int i = 0; i < 2048; i++) {
-        Speccy_writeScreen(16384 + 2048 + i, TITLESCR2[i]);
-    }
-
-    Terminal_redraw();
-
-    // Draw Willy at 18493 (9,29)
-    DRWFIX(&willy.sprites[64], 18493, 0);
-
-    // Copy the attribute bytes from CAVERN19 to the top third of the attribute file
-    uint16_t addr = 22528;
-    for (int i = 0; i < 256; i++) {
-        Speccy_writeAttribute(addr + i, CAVERN19[i]);
-    }
-
-    // Copy LOWERATTRS to the bottom two-thirds of the attribute file
-    addr += 256;
-    for (int i = 0; i < 512; i++) {
-        Speccy_writeAttribute(addr + i, LOWERATTRS[i]);
-    }
-
-    Terminal_redraw();
-
-    // And finally, play the theme tune and check for key presses.
-
-    // Play the theme tune -- start game if ENTER/FIRE button was pressed
-    // FIXME: commented out -- no need to run the tune, just yet :)
-    // if (PLAYTUNE()) {
-    //   game.DEMO = 0;
-    //   return;
-    // }
-
-    // Scroll intro message across the screen
-    char *introMessage = ".  .  .  .  .  .  .  .  .  .  . MANIC MINER . . "
-            "© BUG-BYTE ltd. 1983 . . By Matthew Smith . . . "
-            "Q to P = Left & Right . . Bottom row = Jump . . "
-            "A to G = Pause . . H to L = Tune On/Off . . . "
-            "Guide Miner Willy through 20 lethal caverns"
-            " .  .  .  .  .  .  .  .";
-    for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
-        // Print 32 characters of the message at 20576 (19,0)
-        PMESS(&introMessage[pos], 20576, 32);
-
-        // Keep only bits 1 and 2, and move them into bits 6 and 7,
-        // so that A holds 0, 64, 128 or 192;
-        // this value determines the animation frame to use for Willy
-        uint8_t sprite_id = rotr((uint8_t) (pos & 6), 3);
-
-        // Draw Willy at 18493 (9,29)
-        DRWFIX(&willy.sprites[sprite_id], 18493, 0);
-
-        Terminal_redraw();
-
-        // Pause for about 0.1s
-        millisleep(72);
-
-        // Is ENTER being pressed? If so, start the game
-        if (Terminal_keyEnter()) {
-            game.DEMO = 0;
-            break;
-        }
-    }
 }
 
 // Returning true quits the game!
 // FIXME: uses `goto` statements!
 bool Game_play() {
-    // FIXME: temporarily disable DEMO mode
-    game.DEMO = 0;
+    game.DEMO = 0; // FIXME: temporarily disable DEMO mode, delete this before release!
 
     // Initialise the in-game music note index at NOTEINDEX
     game.NOTEINDEX = 0;
@@ -224,7 +115,7 @@ bool Game_play() {
 
     // This entry point is used by the routines at LOOP (when teleporting into a cavern
     // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
-    NEWSHT:
+NEWSHT:
 
     // FIXME: only using CAVERN0, while porting -MRC-
 
@@ -253,7 +144,7 @@ bool Game_play() {
     PMESS(cavern.CAVERNNAME, 20480, 32);
 
     // Print 'AIR' (see MESSAIR) at 20512 (17,0)
-    PMESS(&game.MESSAIR, 20512, 3);
+    PMESS(&game.airLabel, 20512, 3);
 
     drawAirBar();
 
@@ -271,8 +162,10 @@ bool Game_play() {
         game.DEMO = 64;
     }
 
+    //
     // Main loop
     //
+
     // The first thing to do is check whether there are any
     // remaining lives to draw at the bottom of the screen.
     while (true) {
@@ -362,7 +255,7 @@ bool Game_play() {
         }
 
         // This entry point is used by the routine at KILLWILLY.
-        LOOP_4:
+LOOP_4:
         // Copy the contents of the screen buffer at 24576 to the display file
         // FIXME: all good, uses the Display File
         for (int i = 0; i < 4096; i++) {
@@ -485,7 +378,7 @@ bool Game_play() {
 
         checkCheatCode();
 
-        Game_tick();
+        Speccy_tick();
     } // end main loop
 }
 
@@ -822,7 +715,7 @@ void ENDGAM() {
         // LD (EUGHGT),A
         // CP 196                  // Has the boot met the plinth yet?
         // JR NZ,LOOPFT            // Jump back if not
-        Game_tick();
+        Speccy_tick();
     }
 
     // Now print the "Game Over" message, just to drive the point home.
@@ -3613,6 +3506,11 @@ void PRINTCHAR_0(void *character, uint16_t addr, uint8_t len) {
 //
 // IY THEMETUNE (tune data)
 bool PLAYTUNE() {
+    // FIXME: no need to play the tune just yet, so return early :)
+    if (true) {
+        return false;
+    }
+
     uint8_t freq1, freq2;
     uint16_t addr;
 
@@ -3750,5 +3648,78 @@ bool CHECKENTER() {
         return true;
     } else {
         return false;
+    }
+}
+
+
+
+void Game_play_intro() {
+    // Clear the entire Spectrum display file
+    Speccy_clearScreen();
+
+    // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file
+    for (int i = 0; i < 2048; i++) {
+        Speccy_writeScreen(16384 + i, TITLESCR1[i]);
+    }
+    for (int i = 0; i < 2048; i++) {
+        Speccy_writeScreen(16384 + 2048 + i, TITLESCR2[i]);
+    }
+
+    Terminal_redraw();
+
+    // Draw Willy at 18493 (9,29)
+    DRWFIX(&willy.sprites[64], 18493, 0);
+
+    // Copy the attribute bytes from CAVERN19 to the top third of the attribute file
+    uint16_t addr = 22528;
+    for (int i = 0; i < 256; i++) {
+        Speccy_writeAttribute(addr + i, CAVERN19[i]);
+    }
+
+    // Copy LOWERATTRS to the bottom two-thirds of the attribute file
+    addr += 256;
+    for (int i = 0; i < 512; i++) {
+        Speccy_writeAttribute(addr + i, LOWERATTRS[i]);
+    }
+
+    Terminal_redraw();
+
+    // And finally, play the theme tune and check for key presses.
+
+    // Play the theme tune -- start game if ENTER/FIRE button was pressed
+    if (PLAYTUNE()) {
+        game.DEMO = 0;
+        return;
+    }
+
+    // Scroll intro message across the screen
+    char *introMessage = ".  .  .  .  .  .  .  .  .  .  . MANIC MINER . . "
+            "© BUG-BYTE ltd. 1983 . . By Matthew Smith . . . "
+            "Q to P = Left & Right . . Bottom row = Jump . . "
+            "A to G = Pause . . H to L = Tune On/Off . . . "
+            "Guide Miner Willy through 20 lethal caverns"
+            " .  .  .  .  .  .  .  .";
+    for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
+        // Print 32 characters of the message at 20576 (19,0)
+        PMESS(&introMessage[pos], 20576, 32);
+
+        // Keep only bits 1 and 2, and move them into bits 6 and 7,
+        // so that A holds 0, 64, 128 or 192;
+        // this value determines the animation frame to use for Willy
+        uint8_t sprite_id = rotr((uint8_t) (pos & 6), 3);
+
+        // Draw Willy at 18493 (9,29)
+        DRWFIX(&willy.sprites[sprite_id], 18493, 0);
+
+        Terminal_redraw();
+
+        // Pause for about 0.1s
+        millisleep(72);
+
+        // Is ENTER being pressed? If so, start the game
+        if (Terminal_keyEnter()) {
+            game.DEMO = 0;
+            break;
+        }
     }
 }

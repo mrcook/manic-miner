@@ -8,6 +8,12 @@
 //   0   16384         22528         23296         23552         23734
 //             (6144)         (768)         (256)         (182)
 
+// 23672: Interrupt counter (stored in the system variables).
+// The interrupt service routine in the ROM updates the Spectrum’s 24-bit
+// frames counter 50 times per second, as well as doing other things.
+
+// NOTE: the user can use the address space from 23552 onwards!
+
 #pragma once
 
 #include "headers.h"
@@ -17,6 +23,9 @@ static const int SCREEN_SIZE = 6144;
 static const int ATTR_SIZE = 768;
 
 typedef struct Speccy_ {
+    // The Spectrum generates 50 frames per second (screen updates/interrupts)
+    int nextFrameTick;
+
     // Initialize a 64K block of memory, for general use.
     // Mostly you'll use this as a buffer for user memory
     uint8_t memory[TOTAL_MEMORY];
@@ -30,6 +39,10 @@ typedef struct Speccy_ {
     // Useful for sending to ncurses/SDL/etc.
     uint8_t convertedScreen[SCREEN_SIZE];
 } Speccy;
+
+// Tick the world over.
+// Call this whenever the display needs updating or FPS syncing.
+void Speccy_tick(void);
 
 // General memory read/write. Use as needed.
 uint8_t Speccy_read(int address);

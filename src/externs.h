@@ -55,3 +55,5 @@ void initialize_cavern0();
 void millisleep(int milliseconds);
 
 int timediff(clock_t t1, clock_t t2);
+
+int getTickCount();
