@@ -2,20 +2,27 @@
 
 #include "externs.h"
 
-// Speed at which your game runs at. Usually 50, 25, or 17.
-// E.g. Manic Miner runs at 17 FPS
-static const int FRAMES_PER_SECOND = 17;
-static const int FRAME_TICK = 1000 / FRAMES_PER_SECOND;
+void Speccy_initialize(int fps) {
+    if (fps == 0) {
+        fps = 17;
+    }
+
+    speccy.framesPerSecond = fps;
+
+    // The number of millisecond ticks per frame
+    speccy.frameTick = 1000 / fps;
+}
 
 void Speccy_tick() {
     static int sleep_time = 0;
+    static int nextFrameTick = 0;
 
-    speccy.nextFrameTick += FRAME_TICK;
+    nextFrameTick += speccy.frameTick;
 
-    sleep_time = speccy.nextFrameTick - getTickCount();
+    sleep_time = nextFrameTick - getTickCount();
 
-    if (sleep_time > FRAME_TICK) {
-        sleep_time = FRAME_TICK;
+    if (sleep_time > speccy.frameTick) {
+        sleep_time = speccy.frameTick;
     }
 
     if (sleep_time >= 0) {

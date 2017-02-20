@@ -15,11 +15,13 @@ uint8_t EUGHGT;
 
 bool game_is_running = true;
 
-void Game_initialize() {
+void Game_initialize(int lives, bool cheat) {
     Terminal_init();
     // Terminal_init(192, 512);
 
-    Willy_initialize();
+    Willy_initialize(lives);
+
+    game.CHEAT = cheat;
 
     strcpy(game.airLabel, "AIR");
 
@@ -211,7 +213,7 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
             }
         }
 
-        checkCheatCode();
+        checkCheatCode(); // if in cheat mode, detect cavern teleport number
 
         Speccy_tick();
     } // end main loop

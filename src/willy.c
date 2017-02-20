@@ -2,8 +2,8 @@
 
 #include "externs.h"
 
-void Willy_initialize() {
-    willy.NOMEN = 2;
+void Willy_initialize(int lives) {
+    willy.NOMEN = lives;
     willy.PIXEL_Y = 208;
     willy.FRAME = 0;
     willy.DMFLAGS = 0;

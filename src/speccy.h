@@ -23,8 +23,13 @@ static const int SCREEN_SIZE = 6144;
 static const int ATTR_SIZE = 768;
 
 typedef struct Speccy_ {
-    // The Spectrum generates 50 frames per second (screen updates/interrupts)
-    int nextFrameTick;
+    // The Spectrum generates 50 screen updates per second (frames/interrupts)
+    // and dictates the speed at which your game runs at.
+    // Usually 50, 25, or 17. E.g. Manic Miner runs at 17 FPS
+    int framesPerSecond;
+
+    // Used to calculate the correct frame rate, during play
+    int frameTick;
 
     // Initialize a 64K block of memory, for general use.
     // Mostly you'll use this as a buffer for user memory
@@ -39,6 +44,9 @@ typedef struct Speccy_ {
     // Useful for sending to ncurses/SDL/etc.
     uint8_t convertedScreen[SCREEN_SIZE];
 } Speccy;
+
+// Initialize the speccy framework (FPS, etc.)
+void Speccy_initialize(int fps);
 
 // Tick the world over.
 // Call this whenever the display needs updating or FPS syncing.

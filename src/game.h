@@ -44,7 +44,7 @@ typedef struct Game_ {
 } Game;
 
 // Initialize game "boot up" variables
-void Game_initialize(void);
+void Game_initialize(int lives, bool cheat);
 
 // Plays the intro music and text message
 void Game_play_intro(void);

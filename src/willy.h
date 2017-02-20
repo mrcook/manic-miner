@@ -56,4 +56,4 @@ typedef struct Willy_ {
     uint8_t sprites[256];
 } Willy;
 
-void Willy_initialize();
+void Willy_initialize(int lives);
