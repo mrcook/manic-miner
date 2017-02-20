@@ -3,10 +3,6 @@
 #include "externs.h"
 
 void Speccy_initialize(int fps) {
-    if (fps == 0) {
-        fps = 17;
-    }
-
     speccy.framesPerSecond = fps;
 
     // The number of millisecond ticks per frame
@@ -54,6 +50,29 @@ void Speccy_clearScreen() {
     }
 
 //    bzero(speccy.screen, SCREEN_SIZE);
+}
+
+void Speccy_clearScreenDownTo(int bytesCount) {
+    // FIXME: some calls go direct to Display File, others to Buffers,
+    // so we must use normal memory for now!
+    for (int i = 0; i < bytesCount; i++) {
+        speccy.memory[16384 + i] = 0;
+    }
+
+//    bzero(speccy.screen, bytesCount);
+}
+
+void Speccy_setBorderColour(uint8_t colour) {
+    OUT(colour);
+}
+
+void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
+    // Real speccy does something like this
+    for (int d = duration; d > 0; d--) {
+        OUT(pitch);
+        pitch ^= 24;
+        millisleep(delay);
+    }
 }
 
 uint8_t Speccy_readScreen(int address) {
@@ -173,16 +192,11 @@ uint8_t rotr(uint8_t a, uint8_t n) {
     return (a >> n) | (a << (8 - n));
 }
 
-
-//
-// Temporary functions
-//
-
 uint8_t IN(uint16_t addr) {
     // get keyboard input values
     return 0;
 }
 
 void OUT(uint8_t value) {
-    // output the sound!
+    // output the sound, border colour!
 }

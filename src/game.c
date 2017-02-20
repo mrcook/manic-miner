@@ -13,7 +13,7 @@ uint8_t EUGDIR;
 // KONGBEAST - to hold the Kong Beast's pixel y-coordinate
 uint8_t EUGHGT;
 
-bool game_is_running = true;
+bool gameIsRunning = true;
 
 void Game_initialize(int lives, bool cheat) {
     Terminal_init();
@@ -42,9 +42,8 @@ void Game_initialize(int lives, bool cheat) {
 // Returning true quits the game!
 // FIXME: uses `goto` statements!
 bool Game_play() {
-    static bool cavernFinished = true;
-
-    game.DEMO = 0; // FIXME: temporarily disable DEMO mode, delete this before release!
+    // Should reset the current cavern data. Used in place of the `goto NEWSHT`
+    static bool reinitialiseCavern = true;
 
     // Initialise the in-game music note index at NOTEINDEX
     game.NOTEINDEX = 0;
@@ -63,10 +62,10 @@ bool Game_play() {
 
 
     // The Main Loop
-    while (true) {
-        if (cavernFinished) {
-            loadCavern();
-            cavernFinished = false;
+    while (gameIsRunning) {
+        if (reinitialiseCavern) {
+            loadCurrentCavern();
+            reinitialiseCavern = false;
         }
 
         // The first thing to do is check whether there are any
@@ -81,7 +80,7 @@ bool Game_play() {
             game.playMusic = ~game.playMusic;
         }
         if (Terminal_keyQuit()) {
-            return true; // goto START, and make sure to quit the game!
+            return true; // return true so we quit the game!
         }
         if (Terminal_keyPaused()) {
             do {
@@ -157,7 +156,7 @@ bool Game_play() {
         // FIXME: this should be moved up, directly after moving Willy...?
         // Draw the portal, or move to the next cavern if Willy has entered it
         if (CHKPORTAL()) {
-            cavernFinished = true;
+            reinitialiseCavern = true;
             continue;
         }
 
@@ -182,9 +181,11 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
         // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
         if (Cavern_isAirDepleted() || willy.AIRBORNE == 255) {
             if (MANDEAD()) {
-                return false; // goto START, and don't quit!
+                gameIsRunning = false;
+                break;
+                // return false; // goto START, and don't quit!
             } else {
-                cavernFinished = true;
+                reinitialiseCavern = true;
                 continue;
             }
         }
@@ -201,7 +202,7 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
                 if (MANDEAD()) {
                     return false; // goto START, and don't quit!
                 }
-                cavernFinished = true;
+                reinitialiseCavern = true;
                 continue;
             }
 
@@ -209,7 +210,9 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
             game.DEMO--;
 
             if (Terminal_keyAny()) {
-                return false; // goto START, and don't quit!
+                gameIsRunning = false;
+                break;
+                // return false; // goto START, and don't quit!
             }
         }
 
@@ -217,13 +220,17 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
 
         Speccy_tick();
     } // end main loop
+
+    // return but don't quit
+    return false;
 }
 
-// Load the cavern data (was NEWSHT)
-void loadCavern() {
-    // This entry point is used by the routines at LOOP (when teleporting into a cavern
-    // or reinitialising the current cavern after Willy has lost a life) and NXSHEET.
-
+// Load the current cavern data (was NEWSHT)
+// This entry point is used when:
+//     teleporting into a cavern
+//     reinitialising the current cavern after Willy has lost a life)
+//     after NXSHEET.
+void loadCurrentCavern() {
     // FIXME: only using CAVERN0, while porting -MRC-
 
     // Copy the cavern definition into the game status buffer at 32768
@@ -291,93 +298,64 @@ void flashScreen() {
 // demo mode and it's time to show the next cavern.
 // IMPORTANT: return TRUE is goto START, FALSE is goto NEWSHT -MRC-
 bool MANDEAD() {
-    // Is it demo mode? If so, move to the next cavern
+    // If in demo mode move to the next cavern
     if (game.DEMO) {
-        // IMPORTANT: no need to check NXSHEET, we know we should `goto NEWSHT` after it -MRC-
+        // IMPORTANT: no need to check NXSHEET return value,
+        // we know we should `goto NEWSHT` after it -MRC-
         NXSHEET();
         return false; // aka goto NEWSHT;
     }
 
-//  uint8_t pitch, duration;
-//  // LD A,71                 // A=71 (INK 7: PAPER 0: BRIGHT 1)
-//
-//  // The following loop fills the top two thirds of the attribute file with a
-//  // single value (71 TO 64 STEP -1) and makes a sound effect.
-//  // LPDEAD1:
-//  for (uint8_t attr = 71; attr > 64; attr--) {
-//    // LD HL,22528             // Fill the top two thirds of the attribute file with
-//    // LD DE,22529             // the value in A
-//    // LD BC,511
-//    // LD (HL),A
-//    // LDIR
-//    for (int i = 0; i < 512; i++) {
-//      speccy.memory[22528 + i] = attr;
-//    }
-//
-//    // LD E,A                  // Save the attribute byte (64-71) in E for later retrieval
-//
-//    // CPL                     // D=63-8*(E AND 7); this value determines the pitch
-//    pitch = ~attr;
-//    // AND 7                   // of the short note that will be played
-//    pitch = (uint8_t)(pitch & 7);
-//    // RLCA
-//    // RLCA
-//    // RLCA
-//    pitch = rotl(pitch, 3);
-//    // OR 7
-//    pitch |= 7;
-//    // LD D,A
-//
-//    // LD C,E                  // C=8+32*(E AND 7); this value determines the
-//    duration = attr;
-//    // RRC C                   // duration of the short note that will be played
-//    // RRC C
-//    // RRC C
-//    duration = rotr(duration, 3);
-//    // OR 16                   // Set bit 4 of A (for no apparent reason)
-//    duration |= 16;
-//
-//    // XOR A                   // Set A=0 (this will make the border black)
-//    uint8_t border = 0;
-//    // TM21:
-//    for (int d = duration; d > 0; d--) {
-//      // OUT(254), A             // Produce a short note whose pitch is determined by D
-//      OUT(border);
-//      // XOR 24                  // and whose duration is determined by C
-//      border ^= 24;
-//
-//      // LD B, D
-//      // TM22:
-//      // DJNZ TM22
-//      millisleep(pitch); // hmm, are we sleeping for 1ms
-//
-//      // DEC C
-//      // JR NZ, TM21
-//    }
-//
-//    // LD A,E                  // Restore the attribute byte (originally 71) to A
-//    // DEC A                   // Decrement it (effectively decrementing the INK colour)
-//    // CP 63                   // Have we used attribute value 64 (INK 0) yet?
-//    // JR NZ,LPDEAD1           // If not, jump back to update the INK colour in the top two thirds of the screen and make another sound effect
-//  }
+    uint8_t pitch, duration;
+
+    // The following loop fills the top two thirds of the attribute file with
+    // a single value (71 TO 64 STEP -1) and makes a sound effect.
+    // A=71 (INK 7: PAPER 0: BRIGHT 1)
+    // Decrement `attr` (effectively decrementing the INK colour)
+    // Have we used attribute value 64 (INK 0) yet?
+    // Update the INK colour in the top two thirds of the screen and make another sound effect
+    for (uint8_t attr = 71; attr > 64; attr--) {
+        // Fill the top two thirds of the attribute file with the value in A
+        for (int i = 0; i < 512; i++) {
+            speccy.memory[22528 + i] = attr;
+        }
+
+        // D=63-8*(E AND 7); this value determines the pitch of the short note that will be played
+        pitch = ~attr;
+        pitch = (uint8_t)(pitch & 7);
+        pitch = rotl(pitch, 3);
+        pitch |= 7;
+
+        // C=8+32*(E AND 7); this value determines the duration of the short note that will be played
+        duration = attr;
+        duration = rotr(duration, 3);
+        // Set bit 4 of A (for no apparent reason)
+        duration |= 16;
+
+        // Set A=0 (this will make the border black)
+        uint8_t border = 0;
+
+        Speccy_setBorderColour(border);
+        Speccy_makeSound(pitch, duration, 1);
+    }
 
     // Finally, check whether any lives remain.
     if (willy.NOMEN < 1) {
         // If not, display the game over sequence
         ENDGAM();
         return true; // goto START;
-    } else {
-        // Decrease the number of lives remaining by one
-        willy.NOMEN--;
     }
+
+    // Decrease the number of lives remaining by one
+    willy.NOMEN--;
 
     // Jump back to reinitialise the current cavern
     return false; // goto NEWSHT;
 }
 
 // Display the game over sequence
-// First check whether we have a new high score.
 void ENDGAM() {
+    // First check whether we have a new high score.
     if (game.current_score > game.highscore) {
         game.highscore = game.current_score;
         memcpy(game.HGHSCOR, game.SCORBUF, sizeof(&game.SCORBUF));
@@ -386,15 +364,14 @@ void ENDGAM() {
     // Now prepare the screen for the game over sequence.
 
     // Clear the top two-thirds of the display file
-    for (int i = 0; i < 4096; i++) {
-        Speccy_writeScreen(16384 + i, 0);
-    }
+    Speccy_clearScreenDownTo(4096);
+
     Terminal_redraw();
 
     // determines the distance of the boot from the top of the screen
     uint8_t bootDistanceFromTop = 0;
 
-    // Draw Willy at 18575 (12,15)
+    // Draw Willy at 18575 (12,15) using frame 3
     DRWFIX(&willy.sprites[64], 18575, 0);
 
     // Draw the plinth (see PLINTH) underneath Willy at 18639 (14,15)
@@ -422,14 +399,10 @@ void ENDGAM() {
         // Store this value (63-255) in E; it determines the (rising) pitch of
         // the sound effect that will be made.
         uint8_t border = 0; // (black border)
+        Speccy_setBorderColour(border);
 
         // C=64; this value determines the duration of the sound effect
-        for (int i = 0; i < 64; i++) {
-            // Produce a short note whose pitch is determined by E (`border`)
-            OUT(border);
-            border ^= 24;
-            millisleep(distance / 216);
-        }
+        Speccy_makeSound(border, 64, (uint8_t)(distance / 216));
 
         // Keep only bits 2 and 3
         distance = (uint8_t) (bootDistanceFromTop & 12);
@@ -437,6 +410,7 @@ void ENDGAM() {
         distance = rotl(distance, 1);
         // Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
         distance |= 71;
+
         // Copy this attribute value into the top two-thirds of the screen
         for (int i = 0; i < 512; i++) {
             Speccy_writeAttribute(22528 + i, distance);
@@ -498,7 +472,8 @@ void ENDGAM() {
     // IMPORTANT: caller must return to START
 }
 
-// Decrease the air remaining in the current cavern
+// Decrease the air remaining in the current cavern,
+// and the game CLOCK
 void DECAIR() {
     // Update the game clock at CLOCK
     cavern.CLOCK -= 4;
@@ -551,7 +526,9 @@ void DRAWSHEET() {
     int offset = 0;
     int col;
 
-    // The following loop draws the 512 tiles for the cavern to the screen buffer at 28672.
+    // The following loop draws the 512 tiles for the cavern
+    // to the screen buffer at 28672.
+    // This is done for each of the 3 screen blocks.
     for (int i = 0; i < 0 + 512; i++) {
         if (i > 255) {
             offset = 2048;
@@ -599,14 +576,14 @@ void DRAWSHEET() {
     // The empty cavern has been drawn to the screen buffer at 28672.
     // If we're in The Final Barrier, however, there is further work to do.
     if (cavern.SHEET == 19) {
-        // Copy the graphic data from TITLESCR1 to the top half of the screen buffer at 28672
+        // Copy the graphic data from TITLESCR1 to the top half
+        // of the screen buffer at 28672
         // FIXME: Blank Screen Buffer: Screen File = 16384
         for (int i = 0; i <= 2048; i++) {
             speccy.memory[28672 + i] = TITLESCR1[i];
         }
     }
 }
-
 
 // Move Willy (1)
 // This routine deals with Willy if he's jumping or falling.
@@ -662,12 +639,7 @@ bool MOVEWILLY() {
         uint8_t border = cavern.BORDER;
 
         // C=32; this value determines the duration of the jumping sound effect
-        for (int i = 32; i > 0; i--) {
-            // Make a jumping sound effect
-            OUT(border);
-            border ^= 24;
-            millisleep(1); // FIXME: probably not the correct delay length.
-        }
+        Speccy_makeSound(border, 32, delay);
 
         // Jumping animation counter will have a value of 1-18.
         // FIXME: another part of the program says a value of 0-17.
@@ -677,7 +649,6 @@ bool MOVEWILLY() {
             // Set the airborne status indicator at AIRBORNE to 6:
             // Willy will continue to fall unless he's landed on a wall or floor block
             willy.AIRBORNE = 6;
-
             return false;
         } else if (willy.JUMPING == 16) {
             // jump to MOVEWILLY_3
@@ -754,7 +725,8 @@ bool MOVEWILLY() {
         return false;
     }
 
-    // If we get here, then Willy is either in the process of falling or just about to start falling.
+    // If we get here, then Willy is either in the process of falling
+    // or just about to start falling.
 
     // Reset bit 1 at DMFLAGS: Willy is not moving left or right
     willy.DMFLAGS &= ~(1 << 1);
@@ -776,14 +748,10 @@ bool MOVEWILLY() {
 
     // Pick up the border colour for the current cavern from BORDER
     uint8_t border = cavern.BORDER;
+    Speccy_setBorderColour(border);
 
     // C=32; this value determines the duration of the falling sound effect
-    for (int i = 32; i > 0; i--) {
-        // Make a falling sound effect
-        OUT(border);
-        border ^= 24;
-        millisleep(1);
-    }
+    Speccy_makeSound(pitch, 32, 1);
 
     // Add 8 to Willy's pixel y-coordinate at PIXEL_Y; this moves Willy downwards by 4 pixels
     willy.PIXEL_Y += 8;
@@ -793,6 +761,8 @@ bool MOVEWILLY() {
     return false; // FIXME: is this the correct return value?
 }
 
+// Adjust Willy's attribute buffer location at LOCATION
+// to account for this new pixel y-coordinate.
 void MOVEWILLY_7(uint8_t y_coord) {
     uint8_t msb, lsb;
     uint8_t x_msb, x_lsb;
@@ -804,12 +774,11 @@ void MOVEWILLY_7(uint8_t y_coord) {
     // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8)
     // if LSB bit 7 is set the `RL L` will set the Carry, which means we need to add one to the MSB
     // H=92 or 93 (MSB of the address of Willy's location in the attribute buffer)
-    msb = 0;
+    msb = 92;
     if ((lsb >> 7) & 1) {
-        msb = 1;
+        msb = 93;
     }
     lsb = lsb << 1;
-    msb += 92;
 
     // Pick up Willy's screen x-coordinate (1-29) from bits 0-4 at LOCATION
     split_address(willy.LOCATION, &x_msb, &x_lsb);
@@ -837,13 +806,13 @@ void MOVEWILLY_10() {
     willy.DMFLAGS &= ~(1 << 1);
 }
 
-
 // Animate a crumbling floor tile in the current cavern
 // HL Address of the crumbling floor tile's location in the attribute buffer at 23552
 void CRUMBLE(uint16_t addr) {
     uint8_t msb, lsb;
 
-    // Point BC at the bottom row of pixels of the crumbling floor tile in the screen buffer at 28672
+    // Point BC at the bottom row of pixels of the crumbling floor tile
+    // in the screen buffer at 28672
     split_address(addr, &msb, &lsb);
 
     msb += 27;
@@ -892,7 +861,7 @@ void CRUMBLE(uint16_t addr) {
 bool MOVEWILLY2(uint16_t addr) {
     // Has Willy just landed after falling from too great a height? If so, kill him!
     if (willy.AIRBORNE == 12) {
-        KILLWILLY_0();
+        KILLWILLY();
         return true;
     }
 
@@ -1123,24 +1092,18 @@ void MOVEWILLY2_10() {
     willy.FRAME = 0;
 }
 
-
 // Kill Willy
-// Used by the routine at WILLYATTR when Willy hits a nasty.
+// when Willy hits a nasty
+// when Willy lands after falling from too great a height
+// when Willy collides with a horizontal guardian)
+// when Willy collides with Eugene)
+// when Willy collides with a vertical guardian)
+// when Willy collides with the Kong Beast
 bool KILLWILLY() {
-    return KILLWILLY_0();
-}
+    // NOTE: merged KILLWILLY_0 and KILLWILLY_1 with this function as it was only caller,
+    // even though the following message:
+    //     This entry point is used by the routine at SKYLABS when a Skylab falls on Willy.
 
-// When Willy lands after falling from too great a height, or
-// when Willy collides with a horizontal guardian), ir
-// when Willy collides with Eugene), or
-// when Willy collides with a vertical guardian), or
-// when Willy collides with the Kong Beast.
-bool KILLWILLY_0() {
-    return KILLWILLY_1();
-}
-
-// This entry point is used by the routine at SKYLABS when a Skylab falls on Willy.
-bool KILLWILLY_1() {
     // Set the airborne status indicator at AIRBORNE to 255 (meaning Willy has had a fatal accident)
     willy.AIRBORNE = 255;
 
@@ -1155,6 +1118,11 @@ void MOVEHG() {
     // The guardian-moving loop begins here.
     for (int i = 0; i < 4; i++) {
         GuardianHorizontal *guardian = &HGUARDS[i];
+
+        // FIXME: double check this, but probably correct.
+        if (guardian->speedColour == 255) {
+            return;
+        }
 
         if (GuardianH_is_blank(guardian)) {
             continue;
@@ -1271,7 +1239,6 @@ void LIGHTBEAM() {
     }
 }
 
-
 // Draw the horizontal guardians in the current cavern
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool DRAWHG() {
@@ -1332,14 +1299,13 @@ bool DRAWHG() {
 
         // Kill Willy if the guardian collided with him
         if (kill_willy) {
-            KILLWILLY_0();
+            KILLWILLY();
             return true;
         }
     }
 
     return false; // IMPORTANT Willy has not died! -MRC-
 }
-
 
 // Move and draw Eugene in Eugene's Lair
 // First we move Eugene up or down, or change his direction.
@@ -1394,7 +1360,7 @@ bool EUGENE() {
 
     // Kill Willy if Eugene collided with him
     if (kill_willy) {
-        KILLWILLY_0();
+        KILLWILLY();
         return true;
     }
 
@@ -1474,7 +1440,6 @@ void EUGENE_3(uint16_t addr, uint8_t ink_color) {
     speccy.memory[addr] = ink_color;
 }
 
-
 // Move and draw the Skylabs in Skylab Landing Bay
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool SKYLABS() {
@@ -1550,7 +1515,7 @@ bool SKYLABS() {
 
         // Kill Willy if the Skylab collided with him
         if (kill_willy) {
-            KILLWILLY_0();
+            KILLWILLY();
             return true;
         }
 
@@ -1634,7 +1599,7 @@ bool VGUARDIANS() {
 
         // Kill Willy if the guardian collided with him
         if (kill_willy) {
-            KILLWILLY_0();
+            KILLWILLY();
             return true;
         }
 
@@ -1657,7 +1622,6 @@ bool VGUARDIANS() {
 
     return false; // Willy is not dead.
 }
-
 
 // Draw the items in the current cavern and collect any that Willy is touching
 void DRAWITEMS() {
@@ -1745,7 +1709,6 @@ void DRAWITEMS() {
     cavern.portal.PORTAL |= (1 << 7);
 }
 
-
 // Draw the portal, or move to the next cavern if Willy has entered it
 // First check whether Willy has entered the portal.
 // IMPORTANT: the CALL-ers should be able to handle the `goto NEWSHT` themselves, on the return. -MRC-
@@ -1797,7 +1760,6 @@ bool CHKPORTAL() {
 
     return false; // NOTE: callers should not `goto NEWSHT`.
 }
-
 
 // Draw a sprite
 //
@@ -1866,8 +1828,6 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
 
     return false; // no collision detected
 }
-
-
 
 // Move to the next cavern
 // IMPORTANT: the CALLers should be able to handle the `goto NEWSHT` themselves, on the return. -MRC-
@@ -2014,7 +1974,6 @@ bool NXSHEET() {
     return false; // IMPORTANT: no `goto NEWSHT` required. -MRC-
 }
 
-
 // The entry point to this routine is here and is used by the routines at
 // DRAWITEMS, NXSHEET and KONGBEAST with HL pointing at the digit of the
 // score (see SCORBUF) to be incremented.
@@ -2043,7 +2002,6 @@ void INCSCORE_0(uint16_t addr) {
         }
     }
 }
-
 
 // Move the conveyor in the current cavern
 void MVCONVEYOR() {
@@ -2098,7 +2056,6 @@ void MVCONVEYOR() {
         row_de = build_address(d, e);
     }
 }
-
 
 // Move and draw the Kong Beast in the current cavern
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
@@ -2728,12 +2685,14 @@ void Game_play_intro() {
         Terminal_redraw();
 
         // Pause for about 0.1s
-        millisleep(72);
+        // millisleep(72);
+        millisleep(10);
+        Speccy_tick();
 
         // Is ENTER being pressed? If so, start the game
         if (Terminal_keyEnter()) {
             game.DEMO = 0;
-            break;
+            return;
         }
     }
 }

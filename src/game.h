@@ -69,7 +69,7 @@ void drawAirBar(void);
 void drawRemainingLives(void);
 
 // Loads the data for the next cavern (was the NEWSHT goto)
-void loadCavern(void);
+void loadCurrentCavern(void);
 
 // Flashes the screen colours
 void flashScreen(void);
@@ -103,8 +103,6 @@ void MOVEWILLY2_7(void);
 void MOVEWILLY2_9(void);
 void MOVEWILLY2_10(void);
 bool KILLWILLY(void);
-bool KILLWILLY_0(void);
-bool KILLWILLY_1(void);
 void MOVEHG(void);
 void LIGHTBEAM(void);
 bool DRAWHG(void);

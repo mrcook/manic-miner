@@ -63,6 +63,9 @@ void Speccy_write(int address, uint8_t byte);
 // Clear the entire Spectrum display file
 void Speccy_clearScreen();
 
+// Clear the Spectrum display file from top by given bytesCount
+void Speccy_clearScreenDownTo(int bytesCount);
+
 uint8_t Speccy_readScreen(int address);
 
 void Speccy_writeScreen(int address, uint8_t byte);
@@ -97,6 +100,11 @@ uint8_t IN(uint16_t addr);
 
 // OUT(254) border/sound output.
 void OUT(uint8_t value);
+
+// The Spectrum uses OUT to make a sound, but here we use a custom function
+void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay);
+
+void Speccy_setBorderColour(uint8_t colour);
 
 // Split a uint16_t memory address into its MSB and LSB values
 void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb);

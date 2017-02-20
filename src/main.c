@@ -17,8 +17,9 @@ static bool getOptions(int argc, char *argv[], int *fps, int *lives, bool *cheat
 
 // The game has just loaded
 int main(int argc, char *argv[]) {
-    int fps, lives;
-    bool cheat;
+    int fps = 17;
+    bool cheat = false;
+    int lives = 2;
 
     if (!getOptions(argc, argv, &fps, &lives, &cheat)) {
         return (0);
