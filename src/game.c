@@ -2370,6 +2370,7 @@ bool WILLYATTRS() {
 
     // Move HL down a row and back one cell to the left
     addr += 31;
+    addr--;
 
     // Check and set the attribute byte for the bottom-left cell
     if (WILLYATTR(addr, ink)) {
@@ -2428,51 +2429,46 @@ bool WILLYATTR(uint16_t addr, uint8_t ink) {
 
 // Draw Willy to the screen buffer at 24576
 void DRAWWILLY() {
-    uint8_t h, l;
-    uint8_t msb, lsb;
-    uint16_t addr;
-
-    // Pick up Willy's pixel y-coordinate from PIXEL_Y
-    // Point IX at the entry in the screen buffer address lookup table at
-    // SBUFADDRS that corresponds to Willy's y-coordinate
-    uint8_t pixy = (uint8_t) (willy.PIXEL_Y / 2);
+    // Pick up Willy's pixel y-coordinate from PIXEL_Y so we can
+    // point to the entry in SBUFADDRS (the screen buffer address
+    // lookup table) that corresponds to Willy's y-coordinate
+    uint8_t pix_y = (uint8_t) (willy.PIXEL_Y / 2);
 
     // Pick up Willy's direction and movement flags from DMFLAGS
-    // Now E=0 if Willy is facing right, or 128 if he's facing left
+    // Now 0 if Willy is facing right, or 128 if he's facing left
     uint8_t frame = rotr((uint8_t) (willy.DMFLAGS & 1), 1);
 
-    // Pick up Willy's animation frame (0-3) from FRAME
-    // Point DE at the sprite graphic data for Willy's current animation frame (see MANDAT)
+    // Pick up Willy's current animation frame (0-3) (see MANDAT)
     frame = rotr((uint8_t) (willy.FRAME & 3), 3) | frame;
 
-    // Pick up Willy's screen x-coordinate (0-31) from LOCATION. Copy it to C
-    split_address(willy.LOCATION, &msb, &lsb);
+    // Pick up Willy's screen x-coordinate (0-31) from LOCATION.
+    uint8_t msb_dummy, pix_x;
+    split_address((uint16_t) (willy.LOCATION & 31), &msb_dummy, &pix_x);
 
-    // There are 16 rows of pixels to copy
-    for (int i = 16; i > 0; i--) {
-        // Set HL to the address in the screen buffer at 24576 that corresponds
+    // There are 16 rows of pixels in a sprite
+    uint8_t h, l;
+    for (int i = 0; i < 16; i++) {
+        // Set to the address in the screen buffer at 24576 that corresponds
         // to where we are going to draw the next pixel row of the sprite graphic
-        split_address(SBUFADDRS[pixy], &h, &l);
-        addr = build_address(h, l | lsb);
+        split_address(SBUFADDRS[pix_y], &h, &l);
+        uint16_t addr = build_address(h, l | pix_x);
 
-        // Pick up a sprite graphic byte. Merge it with the background.
-        // Save the resultant byte to the screen buffer.
+        // Merge the sprite byte with the background.
         speccy.memory[addr] = willy.sprites[frame] | speccy.memory[addr];
 
         // Move HL along to the next cell to the right
         addr++;
 
-        // Point DE at the next sprite graphic byte
+        // Point to the next sprite byte
         frame++;
 
-        // Pick it up in A. Merge it with the background.
-        // Save the resultant byte to the screen buffer.
+        // Merge the sprite byte with the background.
         speccy.memory[addr] = willy.sprites[frame] | speccy.memory[addr];
 
-        // Point IX at the next entry in the screen buffer address lookup table at SBUFADDRS
-        pixy += 1;
+        // Point to the next entry in the screen buffer address lookup table at SBUFADDRS
+        pix_y += 1;
 
-        // Point DE at the next sprite graphic byte
+        // Point to the next sprite byte
         frame++;
     }
 }
