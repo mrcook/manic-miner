@@ -637,6 +637,7 @@ bool MOVEWILLY() {
 
         // Pick up the border colour for the current cavern from BORDER
         uint8_t border = cavern.BORDER;
+        Speccy_setBorderColour(border);
 
         // C=32; this value determines the duration of the jumping sound effect
         Speccy_makeSound(border, 32, delay);
@@ -710,7 +711,6 @@ bool MOVEWILLY() {
                     return MOVEWILLY2((uint8_t) (addr - 1));
                 }
                 addr--;
-
                 // Is the left-hand cell below Willy's sprite empty?
                 if (memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0) {
                     return MOVEWILLY2(addr);
@@ -871,12 +871,14 @@ bool MOVEWILLY2(uint16_t addr) {
     // Reset the airborne status indicator at AIRBORNE (Willy has landed safely)
     willy.AIRBORNE = 0;
 
+    int converyor_dir = -1;
     // Does the attribute byte of the left or right hand cell below Willy's sprite match that of the conveyor tile?
     if (memcmp(&speccy.memory[addr], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0 ||
         memcmp(&speccy.memory[addr + 1], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0) {
         // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
         // Now E=253 (bit 1 reset) if the conveyor is moving left, or 254 (bit 0 reset) if it's moving right
         input = (uint8_t) (cavern.CONVEYOR.CONVDIR - 3);
+        converyor_dir = cavern.CONVEYOR.CONVDIR;
     }
 
     // Read keys P-O-I-U-Y (right, left, right, left, right) into bits 0-4 of A. Set bit 5 and reset bits 6 and 7
@@ -915,11 +917,11 @@ bool MOVEWILLY2(uint16_t addr) {
     // CP 21                   // Are any of these bits reset?
     // JR Z,MOVEWILLY2_4       // Jump if not
     // SET 3,C                 // Set bit 3 of C: Willy is moving right
-    // FIXME: this is not yet handling the CONVDIR direction movement from above.
+    // FIXME: does this really work?
     uint8_t movement = 0;
-    if (Terminal_keyLeft()) {
+    if (Terminal_keyLeft() || converyor_dir == 0) {
         movement = 4;
-    } else if (Terminal_keyRight()) {
+    } else if (Terminal_keyRight() || converyor_dir == 1) {
         movement = 8;
     }
 
@@ -956,7 +958,7 @@ void MOVEWILLY2_6() {
     }
 
     // Is Willy facing right? (0 = right, 1 = left) Return if not.
-    if (((willy.DMFLAGS >> 0) & 1) == 0) {
+    if ((willy.DMFLAGS & 1) == 0) {
         MOVEWILLY2_9();
         return;
     }
@@ -1000,10 +1002,6 @@ void MOVEWILLY2_7() {
         if (memcmp(&speccy.memory[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
             return;
         }
-
-        // FIXME: does this Carry flag get used anywhere?
-        // OR A                    // Clear the carry flag for subtraction
-        // SBC HL,DE               // Point HL at the cell at (x-1,y+1)
     }
 
     // Pick up the attribute byte of the wall tile for the current cavern from WALL
@@ -1064,16 +1062,8 @@ void MOVEWILLY2_10() {
         if (memcmp(&speccy.memory[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
             return;
         }
-
-        // FIXME: does this Carry flag get used anywhere?
-        // OR A                    // Clear the carry flag for subtraction
-        // SBC HL,DE               // Point HL at the cell at (x+2,y+1)
     }
 
-    // Pick up the attribute byte of the wall tile for the current cavern from WALL
-    // FIXME: does this Carry flag get used anywhere?
-    // OR A                    // Clear the carry flag for subtraction
-    // SBC HL,DE               // Point HL at the cell at (x+2,y)
     addr -= 32;
 
     // Is there a wall tile in the cell pointed to by HL?
@@ -2682,8 +2672,7 @@ void Game_play_intro() {
         Terminal_redraw();
 
         // Pause for about 0.1s
-        // millisleep(72);
-        millisleep(10);
+        millisleep(30);
         Speccy_tick();
 
         // Is ENTER being pressed? If so, start the game
