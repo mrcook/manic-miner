@@ -2333,11 +2333,12 @@ bool WILLYATTRS() {
     // Pick up the address of Willy's location in the attribute buffer at 23552 from LOCATION
     uint16_t addr = willy.LOCATION;
 
-    // Set C=15 for the top two rows of cells (to make the routine at WILLYATTR force white INK)
-    uint8_t ink = 15;
+    // Set C=15 (`pix_y`) for the top two rows of cells
+    // (to make the routine at WILLYATTR force white INK)
+    uint8_t pix_y = 15;
 
     // Check and set the attribute byte for the top-left cell
-    if (WILLYATTR(addr, ink)) {
+    if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
@@ -2345,43 +2346,42 @@ bool WILLYATTRS() {
     addr++;
 
     // Check and set the attribute byte for the top-right cell
-    if (WILLYATTR(addr, ink)) {
+    if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Move HL down a row and back one cell to the left
+    // Move down a row and back one cell to the left
     addr += 31;
 
     // Check and set the attribute byte for the mid-left cell
-    if (WILLYATTR(addr, ink)) {
+    if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Move HL to the next cell to the right
+    // Move to the next cell to the right
     addr++;
 
     // Check and set the attribute byte for the mid-right cell
-    if (WILLYATTR(addr, ink)) {
+    if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Pick up Willy's pixel y-coordinate from PIXEL_Y. Copy it to C
-    ink = willy.PIXEL_Y;
+    // Pick up Willy's pixel y-coordinate from PIXEL_Y. Copy it to pix_y
+    pix_y = willy.PIXEL_Y;
 
-    // Move HL down a row and back one cell to the left
+    // Move down a row and back one cell to the left
     addr += 31;
-    addr--;
 
     // Check and set the attribute byte for the bottom-left cell
-    if (WILLYATTR(addr, ink)) {
+    if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Move HL to the next cell to the right
+    // Move to the next cell to the right
     addr++;
 
     // Check and set the attribute byte for the bottom-right cell
-    if (WILLYATTR(addr, ink)) {
+    if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
@@ -2398,18 +2398,19 @@ bool WILLYATTRS() {
 
 // Check and set the attribute byte for a cell occupied by Willy's sprite
 //
-// C 15 or Willy's pixel y-coordinate
+// C=15 or Willy's pixel y-coordinate
 // HL Address of the cell in the attribute buffer at 23552
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
-bool WILLYATTR(uint16_t addr, uint8_t ink) {
+bool WILLYATTR(uint16_t addr, uint8_t pix_y) {
     // Does this cell contain a background tile?
     if (memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) == 0) {
-        // Set the zero flag if we are going to retain the INK colour in this
-        // cell; this happens only if the cell is in the bottom row and
-        // Willy's sprite is confined to the top two rows.
+        // Set the zero flag if we are going to retain the INK colour in this cell;
+        // this happens only if the cell is in the bottom row and Willy's sprite
+        // is confined to the top two rows.
+
         // Jump if we are going to retain the current INK colour in this cell
-        if (ink & 15) {
-            // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
+        if (pix_y == 15) {
+            // Pick up the attribute byte of the BACKGROUND tile.
             // Set bits 0-2, making the INK white
             // Set the attribute byte for this cell in the buffer at 23552
             speccy.memory[addr] = (uint8_t) (cavern.BACKGROUND.id | 7);

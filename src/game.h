@@ -120,7 +120,7 @@ bool KONGBEAST(void);
 bool KONGBEAST_8(void);
 bool CHKSWITCH(uint16_t addr);
 bool WILLYATTRS(void);
-bool WILLYATTR(uint16_t addr, uint8_t ink);
+bool WILLYATTR(uint16_t addr, uint8_t pix_y);
 void DRAWWILLY(void);
 void PMESS(void *msg, uint16_t addr, uint8_t len);
 void PRINTCHAR(char ch, uint16_t addr);
