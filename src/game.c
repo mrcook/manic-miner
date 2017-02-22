@@ -63,6 +63,8 @@ bool Game_play() {
 
     // The Main Loop
     while (gameIsRunning) {
+        game.lastInput = Terminal_getKey();
+
         if (reinitialiseCavern) {
             loadCurrentCavern();
             reinitialiseCavern = false;
@@ -76,16 +78,19 @@ bool Game_play() {
         resetScreenAttrBuffers();
 
         // Check key press to toggle the in-game music.
-        if (Terminal_keyMuteMusic()) {
-            game.playMusic = ~game.playMusic;
-        }
-        if (Terminal_keyQuit()) {
-            return true; // return true so we quit the game!
-        }
-        if (Terminal_keyPaused()) {
-            do {
-                millisleep(50); // keep the FPS under control
-            } while (!Terminal_keyAny());
+        switch (game.lastInput) {
+            case MM_KEY_MUTE:
+                game.playMusic = ~game.playMusic;
+                break;
+            case MM_KEY_QUIT:
+                return true; // return true so we quit the game!
+            case MM_KEY_PAUSE:
+                game.lastInput = MM_KEY_NONE;
+                while (Terminal_getKey() != MM_KEY_PAUSE) {
+                    millisleep(50); // keep the FPS under control
+                }
+                break;
+            default:;
         }
 
         // Move the horizontal guardians in the current cavern
@@ -209,7 +214,7 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
             // Update the game mode indicator at DEMO
             game.DEMO--;
 
-            if (Terminal_keyAny()) {
+            if (game.lastInput == MM_KEY_ENTER) {
                 gameIsRunning = false;
                 break;
                 // return false; // goto START, and don't quit!
@@ -919,9 +924,9 @@ bool MOVEWILLY2(uint16_t addr) {
     // SET 3,C                 // Set bit 3 of C: Willy is moving right
     // FIXME: does this really work?
     uint8_t movement = 0;
-    if (Terminal_keyLeft() || converyor_dir == 0) {
+    if (game.lastInput == MM_KEY_LEFT || converyor_dir == 0) {
         movement = 4;
-    } else if (Terminal_keyRight() || converyor_dir == 1) {
+    } else if (game.lastInput == MM_KEY_RIGHT || converyor_dir == 1) {
         movement = 8;
     }
 
@@ -936,7 +941,7 @@ bool MOVEWILLY2(uint16_t addr) {
     // That is left-right movement taken care of. Now check the jump keys.
 
     // Is jump being pressed?
-    if (Terminal_keyJump()) {
+    if (game.lastInput == MM_KEY_JUMP) {
         // Time to make Willy jump.
         // Initialise the jumping animation counter at JUMPING
         willy.JUMPING = 0;
@@ -2604,7 +2609,7 @@ uint16_t PIANOKEY(uint8_t frequency) {
 
 // Check whether ENTER or the fire button is being pressed
 bool CHECKENTER() {
-    if (Terminal_keyEnter()) {
+    if (game.lastInput == MM_KEY_ENTER) {
         return true;
     } else {
         return false;
@@ -2676,7 +2681,7 @@ void Game_play_intro() {
         Speccy_tick();
 
         // Is ENTER being pressed? If so, start the game
-        if (Terminal_keyEnter()) {
+        if ( Terminal_getKey() == MM_KEY_ENTER) {
             game.DEMO = 0;
             return;
         }

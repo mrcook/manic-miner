@@ -5,20 +5,16 @@
 #include "headers.h"
 
 typedef struct Game_ {
+    int current_score;
+    int highscore;
+
     // Attribute (ID?) of the last item drawn
     // Holds the attribute byte of the last item drawn,
     // or 0 if all the items have been collected.
     uint8_t ITEMATTR;
 
-    int current_score;
-    int highscore;
-
     // Screen flash counter
     uint8_t FLASH;
-
-    // Kempston joystick indicator
-    // Holds 1 if a joystick is present, 0 otherwise.
-    bool KEMP;
 
     // Game mode indicator
     // Holds 0 when a game is in progress, or a value from 1 to 64 when in demo mode.
@@ -26,6 +22,10 @@ typedef struct Game_ {
 
     // In-game music note index
     uint8_t NOTEINDEX;
+
+    // Kempston joystick indicator
+    // Holds 1 if a joystick is present, 0 otherwise.
+    bool KEMP;
 
     // Play or mute in-game music
     bool playMusic;
@@ -41,6 +41,9 @@ typedef struct Game_ {
     char MESSHSSC[32];
     char MESSG[4];
     char MESSO[4];
+
+    // Last known keyboard input command
+    int lastInput;
 } Game;
 
 // Initialize game "boot up" variables

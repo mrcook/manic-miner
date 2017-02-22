@@ -4,6 +4,17 @@
 
 #include "coord.h"
 
+enum KeyboardInput {
+    MM_KEY_NONE,
+    MM_KEY_LEFT,
+    MM_KEY_RIGHT,
+    MM_KEY_JUMP,
+    MM_KEY_ENTER,
+    MM_KEY_PAUSE,
+    MM_KEY_QUIT,
+    MM_KEY_MUTE,
+};
+
 void Terminal_init();
 
 void Terminal_exit(void);
@@ -25,23 +36,5 @@ void Terminal_printStringAt(char *str, Coord pos);
 void Terminal_getString(char *str, int bufferSize);
 
 int Terminal_getKey(void);
-
-bool Terminal_keyAny(void);
-
-bool Terminal_keyEnter(void);
-
-bool Terminal_keyLeft(void);
-
-bool Terminal_keyRight(void);
-
-bool Terminal_keyJump(void);
-
-bool Terminal_keyQuit(void);
-
-bool Terminal_keyExit(void);
-
-bool Terminal_keyPaused(void);
-
-bool Terminal_keyMuteMusic(void);
 
 void Terminal_redraw(void);

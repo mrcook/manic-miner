@@ -64,7 +64,7 @@ void Terminal_refresh() {
 }
 
 char Terminal_readCharAt(Coord pos) {
-    return (char)mvinch(pos.Y, pos.X);
+    return (char) mvinch(pos.Y, pos.X);
 }
 
 void Terminal_printCharAt(char ch, Coord pos) {
@@ -84,75 +84,30 @@ void Terminal_getString(char *str, int bufferSize) {
 }
 
 int Terminal_getKey() {
-    return getch();
-}
-
-bool Terminal_keyAny() {
-    return getch() != ERR;
-}
-
-bool Terminal_keyEnter() {
-    int input = getch();
-    if (input == KEY_ENTER || input == 10 || input == 13) {
-        return true;
+    switch (getch()) {
+        case ERR:
+            return MM_KEY_NONE;
+        case ' ':
+        case KEY_UP:
+            return MM_KEY_JUMP;
+        case KEY_LEFT:
+            return MM_KEY_LEFT;
+        case KEY_RIGHT:
+            return MM_KEY_RIGHT;
+        case 'p':
+        case '\n': case '\r': case KEY_ENTER:
+            return MM_KEY_ENTER;
+        case 'P':
+            return MM_KEY_PAUSE;
+        case 'q':
+        case 'Q':
+            return MM_KEY_QUIT;
+        case 'm':
+        case 'M':
+            return MM_KEY_MUTE;
+        default:
+            return MM_KEY_NONE;
     }
-    return false;
-}
-
-bool Terminal_keyLeft() {
-    int input = getch();
-    if (input == KEY_LEFT) {
-        return true;
-    }
-    return false;
-}
-
-bool Terminal_keyRight() {
-    int input = getch();
-    if (input == KEY_RIGHT) {
-        return true;
-    }
-    return false;
-}
-
-bool Terminal_keyJump() {
-    int input = getch();
-    if (input == ' ' || input == KEY_UP) {
-        return true;
-    }
-    return false;
-}
-
-bool Terminal_keyQuit() {
-    int input = getch();
-    if (input == 'Q') {
-        return true;
-    }
-    return false;
-}
-
-bool Terminal_keyExit() {
-    int input = getch();
-    if (input == KEY_EXIT || input == 27) {
-        return true;
-    }
-    return false;
-}
-
-bool Terminal_keyPaused() {
-    int input = getch();
-    if (input == 'P' || input == 'p') {
-        return true;
-    }
-    return false;
-}
-
-bool Terminal_keyMuteMusic() {
-    int input = getch();
-    if (input == 'M' || input == 'm') {
-        return true;
-    }
-    return false;
 }
 
 // Refresh redraws the screen data.
