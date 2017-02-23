@@ -14,7 +14,6 @@ set(SOURCE_FILES
         src/externs.h
         src/helpers.c
         src/globals.c
-        src/character_set.c
         src/data.c
         src/speccy.h
         src/speccy.c

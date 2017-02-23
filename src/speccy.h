@@ -74,6 +74,12 @@ uint8_t Speccy_readAttribute(int address);
 
 void Speccy_writeAttribute(int address, uint8_t byte);
 
+// Print a message string to the display file
+void Speccy_printMessage(void *msg, uint16_t addr, uint8_t len);
+
+// Draw a sprite item to the given screen address
+void Speccy_printSpriteAt(void *character, uint16_t addr, uint8_t len);
+
 // Handy function to convert a byte to an array of bits,
 // so you can more easily create pixel based graphics.
 void Speccy_byteToBits(uint8_t byte, uint8_t *bits);
@@ -117,4 +123,3 @@ uint8_t rotl(uint8_t a, uint8_t n);
 
 // Rotate right n places
 uint8_t rotr(uint8_t a, uint8_t n);
-

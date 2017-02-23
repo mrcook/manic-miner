@@ -27,10 +27,6 @@ extern uint8_t SWORDFISH[32];
 
 extern uint8_t LRMOVEMENT[16];
 
-// character_set.c
-
-extern uint8_t character_set[96][8];
-
 // data.c
 extern uint8_t WILLYDATA[256];
 extern uint16_t SBUFADDRS[128];

@@ -260,15 +260,15 @@ void loadCurrentCavern() {
     }
 
     // Print the cavern name (see CAVERNNAME) at 20480 (16,0)
-    PMESS(cavern.CAVERNNAME, 20480, 32);
+    Speccy_printMessage(cavern.CAVERNNAME, 20480, 32);
 
     // Print 'AIR' (see MESSAIR) at 20512 (17,0)
-    PMESS(&game.airLabel, 20512, 3);
+    Speccy_printMessage(&game.airLabel, 20512, 3);
 
     drawAirBar();
 
     // Print scores text at 20576 (19,0)
-    PMESS(&game.MESSHSSC, 20576, 32);
+    Speccy_printMessage(&game.MESSHSSC, 20576, 32);
 
     // Set the border colour
     OUT(cavern.BORDER);
@@ -425,8 +425,8 @@ void ENDGAM() {
     }
 
     // Now print the "Game Over" message, just to drive the point home.
-    PMESS(&game.MESSG, 16586, 4);
-    PMESS(&game.MESSO, 16594, 4);
+    Speccy_printMessage(&game.MESSG, 16586, 4);
+    Speccy_printMessage(&game.MESSO, 16594, 4);
 
     // The following loop makes the "Game Over" message glisten for about 1.57s.
     // The counter will also determine the INK colours to use for the "Game Over" message
@@ -1686,7 +1686,7 @@ void DRAWITEMS() {
             // Point HL at the item graphic for the current cavern (at ITEM)
             // There are eight pixel rows to copy
             // Draw the item to the screen buffer at 24576
-            PRINTCHAR_0(cavern.ITEMS[i].tile, addr, 8);
+            Speccy_printSpriteAt(cavern.ITEMS[i].tile, addr, 8);
         }
 
         // The current item definition has been dealt with. Time for the next one.
@@ -1945,7 +1945,7 @@ bool NXSHEET() {
         INCSCORE_0(33838);
 
         // Print the new score at (19,26)
-        PMESS(&game.SCORBUF, 20602, 6);
+        Speccy_printMessage(&game.SCORBUF, 20602, 6);
 
         // C=4; this value determines the duration of the sound effect
         uint8_t duration = 4;
@@ -2469,45 +2469,6 @@ void DRAWWILLY() {
     }
 }
 
-// Print a message
-//
-// IX Address of the message
-// C Length of the message
-// DE Display file address
-void PMESS(void *msg, uint16_t addr, uint8_t len) {
-    uint8_t *ch = msg;
-
-    for (int i = 0; i < len; i++, addr++) {
-        PRINTCHAR(ch[i], addr);
-    }
-}
-
-// Print a single character
-//
-// A ASCII code of the character
-// DE Display file address
-void PRINTCHAR(char ch, uint16_t addr) {
-    // Point HL at the bitmap for the character (in the ROM)
-    uint8_t ch_index_id = (uint8_t) (ch - 32);
-
-    // There are eight pixel rows in a character bitmap
-    PRINTCHAR_0(&character_set[ch_index_id], addr, 8);
-}
-
-// This entry point is used by the routine at DRAWITEMS to draw an item in the current cavern.
-void PRINTCHAR_0(void *character, uint16_t addr, uint8_t len) {
-    uint8_t *chr = character;
-    uint8_t msb, lsb;
-
-    for (int i = 0; i < len; i++) {
-        // Copy the character bitmap to the screen (or item graphic to the screen buffer)
-        speccy.memory[addr] = chr[i];
-        split_address(addr, &msb, &lsb);
-        msb++;
-        addr = build_address(msb, lsb);
-    }
-}
-
 // Play the theme tune (The Blue Danube)
 //
 // Returns with the zero flag reset if ENTER or the fire button
@@ -2568,7 +2529,7 @@ bool PLAYTUNE() {
         }
 
         // Check whether ENTER or the fire button is being pressed
-        if (CHECKENTER()) {
+        if (Terminal_getKey() == MM_KEY_ENTER) {
             return true;
         }
 
@@ -2605,15 +2566,6 @@ uint16_t PIANOKEY(uint8_t frequency) {
 
     // Set HL to the attribute file address for the piano key
     return build_address(89, frequency);
-}
-
-// Check whether ENTER or the fire button is being pressed
-bool CHECKENTER() {
-    if (game.lastInput == MM_KEY_ENTER) {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 void Game_play_intro() {
@@ -2664,7 +2616,7 @@ void Game_play_intro() {
             " .  .  .  .  .  .  .  .";
     for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
         // Print 32 characters of the message at 20576 (19,0)
-        PMESS(&introMessage[pos], 20576, 32);
+        Speccy_printMessage(&introMessage[pos], 20576, 32);
 
         // Keep only bits 1 and 2, and move them into bits 6 and 7,
         // so that A holds 0, 64, 128 or 192;
@@ -2795,10 +2747,10 @@ void drawRemainingLives() {
 
 void printScores() {
     // Print the score (see SCORBUF) at (19,26)
-    PMESS(&game.SCORBUF, 20602, 6);
+    Speccy_printMessage(&game.SCORBUF, 20602, 6);
 
     // Print the high score (see HGHSCOR) at (19,11)
-    PMESS(&game.HGHSCOR, 20587, 6);
+    Speccy_printMessage(&game.HGHSCOR, 20587, 6);
 }
 
 void playGameMusic() {
