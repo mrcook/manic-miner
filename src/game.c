@@ -673,7 +673,7 @@ bool MOVEWILLY() {
     uint16_t addr;
 
     // Does Willy's sprite occupy six cells at the moment?
-    if (willy.PIXEL_Y & 15) {
+    if ((willy.PIXEL_Y & 15) == 0) {
         // Point HL at the left-hand cell below Willy's sprite
         addr = (uint16_t) (willy.LOCATION + 64);
 
@@ -684,7 +684,7 @@ bool MOVEWILLY() {
             CRUMBLE(addr);
         }
 
-        if (memcmp(&speccy.memory[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) != 0) {
+        if (memcmp(&speccy.memory[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0) {
             // Does the left-hand cell below Willy's sprite contain a nasty tile?
             // Jump if so
         } else if (memcmp(&speccy.memory[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0) {
@@ -737,7 +737,7 @@ bool MOVEWILLY() {
     willy.DMFLAGS &= ~(1 << 1);
 
     // Is Willy already falling?
-    if (willy.AIRBORNE != 1) {
+    if (willy.AIRBORNE > 1) {
         // Willy has just started falling.
         // Set the airborne status indicator at AIRBORNE to 2
         willy.AIRBORNE = 2;
@@ -763,7 +763,7 @@ bool MOVEWILLY() {
 
     MOVEWILLY_7(willy.PIXEL_Y); // IMPORTANT: implicit call to this subroutine.
 
-    return false; // FIXME: is this the correct return value?
+    return false;
 }
 
 // Adjust Willy's attribute buffer location at LOCATION
@@ -865,7 +865,7 @@ void CRUMBLE(uint16_t addr) {
 // HL Attribute buffer address of the left-hand cell below Willy's sprite
 bool MOVEWILLY2(uint16_t addr) {
     // Has Willy just landed after falling from too great a height? If so, kill him!
-    if (willy.AIRBORNE == 12) {
+    if (willy.AIRBORNE >= 12) {
         KILLWILLY();
         return true;
     }
@@ -989,7 +989,7 @@ void MOVEWILLY2_7() {
     // Point HL at the cell at (x-1,y+1)
     uint16_t addr = (uint16_t) (willy.LOCATION - 1);
 
-    addr += 32;
+    addr += 30;
 
     // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // Is there a wall tile in the cell pointed to by HL?
@@ -1013,7 +1013,7 @@ void MOVEWILLY2_7() {
     // FIXME: does this Carry flag get used anywhere?
     // OR A                    // Clear the carry flag for subtraction
     // SBC HL,DE               // Point HL at the cell at (x-1,y)
-    addr -= 32;
+    addr -= 1;
 
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
@@ -1050,7 +1050,7 @@ void MOVEWILLY2_10() {
 
     // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // Point HL at the cell at (x+2,y+1)
-    addr += 32;
+    addr += 33;
 
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
@@ -1064,12 +1064,12 @@ void MOVEWILLY2_10() {
         // Point HL at the cell at (x+2,y+2)
         // Is there a wall tile in the cell pointed to by HL?
         // Return if so without moving Willy (his path is blocked)
-        if (memcmp(&speccy.memory[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+        if (memcmp(&speccy.memory[addr + 64], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
             return;
         }
     }
 
-    addr -= 32;
+    addr -= 31;
 
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)

@@ -75,7 +75,7 @@ void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
     for (int d = duration; d > 0; d--) {
         OUT(pitch);
         pitch ^= 24;
-        millisleep(delay);
+//        millisleep(delay);
     }
 }
 
