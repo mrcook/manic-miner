@@ -922,9 +922,9 @@ bool MOVEWILLY2(int keyIntput, uint16_t addr) {
     // SET 3,C                 // Set bit 3 of C: Willy is moving right
     // FIXME: does this really work?
     uint8_t movement = 0;
-    if (keyIntput == MM_KEY_LEFT || converyor_dir == 0) {
+    if (keyIntput == MM_KEY_LEFT || keyIntput == MM_KEY_LEFT_JUMP || converyor_dir == 0) {
         movement = 4;
-    } else if (keyIntput == MM_KEY_RIGHT || converyor_dir == 1) {
+    } else if (keyIntput == MM_KEY_RIGHT || keyIntput == MM_KEY_RIGHT_JUMP || converyor_dir == 1) {
         movement = (1 << 3);
     }
 
@@ -940,7 +940,7 @@ bool MOVEWILLY2(int keyIntput, uint16_t addr) {
     // That is left-right movement taken care of. Now check the jump keys.
 
     // Is jump being pressed?
-    if (keyIntput == MM_KEY_JUMP) {
+    if (keyIntput == MM_KEY_JUMP || keyIntput == MM_KEY_LEFT_JUMP || keyIntput == MM_KEY_RIGHT_JUMP) {
         // Time to make Willy jump.
         // Initialise the jumping animation counter at JUMPING
         willy.JUMPING = 0;

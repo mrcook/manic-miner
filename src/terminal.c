@@ -104,10 +104,18 @@ int Terminal_getKey() {
             input = MM_KEY_JUMP;
             break;
         case KEY_LEFT:
-            input = MM_KEY_LEFT;
+            if (getch() == ' ') {
+                input = MM_KEY_LEFT_JUMP;
+            } else {
+                input = MM_KEY_LEFT;
+            }
             break;
         case KEY_RIGHT:
-            input = MM_KEY_RIGHT;
+            if (getch() == ' ') {
+                input = MM_KEY_RIGHT_JUMP;
+            } else {
+                input = MM_KEY_RIGHT;
+            }
             break;
         case '\n': case '\r': case KEY_ENTER:
             input = MM_KEY_ENTER;

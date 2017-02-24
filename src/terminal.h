@@ -9,6 +9,8 @@ enum KeyboardInput {
     MM_KEY_LEFT,
     MM_KEY_RIGHT,
     MM_KEY_JUMP,
+    MM_KEY_LEFT_JUMP,
+    MM_KEY_RIGHT_JUMP,
     MM_KEY_ENTER,
     MM_KEY_PAUSE,
     MM_KEY_QUIT,
