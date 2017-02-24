@@ -33,8 +33,8 @@ void Terminal_init() {
     Terminal_clear();
     noecho();
     cbreak();
-    nodelay(stdscr, TRUE);
-    keypad(stdscr, false);
+    nodelay(stdscr, true);
+    keypad(stdscr, true);
     curs_set(0);
 
     Terminal_clear();

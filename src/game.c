@@ -713,7 +713,7 @@ bool MOVEWILLY() {
                 // Point HL at the left-hand cell below Willy's sprite
                 // Jump if the right-hand cell below Willy's sprite is not empty
                 if (memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0) {
-                    return MOVEWILLY2((uint8_t) (addr - 1));
+                    return MOVEWILLY2(addr);
                 }
                 addr--;
                 // Is the left-hand cell below Willy's sprite empty?
@@ -761,7 +761,7 @@ bool MOVEWILLY() {
     // Add 8 to Willy's pixel y-coordinate at PIXEL_Y; this moves Willy downwards by 4 pixels
     willy.PIXEL_Y += 8;
 
-    MOVEWILLY_7(willy.PIXEL_Y); // IMPORTANT: implicit call to this subroutine.
+    MOVEWILLY_7(willy.PIXEL_Y);
 
     return false;
 }
@@ -770,7 +770,6 @@ bool MOVEWILLY() {
 // to account for this new pixel y-coordinate.
 void MOVEWILLY_7(uint8_t y_coord) {
     uint8_t msb, lsb;
-    uint8_t x_msb, x_lsb;
 
     // L=16*Y, where Y is Willy's screen y-coordinate (0-14)
     lsb = (uint8_t) (y_coord & 240);
@@ -780,13 +779,18 @@ void MOVEWILLY_7(uint8_t y_coord) {
     // if LSB bit 7 is set the `RL L` will set the Carry, which means we need to add one to the MSB
     // H=92 or 93 (MSB of the address of Willy's location in the attribute buffer)
     msb = 92;
-    if ((lsb >> 7) & 1) {
+    // pickup bit-7 of lsb, the [C]arry flag, and check if it's set
+    if (((lsb >> 7) & 1) == 1) {
         msb = 93;
     }
-    lsb = lsb << 1;
+
+    // RL lsb
+    lsb = rotl(lsb, 1);
+    lsb &= ~(1 << 0); // set bit `0` to the [C]arry, which was set to `0`
 
     // Pick up Willy's screen x-coordinate (1-29) from bits 0-4 at LOCATION
-    split_address(willy.LOCATION, &x_msb, &x_lsb);
+    uint8_t msb_dummy, x_lsb;
+    split_address(willy.LOCATION & 31, &msb_dummy, &x_lsb);
 
     // Now L holds the LSB of Willy's attribute buffer address
     x_lsb |= lsb;
@@ -865,45 +869,38 @@ void CRUMBLE(uint16_t addr) {
 // HL Attribute buffer address of the left-hand cell below Willy's sprite
 bool MOVEWILLY2(uint16_t addr) {
     // Has Willy just landed after falling from too great a height? If so, kill him!
-    if (willy.AIRBORNE >= 12) {
+    if (willy.AIRBORNE == 12) { // FIXME: should this be `>= 12` ?
         KILLWILLY();
         return true;
     }
 
     // Initialise E to 255 (all bits set); it will be used to hold keyboard and joystick readings
-    uint8_t input = 255;
+    // uint8_t input = 255;
 
     // Reset the airborne status indicator at AIRBORNE (Willy has landed safely)
     willy.AIRBORNE = 0;
 
-    int converyor_dir = -1;
+    uint8_t converyor_dir = 255;
     // Does the attribute byte of the left or right hand cell below Willy's sprite match that of the conveyor tile?
     if (memcmp(&speccy.memory[addr], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0 ||
         memcmp(&speccy.memory[addr + 1], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0) {
         // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
         // Now E=253 (bit 1 reset) if the conveyor is moving left, or 254 (bit 0 reset) if it's moving right
-        input = (uint8_t) (cavern.CONVEYOR.CONVDIR - 3);
+        // input = (uint8_t) (cavern.CONVEYOR.CONVDIR - 3);
         converyor_dir = cavern.CONVEYOR.CONVDIR;
     }
 
     // Read keys P-O-I-U-Y (right, left, right, left, right) into bits 0-4 of A. Set bit 5 and reset bits 6 and 7
     // Reset bit 0 if the conveyor is moving right, or bit 1 if it's moving left. Save the result in E
-    input = (uint8_t) (((IN(57342) & 31) | 32) & input);
-
     // Read keys Q-W-E-R-T (left, right, left, right, left) into bits 0-4 of A
     // Keep only bits 0-4, shift them into bits 1-5, and set bit 0
     // Merge this keyboard reading into bits 1-5 of E
-    input = (uint8_t) ((rotl(IN(64510), 1) | 1) & input);
-
     // Read keys 1-2-3-4-5 ('5' is left) into bits 0-4 of A
     // Rotate the result right and set bits 0-2 and 4-7; this ignores every key except '5' (left)
     // Merge this reading of the '5' key into bit 3 of E
-    input = (uint8_t) ((rotr(IN(63486), 1) | 247) & input);
-
     // Read keys 0-9-8-7-6 ('8' is right) into bits 0-4 of A
     // Set bits 0, 1 and 3-7; this ignores every key except '8' (right)
     // Merge this reading of the '8' key into bit 2 of E
-    input = (uint8_t) ((IN(61438) | 251) & input);
 
     // At this point, bits 0-5 in E indicate the direction in which Willy is being
     // moved or trying to move. If bit 0, 2 or 4 is reset, Willy is being moved or
@@ -927,7 +924,7 @@ bool MOVEWILLY2(uint16_t addr) {
     if (game.lastInput == MM_KEY_LEFT || converyor_dir == 0) {
         movement = 4;
     } else if (game.lastInput == MM_KEY_RIGHT || converyor_dir == 1) {
-        movement = 8;
+        movement = (1 << 3);
     }
 
     // Point HL at the entry in the left-right movement table at LRMOVEMENT
@@ -937,6 +934,7 @@ bool MOVEWILLY2(uint16_t addr) {
     // Update Willy's direction and movement flags at DMFLAGS with the entry
     // from the left-right movement table.
     willy.DMFLAGS = LRMOVEMENT[movement];
+
 
     // That is left-right movement taken care of. Now check the jump keys.
 
@@ -989,7 +987,7 @@ void MOVEWILLY2_7() {
     // Point HL at the cell at (x-1,y+1)
     uint16_t addr = (uint16_t) (willy.LOCATION - 1);
 
-    addr += 30;
+    addr += 32;
 
     // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // Is there a wall tile in the cell pointed to by HL?
@@ -999,7 +997,7 @@ void MOVEWILLY2_7() {
     }
 
     // Does Willy's sprite currently occupy only two rows of cells?
-    if ((willy.PIXEL_Y & 15) != 0) {
+    if (willy.PIXEL_Y & 15) {
         // Pick up the attribute byte of the wall tile for the current cavern from WALL
         // Point HL at the cell at (x-1,y+2)
         // Is there a wall tile in the cell pointed to by HL?
@@ -1013,8 +1011,7 @@ void MOVEWILLY2_7() {
     // FIXME: does this Carry flag get used anywhere?
     // OR A                    // Clear the carry flag for subtraction
     // SBC HL,DE               // Point HL at the cell at (x-1,y)
-    addr -= 1;
-
+    addr -= 32;
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
     if (memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
@@ -1046,11 +1043,11 @@ void MOVEWILLY2_9() {
 void MOVEWILLY2_10() {
     // Collect Willy's attribute buffer coordinates from LOCATION
     // Point HL at the cell at (x+2,y)
-    uint16_t addr = willy.LOCATION += 2;
+    uint16_t addr = (uint16_t)(willy.LOCATION + 2);
 
     // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // Point HL at the cell at (x+2,y+1)
-    addr += 33;
+    addr += 32;
 
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
@@ -1059,17 +1056,17 @@ void MOVEWILLY2_10() {
     }
 
     // Does Willy's sprite currently occupy only two rows of cells?
-    if ((willy.PIXEL_Y & 15) != 0) {
+    if ((willy.PIXEL_Y & 15)) {
         // Pick up the attribute byte of the wall tile for the current cavern from WALL
         // Point HL at the cell at (x+2,y+2)
         // Is there a wall tile in the cell pointed to by HL?
         // Return if so without moving Willy (his path is blocked)
-        if (memcmp(&speccy.memory[addr + 64], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+        if (memcmp(&speccy.memory[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
             return;
         }
     }
 
-    addr -= 31;
+    addr -= 32;
 
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
