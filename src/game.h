@@ -41,9 +41,6 @@ typedef struct Game_ {
     char MESSHSSC[32];
     char MESSG[4];
     char MESSO[4];
-
-    // Last known keyboard input command
-    int lastInput;
 } Game;
 
 // Initialize game "boot up" variables
@@ -96,11 +93,11 @@ bool MANDEAD(void);
 void ENDGAM(void);
 void DECAIR(void);
 void DRAWSHEET(void);
-bool MOVEWILLY(void);
+bool MOVEWILLY(int keyIntput);
 void MOVEWILLY_7(uint8_t y_coord);
 void MOVEWILLY_10(void);
 void CRUMBLE(uint16_t addr);
-bool MOVEWILLY2(uint16_t addr);
+bool MOVEWILLY2(int keyIntput, uint16_t addr);
 void MOVEWILLY2_6(void);
 void MOVEWILLY2_7(void);
 void MOVEWILLY2_9(void);

@@ -21,7 +21,7 @@ void Terminal_init() {
         return;
     }
 
-    initscr();
+    initscr(); // <curses.h> do initialization work 
 
     // Make sure our terminal is big enough
 //    if (rows > LINES || columns > COLS) {
@@ -29,13 +29,22 @@ void Terminal_init() {
 //        exit(-1);
 //    }
 
-    raw();
-    Terminal_clear();
-    noecho();
-    cbreak();
-    nodelay(stdscr, true);
-    keypad(stdscr, true);
-    curs_set(0);
+    // cbreak();              // <curses.h> not needed when using raw()...does not disable Ctrl chars
+    raw();                 // <curses.h> disable control characters. I.e. Ctrl-C does not work!
+    nonl();                // <curses.h> disable translation return/ newline for detection of return key
+    noecho();              // <curses.h> do not echo typed characters
+    nodelay(stdscr, true); // <curses.h> non-blocking input
+    keypad(stdscr, true);  // <curses.h> enable keypad for input
+    curs_set(0);           // <curses.h> sets the appearance of the cursor based on the value of visibility
+
+    // start_color();   // <curses.h> use colors
+    // init_pair(RED, COLOR_RED, COLOR_BLACK);         // <curses.h> define color-pair
+    // init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);     // <curses.h> define color-pair
+    // init_pair(YELLOW, COLOR_YELLOW, COLOR_BLACK);   // <curses.h> define color-pair
+    // init_pair(BLUE, COLOR_BLUE, COLOR_BLACK);       // <curses.h> define color-pair
+    // init_pair(CYAN, COLOR_CYAN, COLOR_BLACK);       // <curses.h> define color-pair
+    // init_pair(MAGENTA, COLOR_MAGENTA, COLOR_BLACK); // <curses.h> define color-pair
+    // init_pair(WHITE, COLOR_WHITE, COLOR_BLACK);     // <curses.h> define color-pair
 
     Terminal_clear();
     cursesStarted = true;
@@ -84,30 +93,42 @@ void Terminal_getString(char *str, int bufferSize) {
 }
 
 int Terminal_getKey() {
+    int input;
+
     switch (getch()) {
         case ERR:
-            return MM_KEY_NONE;
+            input = MM_KEY_NONE;
+            break;
         case ' ':
         case KEY_UP:
-            return MM_KEY_JUMP;
+            input = MM_KEY_JUMP;
+            break;
         case KEY_LEFT:
-            return MM_KEY_LEFT;
+            input = MM_KEY_LEFT;
+            break;
         case KEY_RIGHT:
-            return MM_KEY_RIGHT;
-        case 'p':
+            input = MM_KEY_RIGHT;
+            break;
         case '\n': case '\r': case KEY_ENTER:
-            return MM_KEY_ENTER;
+            input = MM_KEY_ENTER;
+            break;
+        case 'p':
         case 'P':
-            return MM_KEY_PAUSE;
+            input = MM_KEY_PAUSE;
+            break;
         case 'q':
         case 'Q':
-            return MM_KEY_QUIT;
+            input = MM_KEY_QUIT;
+            break;
         case 'm':
         case 'M':
-            return MM_KEY_MUTE;
+            input = MM_KEY_MUTE;
+            break;
         default:
-            return MM_KEY_NONE;
+            input = MM_KEY_NONE;
     }
+
+    return input;
 }
 
 // Refresh redraws the screen data.

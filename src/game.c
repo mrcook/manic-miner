@@ -60,10 +60,11 @@ bool Game_play() {
     // Prepare the screen; clear the entire Spectrum display file
     Speccy_clearScreen();
 
+    int keyIntput;
 
     // The Main Loop
     while (gameIsRunning) {
-        game.lastInput = Terminal_getKey();
+        keyIntput = Terminal_getKey();
 
         if (reinitialiseCavern) {
             loadCurrentCavern();
@@ -78,14 +79,14 @@ bool Game_play() {
         resetScreenAttrBuffers();
 
         // Check key press to toggle the in-game music.
-        switch (game.lastInput) {
+        switch (keyIntput) {
             case MM_KEY_MUTE:
                 game.playMusic = ~game.playMusic;
                 break;
             case MM_KEY_QUIT:
                 return true; // return true so we quit the game!
             case MM_KEY_PAUSE:
-                game.lastInput = MM_KEY_NONE;
+                keyIntput = MM_KEY_NONE;
                 while (Terminal_getKey() != MM_KEY_PAUSE) {
                     millisleep(50); // keep the FPS under control
                 }
@@ -101,7 +102,7 @@ bool Game_play() {
         // buffer at 23552, and draw Willy to the screen buffer at 24576.
         if (game.DEMO == 0) {
             // Move Willy
-            if (MOVEWILLY()) {
+            if (MOVEWILLY(keyIntput)) {
                 goto LOOP_4; // Willy has died!
             }
             // Draw Willy
@@ -214,7 +215,7 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
             // Update the game mode indicator at DEMO
             game.DEMO--;
 
-            if (game.lastInput == MM_KEY_ENTER) {
+            if (keyIntput == MM_KEY_ENTER) {
                 gameIsRunning = false;
                 break;
                 // return false; // goto START, and don't quit!
@@ -593,7 +594,7 @@ void DRAWSHEET() {
 // Move Willy (1)
 // This routine deals with Willy if he's jumping or falling.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
-bool MOVEWILLY() {
+bool MOVEWILLY(int keyIntput) {
     // Is Willy jumping?
     if (willy.AIRBORNE == 1) {
         // Willy is currently jumping.
@@ -713,12 +714,12 @@ bool MOVEWILLY() {
                 // Point HL at the left-hand cell below Willy's sprite
                 // Jump if the right-hand cell below Willy's sprite is not empty
                 if (memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0) {
-                    return MOVEWILLY2(addr);
+                    return MOVEWILLY2(keyIntput, addr);
                 }
                 addr--;
                 // Is the left-hand cell below Willy's sprite empty?
                 if (memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0) {
-                    return MOVEWILLY2(addr);
+                    return MOVEWILLY2(keyIntput, addr);
                 }
             }
         }
@@ -790,7 +791,7 @@ void MOVEWILLY_7(uint8_t y_coord) {
 
     // Pick up Willy's screen x-coordinate (1-29) from bits 0-4 at LOCATION
     uint8_t msb_dummy, x_lsb;
-    split_address(willy.LOCATION & 31, &msb_dummy, &x_lsb);
+    split_address((uint16_t)(willy.LOCATION & 31), &msb_dummy, &x_lsb);
 
     // Now L holds the LSB of Willy's attribute buffer address
     x_lsb |= lsb;
@@ -867,7 +868,7 @@ void CRUMBLE(uint16_t addr) {
 // Move Willy (2)
 // This routine checks the keyboard and joystick, and moves Willy left or right if necessary.
 // HL Attribute buffer address of the left-hand cell below Willy's sprite
-bool MOVEWILLY2(uint16_t addr) {
+bool MOVEWILLY2(int keyIntput, uint16_t addr) {
     // Has Willy just landed after falling from too great a height? If so, kill him!
     if (willy.AIRBORNE == 12) { // FIXME: should this be `>= 12` ?
         KILLWILLY();
@@ -921,9 +922,9 @@ bool MOVEWILLY2(uint16_t addr) {
     // SET 3,C                 // Set bit 3 of C: Willy is moving right
     // FIXME: does this really work?
     uint8_t movement = 0;
-    if (game.lastInput == MM_KEY_LEFT || converyor_dir == 0) {
+    if (keyIntput == MM_KEY_LEFT || converyor_dir == 0) {
         movement = 4;
-    } else if (game.lastInput == MM_KEY_RIGHT || converyor_dir == 1) {
+    } else if (keyIntput == MM_KEY_RIGHT || converyor_dir == 1) {
         movement = (1 << 3);
     }
 
@@ -939,7 +940,7 @@ bool MOVEWILLY2(uint16_t addr) {
     // That is left-right movement taken care of. Now check the jump keys.
 
     // Is jump being pressed?
-    if (game.lastInput == MM_KEY_JUMP) {
+    if (keyIntput == MM_KEY_JUMP) {
         // Time to make Willy jump.
         // Initialise the jumping animation counter at JUMPING
         willy.JUMPING = 0;
