@@ -357,7 +357,9 @@ bool MANDEAD() {
     }
 
     // Decrease the number of lives remaining by one
-    willy.NOMEN--;
+    if (!game.CHEAT) {
+        willy.NOMEN--;
+    }
 
     // Jump back to reinitialise the current cavern
     return false; // goto NEWSHT;
@@ -2851,13 +2853,20 @@ int processInput() {
 
 // Check if player is pressing movement + jump keys
 int processMoveJumpInput(int firstInput) {
-    int input = processInput();
+    int input;
 
-    if (firstInput == MM_KEY_LEFT && input == MM_KEY_JUMP) {
-        return MM_KEY_LEFT_JUMP;
-    } else if (firstInput == MM_KEY_RIGHT && input == MM_KEY_JUMP) {
-        return MM_KEY_RIGHT_JUMP;
-    }
+    do {
+        input = processInput();
+
+        // Ignore keft/right key presses, we want JUMP keys!
+        if (input == MM_KEY_LEFT || input == MM_KEY_RIGHT) { continue; }
+
+        if (firstInput == MM_KEY_LEFT && input == MM_KEY_JUMP) {
+            return MM_KEY_LEFT_JUMP;
+        } else if (firstInput == MM_KEY_RIGHT && input == MM_KEY_JUMP) {
+            return MM_KEY_RIGHT_JUMP;
+        }
+    } while (input != MM_KEY_NONE);
 
     return firstInput;
 }
