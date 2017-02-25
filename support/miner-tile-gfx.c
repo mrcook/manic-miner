@@ -4,16 +4,17 @@
 
 // MRC:
 // Having IDs based only on individual caverns produces a fair bit of
-// duplciation, so it would be better to have tile "sets" where a
+// duplication, so it would be better to have tile "sets" where a
 // particular GFX has a unique ID. When generating caverns the array is
 // searched for that specific ID.
 // As a bonus, this could be a nice tool for generating more "advanced"
-// caverns: e.g. multiple floor/wall/converyor styles in a single cavern.
+// caverns: e.g. multiple floor/wall/conveyor styles in a single cavern.
 
 // Note: with these new unique IDs, these separate arrays can be joined
-// into one.  The cavern map data will also need updating.
+// into one. The cavern map data will also need updating
 
-// Possible new ID: 255 (all backgrounds)
+// Note: these ID are also used as colour attributes, so we'll need to
+// include that data in the new arrays.
 uint8_t backgrounds[20][9] = {
         {0,  0, 0, 0, 0, 0, 0, 0, 0},
         {8,  0, 0, 0, 0, 0, 0, 0, 0},
