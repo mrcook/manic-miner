@@ -64,7 +64,7 @@ bool Game_play() {
 
     // Yup, the game has started successfully
     gameIsRunning = true;
-    
+
     // The Main Loop
     while (gameIsRunning) {
         keyIntput = Terminal_getKey();
@@ -677,7 +677,7 @@ bool MOVEWILLY(int keyIntput) {
     uint16_t addr;
 
     // Does Willy's sprite occupy six cells at the moment?
-    if (!(willy.PIXEL_Y & 15)) {
+    if ((willy.PIXEL_Y & 15) == 0) {
         // Point HL at the left-hand cell below Willy's sprite
         addr = (uint16_t) (willy.LOCATION + 64);
 
@@ -719,9 +719,8 @@ bool MOVEWILLY(int keyIntput) {
                 if (speccy.memory[addr] != cavern.BACKGROUND.id) {
                     return MOVEWILLY2(keyIntput, addr);
                 }
-                addr--;
                 // Is the left-hand cell below Willy's sprite empty?
-                if (speccy.memory[addr] == cavern.BACKGROUND.id) {
+                if (speccy.memory[addr - 1] != cavern.BACKGROUND.id) {
                     return MOVEWILLY2(keyIntput, addr);
                 }
             }
@@ -828,18 +827,18 @@ void CRUMBLE(uint16_t addr) {
     split_address(addr, &msb, &lsb);
 
     msb += 27;
-    msb = (uint8_t) (msb | 7);
+    msb |= 7;
 
     while (true) {
         // Collect the pixels from the row above in A
         msb--;
 
         // Copy these pixels into the row below it. Point BC at the next row of pixels up
-        speccy.memory[build_address(msb, lsb)] = speccy.memory[build_address((uint8_t) (msb + 1), lsb)];
+        speccy.memory[build_address((uint8_t) (msb + 1), lsb)] = speccy.memory[build_address(msb, lsb)];
 
         // Have we dealt with the bottom seven pixel rows of the crumbling floor tile yet?
         // If not, jump back to deal with the next one up
-        if (msb & 7) {
+        if ((msb & 7) == 0) {
             break;
         }
     }
@@ -857,9 +856,6 @@ void CRUMBLE(uint16_t addr) {
 
     // The bottom row of pixels in the crumbling floor tile is clear.
     // Time to put a background tile in its place.
-
-    // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-    split_address(addr, &msb, &lsb);
 
     // Set HL to the address of the crumbling floor tile's location in the attribute buffer at 24064
     // Set the attribute at this location to that of the background tile
