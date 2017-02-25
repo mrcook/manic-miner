@@ -603,8 +603,8 @@ bool MOVEWILLY(int keyIntput) {
         uint8_t jump = willy.JUMPING;
 
         // Now -8<=A<=8 (and A is even)
-        jump &= ~(1 << 0);
-        jump -= 8;
+        jump &= ~(1 << 0); // RES 0,A
+        jump -= 8;         // SUB 8
 
         // Adjust Willy's pixel y-coordinate at PIXEL_Y depending on where Willy is in the jump
         willy.PIXEL_Y += jump;
@@ -612,9 +612,9 @@ bool MOVEWILLY(int keyIntput) {
         // Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate
         MOVEWILLY_7(willy.PIXEL_Y);
 
+        // NOTE: Pick up the attribute byte of the wall tile. The byte, not the whole sprite!
         // Is the top-left or top-right cell of Willy's sprite overlapping a wall tile?
-        if (memcmp(&speccy.memory[willy.PIXEL_Y / 2], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0 ||
-            memcmp(&speccy.memory[(willy.PIXEL_Y / 2) + 1], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+        if (speccy.memory[willy.PIXEL_Y] == cavern.WALL.id || speccy.memory[willy.PIXEL_Y + 1] == cavern.WALL.id) {
             MOVEWILLY_10();
             return false;
         }
@@ -674,21 +674,21 @@ bool MOVEWILLY(int keyIntput) {
     uint16_t addr;
 
     // Does Willy's sprite occupy six cells at the moment?
-    if ((willy.PIXEL_Y & 15) == 0) {
+    if (!(willy.PIXEL_Y & 15)) {
         // Point HL at the left-hand cell below Willy's sprite
         addr = (uint16_t) (willy.LOCATION + 64);
 
         // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
         // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
         // If so, make it crumble
-        if (memcmp(&speccy.memory[addr], cavern.CRUMBLING.sprite, sizeof(cavern.CRUMBLING.sprite)) == 0) {
+        if (speccy.memory[addr] == cavern.CRUMBLING.id) {
             CRUMBLE(addr);
         }
 
-        if (memcmp(&speccy.memory[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0) {
+        if (speccy.memory[addr] == cavern.NASTY1.id) {
             // Does the left-hand cell below Willy's sprite contain a nasty tile?
             // Jump if so
-        } else if (memcmp(&speccy.memory[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0) {
+        } else if (speccy.memory[addr] == cavern.NASTY2.id) {
             // Does the left-hand cell below Willy's sprite contain a nasty tile?
             // Jump if so
         } else {
@@ -698,14 +698,14 @@ bool MOVEWILLY(int keyIntput) {
             // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
             // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
             // If so, make it crumble
-            if (memcmp(&speccy.memory[addr], cavern.CRUMBLING.sprite, sizeof(cavern.CRUMBLING.sprite)) == 0) {
+            if (speccy.memory[addr] == cavern.CRUMBLING.id) {
                 CRUMBLE(addr);
             }
 
-            if (memcmp(&speccy.memory[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0) {
+            if (speccy.memory[addr] == cavern.NASTY1.id) {
                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
                 // Jump if so
-            } else if (memcmp(&speccy.memory[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0) {
+            } else if (speccy.memory[addr] == cavern.NASTY2.id) {
                 // Does the right-hand cell below Willy's sprite contain a nasty tile?
                 // Jump if so
             } else {
@@ -713,12 +713,12 @@ bool MOVEWILLY(int keyIntput) {
                 // Set the zero flag if the right-hand cell below Willy's sprite is empty
                 // Point HL at the left-hand cell below Willy's sprite
                 // Jump if the right-hand cell below Willy's sprite is not empty
-                if (memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0) {
+                if (speccy.memory[addr] != cavern.BACKGROUND.id) {
                     return MOVEWILLY2(keyIntput, addr);
                 }
                 addr--;
                 // Is the left-hand cell below Willy's sprite empty?
-                if (memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) != 0) {
+                if (speccy.memory[addr] == cavern.BACKGROUND.id) {
                     return MOVEWILLY2(keyIntput, addr);
                 }
             }
@@ -775,7 +775,6 @@ void MOVEWILLY_7(uint8_t y_coord) {
     // L=16*Y, where Y is Willy's screen y-coordinate (0-14)
     lsb = (uint8_t) (y_coord & 240);
 
-    // Clear A and the carry flag
     // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8)
     // if LSB bit 7 is set the `RL L` will set the Carry, which means we need to add one to the MSB
     // H=92 or 93 (MSB of the address of Willy's location in the attribute buffer)
@@ -862,7 +861,7 @@ void CRUMBLE(uint16_t addr) {
     // Set HL to the address of the crumbling floor tile's location in the attribute buffer at 24064
     // Set the attribute at this location to that of the background tile
     // Set HL back to the address of the crumbling floor tile's location in the attribute buffer at 23552
-    memcpy(&speccy.memory[build_address((uint8_t) (msb + 2), lsb)], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+    speccy.memory[build_address((uint8_t) (msb + 2), lsb)] = cavern.BACKGROUND.id;
 }
 
 // Move Willy (2)
@@ -883,8 +882,7 @@ bool MOVEWILLY2(int keyIntput, uint16_t addr) {
 
     uint8_t converyor_dir = 255;
     // Does the attribute byte of the left or right hand cell below Willy's sprite match that of the conveyor tile?
-    if (memcmp(&speccy.memory[addr], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0 ||
-        memcmp(&speccy.memory[addr + 1], cavern.CONVEYOR.sprite, sizeof(cavern.CONVEYOR.sprite)) == 0) {
+    if (speccy.memory[addr] == cavern.CONVEYOR.id || speccy.memory[addr + 1] == cavern.CONVEYOR.id) {
         // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
         // Now E=253 (bit 1 reset) if the conveyor is moving left, or 254 (bit 0 reset) if it's moving right
         // input = (uint8_t) (cavern.CONVEYOR.CONVDIR - 3);
@@ -993,7 +991,7 @@ void MOVEWILLY2_7() {
     // Pick up the attribute byte of the wall tile for the current cavern from WALL
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
-    if (memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+    if (speccy.memory[addr] == cavern.WALL.id) {
         return;
     }
 
@@ -1003,7 +1001,7 @@ void MOVEWILLY2_7() {
         // Point HL at the cell at (x-1,y+2)
         // Is there a wall tile in the cell pointed to by HL?
         // Return if so without moving Willy (his path is blocked)
-        if (memcmp(&speccy.memory[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+        if (speccy.memory[addr + 32] == cavern.WALL.id) {
             return;
         }
     }
@@ -1015,7 +1013,7 @@ void MOVEWILLY2_7() {
     addr -= 32;
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
-    if (memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+    if (speccy.memory[addr] == cavern.WALL.id) {
         return;
     }
 
@@ -1052,7 +1050,7 @@ void MOVEWILLY2_10() {
 
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
-    if (memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+    if (speccy.memory[addr] == cavern.WALL.id) {
         return;
     }
 
@@ -1062,7 +1060,7 @@ void MOVEWILLY2_10() {
         // Point HL at the cell at (x+2,y+2)
         // Is there a wall tile in the cell pointed to by HL?
         // Return if so without moving Willy (his path is blocked)
-        if (memcmp(&speccy.memory[addr + 32], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+        if (speccy.memory[addr + 32] == cavern.WALL.id) {
             return;
         }
     }
@@ -1071,7 +1069,7 @@ void MOVEWILLY2_10() {
 
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
-    if (memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+    if (speccy.memory[addr] == cavern.WALL.id) {
         return;
     }
 
@@ -1196,8 +1194,7 @@ void LIGHTBEAM() {
     // The beam-drawing loop begins here.
     while (true) {
         // Does HL point at a floor or wall tile? Return if so (the light beam stops here)
-        if (memcmp(&speccy.memory[addr], cavern.FLOOR.sprite, sizeof(cavern.FLOOR.sprite)) == 0 ||
-            memcmp(&speccy.memory[addr], cavern.WALL.sprite, sizeof(cavern.WALL.sprite)) == 0) {
+        if (speccy.memory[addr] == cavern.FLOOR.id || speccy.memory[addr] == cavern.WALL.id) {
             return;
         }
 
@@ -1213,7 +1210,7 @@ void LIGHTBEAM() {
             // Jump forward to draw the light beam over Willy
         } else {
             // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point)
-            if (memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) == 0) {
+            if (speccy.memory[addr] == cavern.BACKGROUND.id) {
                 // Toggle the value in DE between 32 and -1 (and therefore the
                 // direction of the light beam between vertically downwards and
                 // horizontally to the left): the light beam has hit a guardian
@@ -2117,9 +2114,9 @@ bool KONGBEAST() {
         // Change the attributes at (11,17) and (12,17) in the buffer at 24064
         // to match the background tile (the wall there is now gone)
         // FIXME: Blank Screen Buffer: Screen File = 22897
-        memcpy(&speccy.memory[24433], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+        speccy.memory[24433] = cavern.BACKGROUND.id;
         // FIXME: Blank Screen Buffer: Screen File = 22929
-        memcpy(&speccy.memory[24465], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+        speccy.memory[24465] = cavern.BACKGROUND.id;
 
         // FIXME: I guess we need to update HGUARD2 directly rather than this memeory address.
         // Update the seventh byte of the guardian definition at HGUARD2 so
@@ -2142,9 +2139,9 @@ bool KONGBEAST() {
         // Change the attributes of the floor beneath the Kong Beast in the
         // buffer at 24064 to match that of the background tile
         // FIXME: Blank Screen Buffer: Screen File = 22607
-        memcpy(&speccy.memory[24143], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+        speccy.memory[24143] = cavern.BACKGROUND.id;
         // FIXME: Blank Screen Buffer: Screen File = 16463
-        memcpy(&speccy.memory[24144], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite));
+        speccy.memory[24144] = cavern.BACKGROUND.id;
 
         // Point HL at (2,15) in the screen buffer at 28672
         // FIXME: Blank Screen Buffer: Screen File = 22608
@@ -2298,7 +2295,7 @@ bool CHKSWITCH(uint16_t addr) {
 
     // Has the switch already been flipped?
     // Return (with the zero flag reset) if so
-    if (memcpy(&speccy.memory[addr], cavern.EXTRA.sprite, sizeof(cavern.EXTRA.sprite)) == 0) {
+    if (speccy.memory[addr] == cavern.EXTRA.id) {
         return true;
     }
 
@@ -2396,7 +2393,7 @@ bool WILLYATTRS() {
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool WILLYATTR(uint16_t addr, uint8_t pix_y) {
     // Does this cell contain a background tile?
-    if (memcmp(&speccy.memory[addr], cavern.BACKGROUND.sprite, sizeof(cavern.BACKGROUND.sprite)) == 0) {
+    if (speccy.memory[addr] == cavern.BACKGROUND.id) {
         // Set the zero flag if we are going to retain the INK colour in this cell;
         // this happens only if the cell is in the bottom row and Willy's sprite
         // is confined to the top two rows.
@@ -2412,8 +2409,7 @@ bool WILLYATTR(uint16_t addr, uint8_t pix_y) {
 
     // Pick up the attribute byte of the nasty tiles for the current cavern
     // Has Willy hit a NASTY1 or NASTY2 kind? Kill Willy if so.
-    if (memcmp(&speccy.memory[addr], cavern.NASTY1.sprite, sizeof(cavern.NASTY1.sprite)) == 0 ||
-        memcmp(&speccy.memory[addr], cavern.NASTY2.sprite, sizeof(cavern.NASTY2.sprite)) == 0) {
+    if (speccy.memory[addr] == cavern.NASTY1.id || speccy.memory[addr] == cavern.NASTY2.id) {
         KILLWILLY();
         return true;
     }
