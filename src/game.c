@@ -62,6 +62,9 @@ bool Game_play() {
 
     int keyIntput;
 
+    // Yup, the game has started successfully
+    gameIsRunning = true;
+    
     // The Main Loop
     while (gameIsRunning) {
         keyIntput = Terminal_getKey();
