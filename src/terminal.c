@@ -94,46 +94,35 @@ void Terminal_getString(char *str, int bufferSize) {
 
 int Terminal_getKey() {
     int input;
+    int key = getch();
 
-    switch (getch()) {
+    switch (key) {
         case ERR:
-            input = MM_KEY_NONE;
+            // No key is currently being pressed
+            input = T_KEY_NONE;
             break;
         case ' ':
-        case KEY_UP:
-            input = MM_KEY_JUMP;
+            input = T_KEY_SPACE;
             break;
         case KEY_LEFT:
-            if (getch() == ' ') {
-                input = MM_KEY_LEFT_JUMP;
-            } else {
-                input = MM_KEY_LEFT;
-            }
+            input = T_KEY_LEFT;
             break;
         case KEY_RIGHT:
-            if (getch() == ' ') {
-                input = MM_KEY_RIGHT_JUMP;
-            } else {
-                input = MM_KEY_RIGHT;
-            }
+            input = T_KEY_RIGHT;
             break;
-        case '\n': case '\r': case KEY_ENTER:
-            input = MM_KEY_ENTER;
+        case KEY_UP:
+            input = T_KEY_UP;
             break;
-        case 'p':
-        case 'P':
-            input = MM_KEY_PAUSE;
+        case KEY_DOWN:
+            input = T_KEY_DOWN;
             break;
-        case 'q':
-        case 'Q':
-            input = MM_KEY_QUIT;
-            break;
-        case 'm':
-        case 'M':
-            input = MM_KEY_MUTE;
+        case '\n':
+        case '\r':
+        case KEY_ENTER:
+            input = T_KEY_ENTER;
             break;
         default:
-            input = MM_KEY_NONE;
+            input = key; // NOOP, forward all other key inputs to caller
     }
 
     return input;

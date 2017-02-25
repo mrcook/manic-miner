@@ -67,7 +67,8 @@ bool Game_play() {
 
     // The Main Loop
     while (gameIsRunning) {
-        keyIntput = Terminal_getKey();
+        keyIntput = processInput();
+        keyIntput = processMoveJumpInput(keyIntput);
 
         if (reinitialiseCavern) {
             loadCurrentCavern();
@@ -394,7 +395,7 @@ void ENDGAM() {
     // The following loop draws the boot's descent onto the plinth that supports Willy.
     for (bootDistanceFromTop = 0; bootDistanceFromTop < 98; bootDistanceFromTop += 4) {
         split_address(SBUFADDRS[bootDistanceFromTop], &msb, &lsb);
-        addr = build_address(msb - 32, lsb | 15); // center of screen
+        addr = build_address((uint8_t)(msb - 32), (uint8_t)(lsb | 15)); // center of screen
 
         // Draw the boot (see BOOT) at this location, without erasing the boot
         // at the previous location; this leaves the portion of the boot sprite
@@ -411,7 +412,13 @@ void ENDGAM() {
         Speccy_setBorderColour(border);
 
         // C=64; this value determines the duration of the sound effect
-        Speccy_makeSound(border, 64, (uint8_t)(distance / 216));
+        // Speccy_makeSound(border, 64, (uint8_t)(distance / 216));
+
+        // FIXME: delay would be in makeSound (which is wrong anyway),
+        // so we must delay to get the correct boot descending effect
+        for (int d = 64; d > 0; d--) {
+            millisleep(distance / 216);
+        }
 
         // Keep only bits 2 and 3
         distance = (uint8_t) (bootDistanceFromTop & 12);
@@ -424,6 +431,7 @@ void ENDGAM() {
         for (int i = 0; i < 512; i++) {
             Speccy_writeAttribute(22528 + i, distance);
         }
+        Terminal_redraw();
 
         Speccy_tick();
     }
@@ -2805,4 +2813,51 @@ void resetScreenAttrBuffers() {
     for (int i = 0; i < 4096; i++) {
         speccy.memory[24576 + i] = speccy.memory[28672 + i];
     }
+}
+
+int processInput() {
+    int input;
+
+    switch (Terminal_getKey()) {
+        case T_KEY_SPACE:  case T_KEY_UP:
+            input = MM_KEY_JUMP;
+            break;
+        case T_KEY_LEFT:
+            input = MM_KEY_LEFT;
+            break;
+        case T_KEY_RIGHT:
+            input = MM_KEY_RIGHT;
+            break;
+        case T_KEY_ENTER:
+            input = MM_KEY_ENTER;
+            break;
+        case 'p':
+        case 'P':
+            input = MM_KEY_PAUSE;
+            break;
+        case 'Q':
+            input = MM_KEY_QUIT;
+            break;
+        case 'm':
+        case 'M':
+            input = MM_KEY_MUTE;
+            break;
+        default:
+            input = MM_KEY_NONE;
+    }
+
+    return input;
+}
+
+// Check if player is pressing movement + jump keys
+int processMoveJumpInput(int firstInput) {
+    int input = processInput();
+
+    if (firstInput == MM_KEY_LEFT && input == MM_KEY_JUMP) {
+        return MM_KEY_LEFT_JUMP;
+    } else if (firstInput == MM_KEY_RIGHT && input == MM_KEY_JUMP) {
+        return MM_KEY_RIGHT_JUMP;
+    }
+
+    return firstInput;
 }

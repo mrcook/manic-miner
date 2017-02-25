@@ -5,16 +5,13 @@
 #include "coord.h"
 
 enum KeyboardInput {
-    MM_KEY_NONE,
-    MM_KEY_LEFT,
-    MM_KEY_RIGHT,
-    MM_KEY_JUMP,
-    MM_KEY_LEFT_JUMP,
-    MM_KEY_RIGHT_JUMP,
-    MM_KEY_ENTER,
-    MM_KEY_PAUSE,
-    MM_KEY_QUIT,
-    MM_KEY_MUTE,
+    T_KEY_NONE,
+    T_KEY_SPACE,
+    T_KEY_LEFT,
+    T_KEY_RIGHT,
+    T_KEY_UP,
+    T_KEY_DOWN,
+    T_KEY_ENTER,
 };
 
 void Terminal_init();

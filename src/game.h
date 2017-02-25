@@ -4,6 +4,20 @@
 
 #include "headers.h"
 
+enum GameInput {
+    MM_KEY_NONE,
+    MM_KEY_LEFT,
+    MM_KEY_RIGHT,
+    MM_KEY_JUMP,
+    MM_KEY_LEFT_JUMP,
+    MM_KEY_RIGHT_JUMP,
+
+    MM_KEY_ENTER,
+    MM_KEY_PAUSE,
+    MM_KEY_QUIT,
+    MM_KEY_MUTE,
+};
+
 typedef struct Game_ {
     int current_score;
     int highscore;
@@ -58,6 +72,12 @@ bool Game_play(void);
 //
 
 // private functions
+
+// Read keyboard and return key enums
+int processInput(void);
+
+// Check to see if player is pressing movement + jump keys
+int processMoveJumpInput(int firstInput);
 
 // check if the user has entered the cheat code
 bool checkCheatCode(void);
