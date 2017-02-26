@@ -165,7 +165,7 @@ bool Game_play() {
                 break;
             case 18:
                 // Solar Power Generator
-                LIGHTBEAM();
+                // LIGHTBEAM(); // FIXME: LIGHTBEAM() is broken!
                 break;
             default:
                 ; // NOOP
@@ -191,7 +191,6 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
 
         Terminal_redraw();
 
-        // FIXME: could probably have a `Cavern_isAirDepleted()` function, so `DECAIR()` doesn't need to return a bool.
         // Decrease the air remaining in the current cavern
         DECAIR();
 
@@ -251,6 +250,7 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
 void loadCurrentCavern() {
     // Copy the cavern definition into the game status buffer at 32768
     if (!Cavern_loadData(cavern.SHEET)) {
+        // Oops! We've not loaded the right amount of cavern data into memory
         Terminal_exit();
         exit(-1);
     }
@@ -315,7 +315,7 @@ void flashScreen() {
 
 // The air in the cavern has run out, or Willy has had a fatal accident, or it's
 // demo mode and it's time to show the next cavern.
-// IMPORTANT: return TRUE is goto START, FALSE is goto NEWSHT -MRC-
+// IMPORTANT: return `true` is `goto START`, `false` is `goto NEWSHT` -MRC-
 bool MANDEAD() {
     // If in demo mode move to the next cavern
     if (game.DEMO) {
@@ -557,7 +557,7 @@ void DRAWSHEET() {
     // The following loop draws the 512 tiles for the cavern
     // to the screen buffer at 28672.
     // This is done for each of the 3 screen blocks.
-    for (int i = 0; i < 0 + 512; i++) {
+    for (int i = 0; i < 512; i++) {
         if (i > 255) {
             offset = 2048;
         }
@@ -585,7 +585,9 @@ void DRAWSHEET() {
         // Copy the graphic bytes to their destination cells
         uint16_t row_addr = addr;
         for (int b = 0; b < 8; b++) {
-            speccy.memory[row_addr + offset] = sprite[b];
+            if (sprite != NULL) {
+                speccy.memory[row_addr + offset] = sprite[b];
+            }
             split_address(row_addr, &msb, &lsb);
             msb++;
             row_addr = build_address(msb, lsb);
@@ -1847,7 +1849,7 @@ bool NXSHEET() {
     uint8_t next_sheet = (uint8_t) (cavern.SHEET + 1);
 
     // Is the current cavern The Final Barrier?
-    if (next_sheet == 20) {
+    if (cavern.SHEET == 19) {
         // Are we in demo mode, or cheat mode activated?
         if (game.DEMO == 0 && game.CHEAT == false) {
             // Willy has made it through The Final Barrier without cheating.
