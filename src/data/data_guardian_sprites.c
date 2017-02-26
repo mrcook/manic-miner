@@ -210,9 +210,9 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
         },
 };
 
-
 // VGUARDS define the horizontal guardians.
 uint8_t Data_verticalGuardianLocations[20][4][7] = {
+        // Cavern #0
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -223,6 +223,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #1
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -233,6 +234,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #2
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -243,6 +245,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #3
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -253,6 +256,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #4
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -263,6 +267,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #5
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -273,6 +278,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #6
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -283,6 +289,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #7
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -293,6 +300,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #8
         {
                 // Vertical guardian 1: x=5, initial y=8, 5<=y<=100, initial y-increment=1
                 {67, 0, 8, 5, 1, 5, 100},
@@ -303,6 +311,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4: x=25, initial y=8, 5<=y<=100, initial y-increment=2
                 {66, 3, 8, 25, 2, 5, 100},
         },
+        // Cavern #9
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -313,6 +322,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #10
         {
                 // Vertical guardian 1: x=12, initial y=8, 2<=y<=56, initial y-increment=2
                 {67, 0, 8, 12, 2, 2, 56},
@@ -323,6 +333,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4: x=26, initial y=48, 4<=y<=100, initial y-increment=-3
                 {66, 3, 48, 26, 253, 4, 100},
         },
+        // Cavern #11
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -333,6 +344,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #12
         {
                 // Vertical guardian 1: x=5, initial y=8, 8<=y<=100, initial y-increment=2
                 {71, 0, 8, 5, 2, 8, 100},
@@ -343,6 +355,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #13
         {
                 // Vertical guardian 1: x=1, initial y=0, 0<=y<=72, y-increment=4
                 {15, 0, 0, 1, 4, 0, 72},
@@ -353,6 +366,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #14
         {
                 // Vertical guardian 1: x=9, initial y=40, 36<=y<=102, initial y-increment=2
                 {6, 0, 40, 9, 2, 36, 102},
@@ -363,6 +377,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #15
         {
                 // Vertical guardian 1 (unused)
                 {255,0,0,0,0,0,0},
@@ -373,6 +388,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0,0},
         },
+        // Cavern #16
         {
                 // Vertical guardian 1: x=3, initial y=64, 64<=y<=102, initial y-increment=2
                 {65, 0, 64, 3, 2, 64, 102},
@@ -383,6 +399,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4: x=27, initial y=0, 4<=y<=96, initial y-increment=4
                 {67, 3, 0, 27, 4, 4, 96},
         },
+        // Cavern #17
         {
                 // Vertical guardian 1: x=5, initial y=8, 5<=y<=104, initial y-increment=3
                 {67, 0, 8, 5, 3, 5, 104},
@@ -393,6 +410,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4: x=25, initial y=8, 5<=y<=104, initial y-increment=1
                 {6, 3, 8, 25, 1, 5, 104},
         },
+        // Cavern #18
         {
                 // Vertical guardian 1: x=5, initial y=64, 2<=y<=102, initial y-increment=3
                 {38, 0, 64, 5, 3, 2, 102},
@@ -403,6 +421,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 4 (unused)
                 {255,0,0,0,0,0},
         },
+        // Cavern #19
         {
                 // Vertical guardian 1: x=24, initial y=48, 40<=y<=103, initial y-increment=1
                 {7, 0, 48, 24, 1, 40, 103},
