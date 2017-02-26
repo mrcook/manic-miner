@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
         // Display the title screen and play the theme tune
         Game_play_intro();
 
-        game.DEMO = 64; // FIXME: only for testing
+//        game.DEMO = 64; // FIXME: only for testing
 
         // Initialise a new game, and play!
         if (Game_play()) {

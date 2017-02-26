@@ -1357,11 +1357,11 @@ bool EUGENE() {
     // Point HL at the address of Eugene's location in the screen buffer at 24576
     uint8_t y_coord = (uint8_t) (EUGHGT & 127);
     y_coord = rotl(y_coord, 1);
-    addr = SBUFADDRS[y_coord];
+    addr = SBUFADDRS[y_coord / 2];
     addr |= 15;
     split_address(addr, &msb, &lsb);
     y_coord++;
-    addr = SBUFADDRS[y_coord];
+    addr = SBUFADDRS[y_coord / 2];
     split_address(addr, &x_msb, &x_lsb);
     addr = build_address(x_msb, lsb);
 
@@ -1427,7 +1427,7 @@ void EUGENE_3(uint16_t addr, uint8_t ink_colour) {
     // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // Combine its PAPER colour with the chosen INK colour
     // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552
-    speccy.memory[addr] = (uint8_t) ((cavern.BACKGROUND.sprite[0] & 248) | speccy.memory[addr]);
+    speccy.memory[addr] = (uint8_t) ((cavern.BACKGROUND.id & 248) | speccy.memory[addr]);
 
     // Set the attribute byte for the top-right cell of the sprite in the attribute buffer at 23552
     addr++;
@@ -1501,7 +1501,7 @@ bool SKYLABS() {
         // LD D,131                // lookup table at SBUFADDRS that corresponds to the Skylab's pixel y-coordinate
         uint8_t y_coord = rotl(guardian->yCoord, 1);
         // LD A,(DE)               // Point HL at the address of the Skylab's location in
-        addr = SBUFADDRS[y_coord];
+        addr = SBUFADDRS[y_coord / 2];
         // ADD A,(IY+3)            // the screen buffer at 24576
         addr += guardian->xCoord;
         split_address(addr, &msb, &lsb);
@@ -1509,7 +1509,7 @@ bool SKYLABS() {
         // INC DE
         y_coord++;
         // LD A,(DE)
-        addr = SBUFADDRS[y_coord];
+        addr = SBUFADDRS[y_coord / 2];
 
         uint8_t y_msb, y_lsb;
         split_address(addr, &y_msb, &y_lsb);
@@ -1555,34 +1555,31 @@ bool VGUARDIANS() {
 
     // The guardian-moving loop begins here.
     for (int i = 0; i < 4; i++) {
-        GuardianVertical *guardian = &VGUARDS[i];
-
         // Have we dealt with all the guardians yet?
-        if (guardian->attribute == 255) {
+        if (VGUARDS[i].attribute == 255) {
             return false;
         }
 
         // Increment the guardian's animation frame, or reset to 0 if it overflowed to 4
-        if (guardian->frame < 3) {
-            guardian->frame++;
+        if (VGUARDS[i].frame < 3) {
+            VGUARDS[i].frame++;
         } else {
-            guardian->frame = 0;
+            VGUARDS[i].frame = 0;
         }
 
         // Pick up the guardian's pixel y-coordinate
         // Add the current y-coordinate increment
-        uint16_t y_coord = guardian->yCoord + guardian->yPixelIncrement;
+        uint16_t y_coord = (uint8_t) (VGUARDS[i].yCoord + VGUARDS[i].yPixelIncrement);
 
         // FIXME: JR based on C(arry) flag
         // Has the guardian reached the lowest/highest point of its path (minimum y-coordinate)?
         // If so, jump to change its direction of movement
-        if (y_coord != guardian->yCoordMinimum && y_coord != guardian->yCoordMaximum) {
-            // Update the guardian's pixel y-coordinate
-            guardian->yCoord += y_coord;
-        } else {
+        if (y_coord == VGUARDS[i].yCoordMinimum + 1 || y_coord == VGUARDS[i].yCoordMaximum) {
             // Negate the y-coordinate increment; this changes the guardian's direction of movement
-            // FIXME: this of course should still be a positive number! -MRC-
-            guardian->yPixelIncrement = (uint8_t) (-guardian->yPixelIncrement);
+            VGUARDS[i].yPixelIncrement = (uint8_t) (-VGUARDS[i].yPixelIncrement);
+        } else {
+            // Update the guardian's pixel y-coordinate
+            VGUARDS[i].yCoord = y_coord;
         }
 
         // Now that the guardian's movement has been dealt with, time to draw it.
@@ -1590,22 +1587,22 @@ bool VGUARDIANS() {
         // Pick up the guardian's pixel y-coordinate
         // Point DE at the entry in the screen buffer address lookup table at
         // SBUFADDRS that corresponds to the guardian's pixel y-coordinate.
-        y_coord = rotl((uint8_t) (guardian->yCoord & 127), 1);
-        uint16_t addr = SBUFADDRS[y_coord];
+        y_coord = rotl((uint8_t) (VGUARDS[i].yCoord & 127), 1);
+        uint16_t addr = SBUFADDRS[y_coord / 2];
 
         // Point HL at the address of the guardian's location in the screen buffer at 24576
         split_address(addr, &msb, &lsb);
-        lsb_bak = lsb | guardian->xCoord;
+        lsb_bak = lsb | VGUARDS[i].xCoord;
         y_coord++;
-        addr = SBUFADDRS[y_coord];
+        addr = SBUFADDRS[y_coord / 2];
         split_address(addr, &msb, &lsb);
         addr = build_address(msb, lsb_bak);
 
         // Pick up the guardian's animation frame (0-3). Multiply it by 32.
-        uint8_t anim_frame = rotr(guardian->frame, 3);
+        uint8_t anim_frame = rotr(VGUARDS[i].frame, 3);
 
         // Draw the guardian to the screen buffer at 24576
-        bool kill_willy = DRWFIX(&guardian->GGDATA[anim_frame], addr, 1);
+        bool kill_willy = DRWFIX(&VGUARDS[i].GGDATA[anim_frame], addr, 1);
 
         // Kill Willy if the guardian collided with him
         if (kill_willy) {
@@ -1615,17 +1612,17 @@ bool VGUARDIANS() {
 
         // Pick up the guardian's pixel y-coordinate
         // Point HL at the address of the guardian's location in the attribute buffer at 23552
-        addr = (uint16_t) (rotl((uint8_t) (guardian->yCoord & 64), 2) + 92);
+        addr = (uint16_t) (rotl((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
         split_address(addr, &msb, &lsb);
         msb_bak = msb;
 
-        addr = (uint16_t) (rotl(guardian->yCoord, 2) & 224);
+        addr = (uint16_t) (rotl(VGUARDS[i].yCoord, 2) & 224);
         split_address(addr, &msb, &lsb);
-        lsb |= guardian->xCoord;
+        lsb |= VGUARDS[i].xCoord;
         addr = build_address(msb_bak, lsb);
 
         // Set the attribute bytes for the guardian
-        EUGENE_3(addr, guardian->attribute);
+        EUGENE_3(addr, VGUARDS[i].attribute);
 
         // The current guardian definition has been dealt with. Time for the next one.
     }

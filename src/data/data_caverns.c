@@ -12,26 +12,26 @@
 //     * etc.
 
 char Data_cavernNames[20][32] = {
-        "         Central Cavern         ",
-        "          The Cold Room         ",
-        "          The Menagerie         ",
-        "   Abandoned Uranium Workings   ",
-        "         Eugene's Lair          ",
-        "       Processing Plant         ",
-        "            The Vat             ",
-        "Miner Willy meets the Kong Beast",
-        "        Wacky Amoebatrons       ",
-        "       The Endorian Forest      ",
-        "Attack of the Mutant Telephones ",
-        " Return of the Alien Kong Beast ",
-        "          Ore Refinery          ",
-        "       Skylab Landing Bay       ",
-        "            The Bank            ",
-        "      The Sixteenth Cavern      ",
-        "         The Warehouse          ",
-        "      Amoebatrons' Revenge      ",
-        "     Solar Power Generator      ",
-        "        The Final Barrier       ",
+        "         Central Cavern         ", // Cavern: 0
+        "          The Cold Room         ", // Cavern: 1
+        "          The Menagerie         ", // Cavern: 2
+        "   Abandoned Uranium Workings   ", // Cavern: 3
+        "         Eugene's Lair          ", // Cavern: 4
+        "       Processing Plant         ", // Cavern: 5
+        "            The Vat             ", // Cavern: 6
+        "Miner Willy meets the Kong Beast", // Cavern: 7
+        "        Wacky Amoebatrons       ", // Cavern: 8
+        "       The Endorian Forest      ", // Cavern: 9
+        "Attack of the Mutant Telephones ", // Cavern: 10
+        " Return of the Alien Kong Beast ", // Cavern: 11
+        "          Ore Refinery          ", // Cavern: 12
+        "       Skylab Landing Bay       ", // Cavern: 13
+        "            The Bank            ", // Cavern: 14
+        "      The Sixteenth Cavern      ", // Cavern: 15
+        "         The Warehouse          ", // Cavern: 16
+        "      Amoebatrons' Revenge      ", // Cavern: 17
+        "     Solar Power Generator      ", // Cavern: 18
+        "        The Final Barrier       ", // Cavern: 19
 };
 
 // Pixel y-coordinate * 2
