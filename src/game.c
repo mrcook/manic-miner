@@ -1571,10 +1571,9 @@ bool VGUARDIANS() {
         // Add the current y-coordinate increment
         uint8_t y_coord = (uint8_t) (VGUARDS[i].yCoord + VGUARDS[i].yPixelIncrement);
 
-        // FIXME: JR based on C(arry) flag
         // Has the guardian reached the lowest/highest point of its path (minimum y-coordinate)?
-        // If so, jump to change its direction of movement
-        if (y_coord == VGUARDS[i].yCoordMinimum + 1 || y_coord == VGUARDS[i].yCoordMaximum) {
+        // If so, change its direction of movement
+        if (y_coord < VGUARDS[i].yCoordMinimum || y_coord >= VGUARDS[i].yCoordMaximum) {
             // Negate the y-coordinate increment; this changes the guardian's direction of movement
             VGUARDS[i].yPixelIncrement = (uint8_t) (-VGUARDS[i].yPixelIncrement);
         } else {
