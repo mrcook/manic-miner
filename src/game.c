@@ -10,13 +10,18 @@ int CHEATDT[7] = {6, 0, 3, 1, 7, 6, 9};
 
 bool gameIsRunning = true;
 
-void Game_initialize(int lives, bool cheat) {
+void Game_initialize(int lives, bool cheat, int teleport) {
     Terminal_init();
     // Terminal_init(192, 512);
 
     Willy_initialize(lives);
 
     game.CHEAT = cheat;
+
+    if (teleport >= 0) {
+        game.teleportMode = true;
+        game.teleportCavernNumber = teleport;
+    }
 
     strcpy(game.airLabel, "AIR");
 
@@ -38,6 +43,12 @@ void Game_initialize(int lives, bool cheat) {
 bool Game_play() {
     // Should reset the current cavern data. Used in place of the `goto NEWSHT`
     static bool reinitialiseCavern = true;
+
+    if (game.teleportMode) {
+        cavern.SHEET = (uint8_t) game.teleportCavernNumber;
+    } else {
+        cavern.SHEET = 0;
+    }
 
     // Initialise the in-game music note index at NOTEINDEX
     game.NOTEINDEX = 0;
@@ -238,9 +249,6 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
 //     reinitialising the current cavern after Willy has lost a life)
 //     after NXSHEET.
 void loadCurrentCavern() {
-    // FIXME: only using CAVERN0, while porting -MRC-
-    cavern.SHEET = 0;
-
     // Copy the cavern definition into the game status buffer at 32768
     if (!Cavern_loadData(cavern.SHEET)) {
         Terminal_exit();
@@ -1836,8 +1844,7 @@ bool NXSHEET() {
 
     // Pick up the number of the current cavern from SHEET
     // Increment the cavern number
-    // uint8_t next_sheet = (uint8_t)(cavern.SHEET + 1);
-    uint8_t next_sheet = 0; // FIXME: always cervern 0 while testing!
+    uint8_t next_sheet = (uint8_t) (cavern.SHEET + 1);
 
     // Is the current cavern The Final Barrier?
     if (next_sheet == 20) {
@@ -1908,7 +1915,11 @@ bool NXSHEET() {
     }
 
     // Update the cavern number at SHEET
-    cavern.SHEET = next_sheet;
+    if (game.teleportMode) {
+        cavern.SHEET = (uint8_t) game.teleportCavernNumber;
+    } else {
+        cavern.SHEET = next_sheet;
+    }
 
     // The next section of code cycles the INK and PAPER colours of the current cavern.
 

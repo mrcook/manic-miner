@@ -47,6 +47,10 @@ typedef struct Game_ {
     // Cheat code: 6031769 key counter
     bool CHEAT;
 
+    // Play only the given cavern number if `teleportMode == true`
+    bool teleportMode;
+    int teleportCavernNumber;
+
     // Game UI texts
     char airLabel[3]; // was MESSAIR
     char HGHSCOR[6];
@@ -58,7 +62,7 @@ typedef struct Game_ {
 } Game;
 
 // Initialize game "boot up" variables
-void Game_initialize(int lives, bool cheat);
+void Game_initialize(int lives, bool cheat, int teleport);
 
 // Plays the intro music and text message
 void Game_play_intro(void);

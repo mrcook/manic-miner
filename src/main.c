@@ -13,20 +13,21 @@
 // Current game version
 static const char *version = "0.0.1";
 
-static bool getOptions(int argc, char *argv[], int *fps, int *lives, bool *cheat);
+static bool getOptions(int argc, char *argv[], int *teleport, int *fps, int *lives, bool *cheat);
 
 // The game has just loaded
 int main(int argc, char *argv[]) {
     int fps = 17;
     bool cheat = false;
     int lives = 2;
+    int teleport = -1;
 
-    if (!getOptions(argc, argv, &fps, &lives, &cheat)) {
+    if (!getOptions(argc, argv, &teleport, &fps, &lives, &cheat)) {
         return (0);
     }
 
     Speccy_initialize(fps);
-    Game_initialize(lives, cheat);
+    Game_initialize(lives, cheat, teleport);
 
     while (true) {
         // Initialise the game mode indicator at DEMO.
@@ -34,6 +35,8 @@ int main(int argc, char *argv[]) {
 
         // Display the title screen and play the theme tune
         Game_play_intro();
+
+        game.DEMO = 64; // FIXME: only for testing
 
         // Initialise a new game, and play!
         if (Game_play()) {
@@ -45,10 +48,11 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-bool getOptions(int argc, char *argv[], int *fps, int *lives, bool *cheat) {
+bool getOptions(int argc, char *argv[], int *teleport, int *fps, int *lives, bool *cheat) {
     int c;
+    int cavernNumber;
 
-    while ((c = getopt(argc, argv, "cl:s:h")) != -1) {
+    while ((c = getopt(argc, argv, "cl:s:t:h")) != -1) {
         switch (c) {
             case 'c':
                 *cheat = true;
@@ -59,6 +63,13 @@ bool getOptions(int argc, char *argv[], int *fps, int *lives, bool *cheat) {
                 break;
             case 's':
                 *fps = (int) strtol(optarg, (char **) NULL, 10);
+                break;
+            case 't':
+                cavernNumber = (int) strtol(optarg, (char **) NULL, 10);
+                if (cavernNumber >= 1 && cavernNumber <= 20) {
+                    *teleport = cavernNumber - 1;
+                    *cheat = true;
+                }
                 break;
             case 'h':
                 printf("Manic Miner %s\n", version);
@@ -74,6 +85,7 @@ bool getOptions(int argc, char *argv[], int *fps, int *lives, bool *cheat) {
                 printf("OPTIONS:\n");
                 printf("-l  NUMBER        Set number of lives (max: 2, default: 2)\n");
                 printf("-s  NUMBER        Set game speed / frames-per-second (default: 17)\n");
+                printf("-t  NUMBER        Teleport, and play only this cavern number (1-20, enables CHEAT mode)\n");
                 printf("\n");
                 return false;
             default:; // return true;
