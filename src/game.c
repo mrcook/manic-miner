@@ -145,7 +145,7 @@ bool Game_play() {
                     goto LOOP_4; // Willy has died!
                 }
                 break;
-            case 8:
+            case 8: case 10: case 12: case 14: case 16: case 17: case 19:
                 // Wacky Amoebatrons, or beyond
                 if (VGUARDIANS()) {
                     goto LOOP_4; // Willy has died!
@@ -1569,7 +1569,7 @@ bool VGUARDIANS() {
 
         // Pick up the guardian's pixel y-coordinate
         // Add the current y-coordinate increment
-        uint16_t y_coord = (uint8_t) (VGUARDS[i].yCoord + VGUARDS[i].yPixelIncrement);
+        uint8_t y_coord = (uint8_t) (VGUARDS[i].yCoord + VGUARDS[i].yPixelIncrement);
 
         // FIXME: JR based on C(arry) flag
         // Has the guardian reached the lowest/highest point of its path (minimum y-coordinate)?
