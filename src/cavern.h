@@ -58,5 +58,6 @@ typedef struct Cavern_ {
     uint8_t layout[512];
 } Cavern;
 
-void Cavern_initialize(void);
+bool Cavern_loadData(uint8_t id);
+
 bool Cavern_isAirDepleted(void);

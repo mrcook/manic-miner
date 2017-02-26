@@ -2,6 +2,7 @@
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
 #include "speccy.h"
+#include "data.h"
 #include "cavern.h"
 #include "conveyor.h"
 #include "game.h"
@@ -19,33 +20,10 @@ extern GuardianHorizontal HGUARDS[4];
 extern GuardianVertical VGUARDS[4];
 extern Willy willy;
 
-// Text and graphics
+// Still a few left overs
 extern uint8_t EUGDIR;
 extern uint8_t EUGHGT;
-extern uint8_t GGDATA[256]; // now only used for Kong Beast
-extern uint8_t SWORDFISH[32];
-
-extern uint8_t LRMOVEMENT[16];
-
-// data.c
-extern uint8_t WILLYDATA[256];
-extern uint16_t SBUFADDRS[128];
-
-extern int CHEATDT[7];
-
-extern uint8_t THEMETUNE[95][3];
-extern uint8_t GAMETUNE[64];
-
-extern uint8_t LOWERATTRS[512];
-extern uint8_t TITLESCR1[2048];
-extern uint8_t TITLESCR2[2048];
-
-extern uint8_t PLINTH[32];
-extern uint8_t BOOT[32];
-extern uint8_t EUGENEG[32];
-extern uint8_t CAVERN19[512];
-
-void initialize_cavern0();
+extern uint8_t GGDATA[256];
 
 // helpers.c
 void millisleep(int milliseconds);

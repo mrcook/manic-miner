@@ -14,18 +14,22 @@ set(SOURCE_FILES
         src/externs.h
         src/helpers.c
         src/globals.c
-        src/data.c
         src/speccy.h
         src/speccy.c
         src/terminal.h
         src/terminal.c
-        src/game.h
-        src/game.c
+        src/colour.h
+        src/coord.h
+        src/data.h
+        src/data/data_caverns.c
+        src/data/data_guardian_sprites.c
+        src/data/data_music.c
+        src/data/data_tiles.c
+        src/data/data_title_screen.c
+        src/data/data_willy_sprites.c
         src/conveyor.h
         src/cavern.h
         src/cavern.c
-        src/colour.h
-        src/coord.h
         src/guardian_horizontal.h
         src/guardian_horizontal.c
         src/guardian_vertical.h
@@ -34,6 +38,8 @@ set(SOURCE_FILES
         src/tile.h
         src/willy.h
         src/willy.c
+        src/game.h
+        src/game.c
         src/main.c)
 
 add_executable(manic_miner ${SOURCE_FILES})

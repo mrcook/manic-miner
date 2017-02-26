@@ -5,13 +5,8 @@
 
 #include "terminal.h"
 
-// EUGENE    - to hold Eugene's direction: 0=down, 1=up
-// KONGBEAST - to hold the Kong Beast's status: 0=on the ledge, 1=falling, 2=dead
-uint8_t EUGDIR;
-
-// EUGENE    - to hold Eugene's pixel y-coordinate
-// KONGBEAST - to hold the Kong Beast's pixel y-coordinate
-uint8_t EUGHGT;
+// Original password to enable cheat mode
+int CHEATDT[7] = {6, 0, 3, 1, 7, 6, 9};
 
 bool gameIsRunning = true;
 
@@ -40,7 +35,6 @@ void Game_initialize(int lives, bool cheat) {
 }
 
 // Returning true quits the game!
-// FIXME: uses `goto` statements!
 bool Game_play() {
     // Should reset the current cavern data. Used in place of the `goto NEWSHT`
     static bool reinitialiseCavern = true;
@@ -56,6 +50,9 @@ bool Game_play() {
 
     // Initialise the score at SCORE
     game.current_score = 0;
+
+    EUGDIR = 0;
+    EUGHGT = 0;
 
     // Prepare the screen; clear the entire Spectrum display file
     Speccy_clearScreen();
@@ -242,9 +239,13 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
 //     after NXSHEET.
 void loadCurrentCavern() {
     // FIXME: only using CAVERN0, while porting -MRC-
+    cavern.SHEET = 0;
 
     // Copy the cavern definition into the game status buffer at 32768
-    Cavern_initialize();
+    if (!Cavern_loadData(cavern.SHEET)) {
+        Terminal_exit();
+        exit(-1);
+    }
 
     //
     // Now, draw the screen
@@ -2591,7 +2592,7 @@ void Game_play_intro() {
     // Copy the attribute bytes from CAVERN19 to the top third of the attribute file
     uint16_t addr = 22528;
     for (int i = 0; i < 256; i++) {
-        Speccy_writeAttribute(addr + i, CAVERN19[i]);
+        Speccy_writeAttribute(addr + i, Data_cavernLayouts[19][i]);
     }
 
     // Copy LOWERATTRS to the bottom two-thirds of the attribute file
@@ -2611,15 +2612,9 @@ void Game_play_intro() {
     }
 
     // Scroll intro message across the screen
-    char *introMessage = ".  .  .  .  .  .  .  .  .  .  . MANIC MINER . . "
-            "© BUG-BYTE ltd. 1983 . . By Matthew Smith . . . "
-            "Q to P = Left & Right . . Bottom row = Jump . . "
-            "A to G = Pause . . H to L = Tune On/Off . . . "
-            "Guide Miner Willy through 20 lethal caverns"
-            " .  .  .  .  .  .  .  .";
     for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
         // Print 32 characters of the message at 20576 (19,0)
-        Speccy_printMessage(&introMessage[pos], 20576, 32);
+        Speccy_printMessage(&MESSINTRO[pos], 20576, 32);
 
         // Keep only bits 1 and 2, and move them into bits 6 and 7,
         // so that A holds 0, 64, 128 or 192;

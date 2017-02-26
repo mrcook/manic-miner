@@ -4,6 +4,8 @@
 
 #include "headers.h"
 
+extern uint8_t LRMOVEMENT[16];
+
 enum WillyFacing {
     WillyRight,
     WillyLeft,

@@ -1,3 +1,16 @@
+// Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
+
+#include "../headers.h"
+
+// Cavern initialisation data:
+//     * Cavern names and tile map.
+//     * Willy start location, and anim frame
+//     * Conveyor belts (tile gfx, location, etc.)
+//     * Item: keys (tile gfx, location, etc.)
+//     * Portals (gfx, location, etc.)
+//     * etc.
+
 char Data_cavernNames[20][32] = {
         "         Central Cavern         ",
         "          The Cold Room         ",
@@ -58,11 +71,11 @@ uint16_t Data_locations[20] = {
 };
 
 // Jumping animation counter. Always `0`
-uint8_t Data_jumpingStatues[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+uint8_t Data_jumpingStatuses[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 // Converyor Belts, which and specify the direction, location, and length of the conveyor:
 // { CONVDIR, CONVLOC, CONVLEN }
-uint16_t Data_conveyorBelts[20][3] = {
+uint16_t Data_conveyorBeltsParams[20][3] = {
         {
                 0, // Direction (left)
                 30760, // Location: (9,8)
@@ -172,7 +185,7 @@ uint8_t Data_borderColours[20] = { 2, 2, 2, 2, 1, 2, 4, 2, 1, 2, 2, 2, 1, 6, 2, 
 uint8_t Data_itemAttrs[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 // ITEMS inthe cavern
-uint8_t Data_itemsData[20][5][5] = {
+uint16_t Data_itemsData[20][5][5] = {
         {
                 // Item 1 at (0,9)
                 { 3, 23561, 96, 255 },
@@ -540,7 +553,7 @@ uint8_t Data_portalGraphics[20][32] = {
 };
 
 // PORTALLOC1: Location in the attribute buffer at 23552
-uint8_t Data_portalAttributeLocations[20] = {
+uint16_t Data_portalAttributeLocations[20] = {
         23997, // (13,29)
         23997, // (13,29)
         23933, // (11,29)
@@ -564,7 +577,7 @@ uint8_t Data_portalAttributeLocations[20] = {
 };
 
 // PORTALLOC2: Location in the screen buffer at 24576
-uint8_t Data_portalScreenLocations[20] = {
+uint16_t Data_portalScreenLocations[20] = {
         26813, // (13,29)
         26813, // (13,29)
         26749, // (11,29)
@@ -612,15 +625,12 @@ uint8_t Data_itemGraphics[20][8] = {
 };
 
 // AIR specifies the initial air supply in the cavern.
+// NOTE: although it's the same value, I think it's worth keeping as an array to
+// give more flexibility on future cavern design
 uint8_t Data_airSupplies[20] = { 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63 };
 
 // CLOCK: initialises the game clock.
 uint8_t Data_clockValues[20] = { 252, 252, 128, 128, 128, 128, 128, 128, 128, 248, 128, 128, 252, 248, 252, 248, 128, 128, 240, 252 };
-
-// NOTE: these are always initialize to `0`
-// EUGDIR and EUGHGT are used for eugene and Kong Beasts status
-uint8_t Data_EUGDIR = 0;
-uint8_t Data_EUGHGT = 0;
 
 
 //
@@ -1008,4 +1018,142 @@ uint8_t Data_cavernLayouts[20][512] = {
                 38,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,38,
                 38,66,66,66,66,66,66,66, 66,66,66,66,66,66,66,66, 66,66,66,66,66,66,66,66, 66,66,66,66,66,66,66,38,
         },
+};
+
+
+// Screen buffer address lookup table
+//
+// Used by the routines at ENDGAM, EUGENE, SKYLABS, VGUARDIANS, KONGBEAST and
+// DRAWWILLY. The value of the Nth entry (0<=N<=127) in this lookup table is the
+// screen buffer address for the point with pixel coordinates (x,y)=(0,N), with
+// the origin (0,0) at the top-left corner.
+uint16_t SBUFADDRS[128] = {
+  24576,              // y=0
+  24832,              // y=1
+  25088,              // y=2
+  25344,              // y=3
+  25600,              // y=4
+  25856,              // y=5
+  26112,              // y=6
+  26368,              // y=7
+  24608,              // y=8
+  24864,              // y=9
+  25120,              // y=10
+  25376,              // y=11
+  25632,              // y=12
+  25888,              // y=13
+  26144,              // y=14
+  26400,              // y=15
+  24640,              // y=16
+  24896,              // y=17
+  25152,              // y=18
+  25408,              // y=19
+  25664,              // y=20
+  25920,              // y=21
+  26176,              // y=22
+  26432,              // y=23
+  24672,              // y=24
+  24928,              // y=25
+  25184,              // y=26
+  25440,              // y=27
+  25696,              // y=28
+  25952,              // y=29
+  26208,              // y=30
+  26464,              // y=31
+  24704,              // y=32
+  24960,              // y=33
+  25216,              // y=34
+  25472,              // y=35
+  25728,              // y=36
+  25984,              // y=37
+  26240,              // y=38
+  26496,              // y=39
+  24736,              // y=40
+  24992,              // y=41
+  25248,              // y=42
+  25504,              // y=43
+  25760,              // y=44
+  26016,              // y=45
+  26272,              // y=46
+  26528,              // y=47
+  24768,              // y=48
+  25024,              // y=49
+  25280,              // y=50
+  25536,              // y=51
+  25792,              // y=52
+  26048,              // y=53
+  26304,              // y=54
+  26560,              // y=55
+  24800,              // y=56
+  25056,              // y=57
+  25312,              // y=58
+  25568,              // y=59
+  25824,              // y=60
+  26080,              // y=61
+  26336,              // y=62
+  26592,              // y=63
+  26624,              // y=64
+  26880,              // y=65
+  27136,              // y=66
+  27392,              // y=67
+  27648,              // y=68
+  27904,              // y=69
+  28160,              // y=70
+  28416,              // y=71
+  26656,              // y=72
+  26912,              // y=73
+  27168,              // y=74
+  27424,              // y=75
+  27680,              // y=76
+  27936,              // y=77
+  28192,              // y=78
+  28448,              // y=79
+  26688,              // y=80
+  26944,              // y=81
+  27200,              // y=82
+  27456,              // y=83
+  27712,              // y=84
+  27968,              // y=85
+  28224,              // y=86
+  28480,              // y=87
+  26720,              // y=88
+  26976,              // y=89
+  27232,              // y=90
+  27488,              // y=91
+  27744,              // y=92
+  28000,              // y=93
+  28256,              // y=94
+  28512,              // y=95
+  26752,              // y=96
+  27008,              // y=97
+  27264,              // y=98
+  27520,              // y=99
+  27776,              // y=100
+  28032,              // y=101
+  28288,              // y=102
+  28544,              // y=103
+  26784,              // y=104
+  27040,              // y=105
+  27296,              // y=106
+  27552,              // y=107
+  27808,              // y=108
+  28064,              // y=109
+  28320,              // y=110
+  28576,              // y=111
+  26816,              // y=112
+  27072,              // y=113
+  27328,              // y=114
+  27584,              // y=115
+  27840,              // y=116
+  28096,              // y=117
+  28352,              // y=118
+  28608,              // y=119
+  26848,              // y=120
+  27104,              // y=121
+  27360,              // y=122
+  27616,              // y=123
+  27872,              // y=124
+  28128,              // y=125
+  28384,              // y=126
+  28640,              // y=127
 };

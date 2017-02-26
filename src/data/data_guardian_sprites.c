@@ -1,6 +1,10 @@
-//
+// Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
+
 // Horizontal and Vertical guardian location data
-//
+// (See header files for details of the struct fields)
+
+#include "../headers.h"
 
 // HGUARDS define the horizontal guardians.
 uint16_t Data_horizontalGuardianLocations[20][4][6] = {
@@ -20,9 +24,9 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 2: y=13, initial x=29, 12<=x<=29, speed=normal
                 {13, 23997, 104, 7, 172, 189},
                 // Horizontal guardian 3 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Horizontal guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=13, initial x=19, 1<=x<=19, speed=normal
@@ -32,7 +36,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 3: y=3, initial x=18, 18<=x<=29, speed=normal
                 {66, 23666, 96, 0, 114, 125},
                 // Horizontal guardian 4 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=13, initial x=1, 1<=x<=10, speed=normal
@@ -40,19 +44,19 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 2: y=13, initial x=7, 6<=x<=15, speed=normal
                 {68, 23975, 104, 0, 166, 175},
                 // Horizontal guardian 3 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Horizontal guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=3, initial x=12, 1<=x<=12, speed=normal
-                {22 23660 96 7 97 108},
+                {22, 23660, 96, 7, 97, 108},
                 // Horizontal guardian 2: y=7, initial x=4, 4<=x<=12, speed=normal
-                {16 23780 96 0 228 236},
+                {16, 23780, 96, 0, 228, 236},
                 // Horizontal guardian 3 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Horizontal guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=8, initial x=6, 6<=x<=13, speed=normal
@@ -72,7 +76,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 3: y=13, initial x=17, 17<=x<=29, speed=normal
                 {6, 23985, 104, 0, 177, 189},
                 // Horizontal guardian 4 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=13, initial x=9, 1<=x<=9, speed=normal
@@ -80,7 +84,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 2: y=11, initial x=11, 11<=x<=15, speed=slow
                 {195, 23915, 104, 0, 107, 111},
                 // Horizontal guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Horizontal guardian 4: y=7, initial x=18, 18<=x<=21, speed=normal
                 {5, 23794, 96, 0, 242, 245}
         },
@@ -90,9 +94,9 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 2: y=10, initial x=16, 12<=x<=18, speed=slow
                 {133, 23888, 104, 0, 76, 82},
                 // Horizontal guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Horizontal guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=7, initial x=9, 9<=x<=14, speed=normal
@@ -112,7 +116,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 3: y=13, initial x=15, 5<=x<=19, speed=normal
                 {66, 23983, 104, 7, 165, 179},
                 // Horizontal guardian 4 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=13, initial x=9, 1<=x<=9, speed=normal
@@ -120,7 +124,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 2: y=11, initial x=11, 11<=x<=15, speed=slow
                 {198, 23915, 104, 0, 107, 111},
                 // Horizontal guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Horizontal guardian 4: y=6, initial x=25, 25<=x<=28, speed=normal
                 {5, 23769, 96, 0, 217, 220}
         },
@@ -142,17 +146,17 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 3: y=13, initial x=8, 4<=x<=26, speed=normal (unused)
                 {67, 23976, 104, 0, 164, 186},
                 // Horizontal guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=13, initial x=17, 17<=x<=19, speed=normal
                 {69, 23985, 104, 0, 177, 179},
                 // Horizontal guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Horizontal guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Horizontal guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=13, initial x=9, 1<=x<=18, speed=normal
@@ -170,9 +174,9 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 2: y=13, initial x=12, 12<=x<=25, speed=normal
                 {5, 23980, 104, 0, 172, 185},
                 // Horizontal guardian 3 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Horizontal guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Horizontal guardian 1: y=3, initial x=12, 12<=x<=18, speed=slow
@@ -198,87 +202,87 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 1: y=13, initial x=7, 7<=x<=22, speed=normal
                 {70, 23975, 104, 0, 167, 182},
                 // Horizontal guardian 2 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Horizontal guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Horizontal guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
 };
 
 
 // VGUARDS define the horizontal guardians.
-uint16_t Data_horizontalGuardianLocations[20][4][7] = {
+uint8_t Data_verticalGuardianLocations[20][4][7] = {
 
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1: x=5, initial y=8, 5<=y<=100, initial y-increment=1
@@ -292,13 +296,13 @@ uint16_t Data_horizontalGuardianLocations[20][4][7] = {
         },
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1: x=12, initial y=8, 2<=y<=56, initial y-increment=2
@@ -312,23 +316,23 @@ uint16_t Data_horizontalGuardianLocations[20][4][7] = {
         },
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1: x=5, initial y=8, 8<=y<=100, initial y-increment=2
                 {71, 0, 8, 5, 2, 8, 100},
                 // Vertical guardian 2 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1: x=1, initial y=0, 0<=y<=72, y-increment=4
@@ -338,7 +342,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][7] = {
                 // Vertical guardian 3: x=21, initial y=2, 2<=y<=56, y-increment=3
                 {14, 0, 2, 21, 3, 2, 56},
                 // Vertical guardian 4 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1: x=9, initial y=40, 36<=y<=102, initial y-increment=2
@@ -348,17 +352,17 @@ uint16_t Data_horizontalGuardianLocations[20][4][7] = {
                 // Vertical guardian 3: x=21, initial y=80, 32<=y<=104, initial y-increment=-3
                 {68, 3, 80, 21, 253, 32, 104},
                 // Vertical guardian 4 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 2 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1: x=3, initial y=64, 64<=y<=102, initial y-increment=2
@@ -388,17 +392,17 @@ uint16_t Data_horizontalGuardianLocations[20][4][7] = {
                 // Vertical guardian 3: x=16, initial y=80, 4<=y<=80, initial y-increment=1
                 {33, 2, 80, 16, 1, 4, 80},
                 // Vertical guardian 4 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
         },
         {
                 // Vertical guardian 1: x=24, initial y=48, 40<=y<=103, initial y-increment=1
                 {7, 0, 48, 24, 1, 40, 103},
                 // Vertical guardian 2 (unused)
-                {255,0,0,0,0,0,0},
+                {255,0,0,0,0,0},
                 // Vertical guardian 3 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
                 // Vertical guardian 4 (unused)
-                {0,0,0,0,0,0,0},
+                {0,0,0,0,0,0},
         },
 };
 
@@ -421,7 +425,6 @@ uint16_t Data_horizontalGuardianLocations[20][4][7] = {
 //     6    | Left  | 160 - 191
 //     7    | Left  | 192 - 227
 //     8    | Left  | 224 - 255
-
 uint8_t Data_guardianSprites[20][256] = {
         // CAVERN 0
         {

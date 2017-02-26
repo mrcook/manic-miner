@@ -1,3 +1,45 @@
+// Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
+
+// Tile GFX: walls, floor, boot, Eugene, etc.
+
+#include "../headers.h"
+
+// Swordfish graphic that appears in The Final Barrier when the game is completed.
+uint8_t SWORDFISH[32] = {
+        2, 160, 5, 67, 31, 228, 115, 255,
+        242, 248, 31, 63, 255, 228, 63, 195,
+        0, 0, 1, 0, 57, 252, 111, 2,
+        81, 1, 127, 254, 57, 252, 1, 0,
+};
+
+// Plinth graphic that appears on the Game Over screen.
+uint8_t PLINTH[32] = {
+        255, 255, 114, 78, 138, 81, 170, 85,
+        74, 82, 18, 72, 34, 68, 42, 84,
+        42, 84, 42, 84, 42, 84, 42, 84,
+        42, 84, 42, 84, 42, 84, 42, 84,
+};
+
+// Boot graphic that appears on the Game Over screen (see LOOPFT).
+// It also appears at the bottom of the screen next to the
+// remaining lives when cheat mode is activated (see LOOP_1).
+uint8_t BOOT[32] = {
+        42, 192, 53, 64, 63, 192, 9, 0,
+        9, 0, 31, 128, 16, 128, 16, 128,
+        17, 128, 34, 64, 32, 184, 89, 36,
+        68, 66, 68, 2, 68, 2, 255, 255,
+};
+
+// Eugene graphic data
+uint8_t EUGENEG[32] = {
+        3, 192, 15, 240, 31, 248, 31, 248,
+        49, 140, 14, 112, 111, 246, 174, 117,
+        177, 141, 159, 249, 155, 217, 140, 49,
+        71, 226, 2, 64, 2, 64, 14, 112,
+};
+
+
 //
 // Cavern Tiles data (Caverns 0 to 19)
 //
@@ -15,7 +57,7 @@
 
 // Note: these ID are also used as colour attributes, so we'll need to
 // include that data in the new arrays.
-uint8_t Data_backgrounds[20][9] = {
+uint8_t Data_tileBackgrounds[20][9] = {
         {0,  0, 0, 0, 0, 0, 0, 0, 0},
         {8,  0, 0, 0, 0, 0, 0, 0, 0},
         {0,  0, 0, 0, 0, 0, 0, 0, 0},
@@ -39,7 +81,7 @@ uint8_t Data_backgrounds[20][9] = {
 };
 
 // Possible new ID: 100 - 119
-uint8_t Data_floors[20][9] = {
+uint8_t Data_tileFloors[20][9] = {
         {66, 255, 255, 219, 110, 197, 64,  0,   0},
         {75, 255, 255, 219, 110, 197, 64,  0,   0},
         {69, 255, 255, 102, 153, 102, 153, 255, 0},
@@ -63,7 +105,7 @@ uint8_t Data_floors[20][9] = {
 };
 
 // Possible new ID: 120 - 139
-uint8_t Data_crumblingFloors[20][9] = {
+uint8_t Data_tileCrumblingFloors[20][9] = {
         {2,  255, 219, 165, 36,  82,  32,  8,   0},
         {11, 255, 219, 165, 36,  82,  32,  8,   0},
         {5,  255, 255, 102, 153, 66,  24,  234, 0},
@@ -87,7 +129,7 @@ uint8_t Data_crumblingFloors[20][9] = {
 };
 
 // Possible new ID: 140 - 159
-uint8_t Data_walls[20][9] = {
+uint8_t Data_tileWalls[20][9] = {
         {22,  34,  255, 136, 255, 34,  255, 136, 255},
         {22,  34,  255, 136, 255, 34,  255, 136, 255},
         {13,  129, 195, 165, 153, 153, 165, 195, 129},
@@ -111,7 +153,7 @@ uint8_t Data_walls[20][9] = {
 };
 
 // Possible new ID: 160 - 179
-uint8_t Data_conveyorBelts[20][9] = {
+uint8_t Data_tileConveyorBelts[20][9] = {
         {4,  240, 102, 240, 102, 0,   153, 255, 0},
         {14, 240, 102, 240, 102, 0,   153, 255, 0},
         {2,  240, 170, 240, 102, 102, 0,   0,   0},
@@ -135,7 +177,7 @@ uint8_t Data_conveyorBelts[20][9] = {
 };
 
 // Possible new ID: 180 - 199
-uint8_t Data_nasties1[20][9] = {
+uint8_t Data_tileNasties1[20][9] = {
         {68, 68, 40, 148, 81, 53,  214, 88,  16},
         {12, 68, 40, 148, 81, 53,  214, 88,  16},
         {6,  68, 40, 148, 81, 53,  214, 88,  16}, // (unused)
@@ -159,7 +201,7 @@ uint8_t Data_nasties1[20][9] = {
 };
 
 // Possible new ID: 200 - 219
-uint8_t Data_nasties2[20][9] = {
+uint8_t Data_tileNasties2[20][9] = {
         {5,  255, 254, 126, 124, 76,  76,  8,   8},
         {13, 255, 254, 94,  108, 76,  76,  8,   8},
         {67, 16,  214, 56,  214, 56,  68,  198, 40},
@@ -183,7 +225,7 @@ uint8_t Data_nasties2[20][9] = {
 };
 
 // Possible new ID: 220 - 239
-uint8_t Data_extras[20][9] = {
+uint8_t Data_tileExtras[20][9] = {
         {0,  0,   0,   0,   0,   0,   0,   0,   0},
         {0,  0,   0,   0,   0,   0,   0,   0,   0},
         {3,  16,  16,  16,  16,  16,  16,  16,  16},

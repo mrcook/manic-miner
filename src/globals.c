@@ -5,12 +5,9 @@
 
 #include "speccy.h"
 #include "cavern.h"
-#include "conveyor.h"
 #include "game.h"
 #include "guardian_horizontal.h"
 #include "guardian_vertical.h"
-#include "item.h"
-#include "portal.h"
 #include "willy.h"
 
 // Setup all game objects
@@ -21,9 +18,16 @@ GuardianHorizontal HGUARDS[4];
 GuardianVertical VGUARDS[4];
 Willy willy;
 
-// Now just the Kong Beast Guardian graphic data -- MRC
-uint8_t GGDATA[256];
+// Still a few left over globals
 
-// IMPORTANT: not initialized anywhere, so let's do that here -MRC-
-// Swordfish graphic data
-uint8_t SWORDFISH[32];
+// EUGENE    - to hold Eugene's direction: 0=down, 1=up
+// KONGBEAST - to hold the Kong Beast's status: 0=on the ledge, 1=falling, 2=dead
+uint8_t EUGDIR;
+
+// EUGENE    - to hold Eugene's pixel y-coordinate
+// KONGBEAST - to hold the Kong Beast's pixel y-coordinate
+uint8_t EUGHGT;
+
+// Kong Beast sprites (duplicate from Data_guardianSprites[8] and [12])
+// was previously used for others, but they now use the struct
+uint8_t GGDATA[256];
