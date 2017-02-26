@@ -1,4 +1,4 @@
-char cavernNames[20][32] = {
+char Data_cavernNames[20][32] = {
         "         Central Cavern         ",
         "          The Cold Room         ",
         "          The Menagerie         ",
@@ -22,19 +22,19 @@ char cavernNames[20][32] = {
 };
 
 // Pixel y-coordinate * 2
-uint8_t pixelYCoords[20] = { 208, 208, 208, 208, 48, 48, 208, 208, 208, 64, 16, 208, 208, 208, 208, 208, 48, 208, 160, 208 };
+uint8_t Data_pixelY[20] = { 208, 208, 208, 208, 48, 48, 208, 208, 208, 64, 16, 208, 208, 208, 208, 208, 48, 208, 160, 208 };
 
 // Animation frame
-uint8_t frames[20] = { 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0 };
+uint8_t Data_frames[20] = { 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0 };
 
 // Direction and movement flags: 0=facing right, 1=facing left
-uint8_t dmFlags[20] = { 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1 };
+uint8_t Data_dmFlags[20] = { 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1 };
 
 // Airborne status indicator. Always `0`
-uint8_t airbornStatues[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+uint8_t Data_airborneStatues[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 // Location in the attribute buffer at 23552
-uint16_t locations[20] = {
+uint16_t Data_locations[20] = {
         23970, // (13,2)
         23970, // (13,2)
         23970, // (13,2)
@@ -58,11 +58,11 @@ uint16_t locations[20] = {
 };
 
 // Jumping animation counter. Always `0`
-uint8_t jumpingStatues[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+uint8_t Data_jumpingStatues[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 // Converyor Belts, which and specify the direction, location, and length of the conveyor:
 // { CONVDIR, CONVLOC, CONVLEN }
-uint16_t converyorBelts[20][3] = {
+uint16_t Data_conveyorBelts[20][3] = {
         {
                 0, // Direction (left)
                 30760, // Location: (9,8)
@@ -166,13 +166,13 @@ uint16_t converyorBelts[20][3] = {
 };
 
 // BORDER colours
-uint8_t borderColours[20] = { 2, 2, 2, 2, 1, 2, 4, 2, 1, 2, 2, 2, 1, 6, 2, 2, 2, 1, 3, 2 };
+uint8_t Data_borderColours[20] = { 2, 2, 2, 2, 1, 2, 4, 2, 1, 2, 2, 2, 1, 6, 2, 2, 2, 1, 3, 2 };
 
 // ITEMATTR for the cavern
-uint8_t itemAttrs[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+uint8_t Data_itemAttrs[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 // ITEMS inthe cavern
-uint8_t itemsData[20][5][5] = {
+uint8_t Data_itemsData[20][5][5] = {
         {
                 // Item 1 at (0,9)
                 { 3, 23561, 96, 255 },
@@ -413,10 +413,10 @@ uint8_t itemsData[20][5][5] = {
 };
 
 // PORTAL attributes
-uint8_t portalAttributes[20] = { 14, 83, 14, 14, 87, 14, 11, 14, 14, 30, 86, 94, 79, 30, 86, 94, 76, 14, 78, 30 };
+uint8_t Data_portalAttributes[20] = { 14, 83, 14, 14, 87, 14, 11, 14, 14, 30, 86, 94, 79, 30, 86, 94, 76, 14, 78, 30 };
 
 // PORTALG graphics for the portals
-uint8_t portalGraphics[20][32] = {
+uint8_t Data_portalGraphics[20][32] = {
         {
                 255,255,146,73,182,219,255,255,
                 146,73,182,219,255,255,146,73,
@@ -540,7 +540,7 @@ uint8_t portalGraphics[20][32] = {
 };
 
 // PORTALLOC1: Location in the attribute buffer at 23552
-uint8_t portalAttributeLocations[20] = {
+uint8_t Data_portalAttributeLocations[20] = {
         23997, // (13,29)
         23997, // (13,29)
         23933, // (11,29)
@@ -564,7 +564,7 @@ uint8_t portalAttributeLocations[20] = {
 };
 
 // PORTALLOC2: Location in the screen buffer at 24576
-uint8_t portalScreenLocations[20] = {
+uint8_t Data_portalScreenLocations[20] = {
         26813, // (13,29)
         26813, // (13,29)
         26749, // (11,29)
@@ -588,7 +588,7 @@ uint8_t portalScreenLocations[20] = {
 };
 
 // ITEM defines the item graphic for a particular cavern. E.g a "key" on the first cavern.
-uint8_t itemGraphics[20][8] = {
+uint8_t Data_itemGraphics[20][8] = {
         {48,72,136,144,104,4,10,4},
         {80,168,84,168,84,44,2,1},
         {48,72,136,144,104,4,10,4},
@@ -612,22 +612,22 @@ uint8_t itemGraphics[20][8] = {
 };
 
 // AIR specifies the initial air supply in the cavern.
-uint8_t airSupplies[20] = { 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63 };
+uint8_t Data_airSupplies[20] = { 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63 };
 
 // CLOCK: initialises the game clock.
-uint8_t clockValues[20] = { 252, 252, 128, 128, 128, 128, 128, 128, 128, 248, 128, 128, 252, 248, 252, 248, 128, 128, 240, 252 };
+uint8_t Data_clockValues[20] = { 252, 252, 128, 128, 128, 128, 128, 128, 128, 248, 128, 128, 252, 248, 252, 248, 128, 128, 240, 252 };
 
 // NOTE: these are always initialize to `0`
 // EUGDIR and EUGHGT are used for eugene and Kong Beasts status
-uint8_t EUGDIR = 0;
-uint8_t EUGHGT = 0;
+uint8_t Data_EUGDIR = 0;
+uint8_t Data_EUGHGT = 0;
 
 
 //
 // Cavern attribute to specify the tile layout
 //
 
-uint8_t cavernLayouts[20][512] = {
+uint8_t Data_cavernLayouts[20][512] = {
 // Central Cavern (teleport: 6)
         {
                 22,0,0,0,0,0,0,0, 0,0,0,5,0,0,0,0, 5,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,22,

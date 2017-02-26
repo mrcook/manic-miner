@@ -15,7 +15,7 @@
 
 // Note: these ID are also used as colour attributes, so we'll need to
 // include that data in the new arrays.
-uint8_t backgrounds[20][9] = {
+uint8_t Data_backgrounds[20][9] = {
         {0,  0, 0, 0, 0, 0, 0, 0, 0},
         {8,  0, 0, 0, 0, 0, 0, 0, 0},
         {0,  0, 0, 0, 0, 0, 0, 0, 0},
@@ -39,7 +39,7 @@ uint8_t backgrounds[20][9] = {
 };
 
 // Possible new ID: 100 - 119
-uint8_t floors[20][9] = {
+uint8_t Data_floors[20][9] = {
         {66, 255, 255, 219, 110, 197, 64,  0,   0},
         {75, 255, 255, 219, 110, 197, 64,  0,   0},
         {69, 255, 255, 102, 153, 102, 153, 255, 0},
@@ -63,7 +63,7 @@ uint8_t floors[20][9] = {
 };
 
 // Possible new ID: 120 - 139
-uint8_t crumblingFloors[20][9] = {
+uint8_t Data_crumblingFloors[20][9] = {
         {2,  255, 219, 165, 36,  82,  32,  8,   0},
         {11, 255, 219, 165, 36,  82,  32,  8,   0},
         {5,  255, 255, 102, 153, 66,  24,  234, 0},
@@ -87,7 +87,7 @@ uint8_t crumblingFloors[20][9] = {
 };
 
 // Possible new ID: 140 - 159
-uint8_t walls[20][9] = {
+uint8_t Data_walls[20][9] = {
         {22,  34,  255, 136, 255, 34,  255, 136, 255},
         {22,  34,  255, 136, 255, 34,  255, 136, 255},
         {13,  129, 195, 165, 153, 153, 165, 195, 129},
@@ -111,7 +111,7 @@ uint8_t walls[20][9] = {
 };
 
 // Possible new ID: 160 - 179
-uint8_t conveyorBelts[20][9] = {
+uint8_t Data_conveyorBelts[20][9] = {
         {4,  240, 102, 240, 102, 0,   153, 255, 0},
         {14, 240, 102, 240, 102, 0,   153, 255, 0},
         {2,  240, 170, 240, 102, 102, 0,   0,   0},
@@ -135,7 +135,7 @@ uint8_t conveyorBelts[20][9] = {
 };
 
 // Possible new ID: 180 - 199
-uint8_t nasties1[20][9] = {
+uint8_t Data_nasties1[20][9] = {
         {68, 68, 40, 148, 81, 53,  214, 88,  16},
         {12, 68, 40, 148, 81, 53,  214, 88,  16},
         {6,  68, 40, 148, 81, 53,  214, 88,  16}, // (unused)
@@ -159,7 +159,7 @@ uint8_t nasties1[20][9] = {
 };
 
 // Possible new ID: 200 - 219
-uint8_t nasties2[20][9] = {
+uint8_t Data_nasties2[20][9] = {
         {5,  255, 254, 126, 124, 76,  76,  8,   8},
         {13, 255, 254, 94,  108, 76,  76,  8,   8},
         {67, 16,  214, 56,  214, 56,  68,  198, 40},
@@ -183,7 +183,7 @@ uint8_t nasties2[20][9] = {
 };
 
 // Possible new ID: 220 - 239
-uint8_t extras[20][9] = {
+uint8_t Data_extras[20][9] = {
         {0,  0,   0,   0,   0,   0,   0,   0,   0},
         {0,  0,   0,   0,   0,   0,   0,   0,   0},
         {3,  16,  16,  16,  16,  16,  16,  16,  16},

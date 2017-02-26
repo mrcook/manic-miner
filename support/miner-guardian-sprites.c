@@ -3,7 +3,7 @@
 //
 
 // HGUARDS define the horizontal guardians.
-uint16_t horizontalGuardianLocations[20][4][6] = {
+uint16_t Data_horizontalGuardianLocations[20][4][6] = {
         {
                 // Horizontal guardian 1: y=7, initial x=8, 8<=x<=15, speed=normal
                 {70, 23784, 96, 0, 232, 239},
@@ -208,7 +208,7 @@ uint16_t horizontalGuardianLocations[20][4][6] = {
 
 
 // VGUARDS define the horizontal guardians.
-uint16_t horizontalGuardianLocations[20][4][7] = {
+uint16_t Data_horizontalGuardianLocations[20][4][7] = {
 
         {
                 // Vertical guardian 1 (unused)
@@ -422,7 +422,7 @@ uint16_t horizontalGuardianLocations[20][4][7] = {
 //     7    | Left  | 192 - 227
 //     8    | Left  | 224 - 255
 
-uint8_t guardianSprites[20][256] = {
+uint8_t Data_guardianSprites[20][256] = {
         // CAVERN 0
         {
                 31,32,57,224,25,224,15,32,159,0,95,128,255,192,94,0,
