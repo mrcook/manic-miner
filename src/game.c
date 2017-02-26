@@ -1387,7 +1387,7 @@ bool EUGENE() {
     addr = build_address(msb, y_coord);
 
     // Assume we will draw Eugene with white INK
-    uint8_t ink_color = 7;
+    uint8_t ink_colour = 7;
 
     // Pick up the attribute of the last item drawn from ITEMATTR
     // Set the zero flag if all the items have been collected
@@ -1397,10 +1397,10 @@ bool EUGENE() {
         // Move bits 2-4 into bits 0-2 and clear the other bits; this value
         // (which decreases by one on each pass through the main loop) will
         // be Eugene's INK colour
-        ink_color = (uint8_t) (rotr(cavern.CLOCK, 2) & 7);
+        ink_colour = (uint8_t) (rotr(cavern.CLOCK, 2) & 7);
     }
 
-    EUGENE_3(addr, ink_color); // IMPORTANT: implicit jump -MRC-
+    EUGENE_3(addr, ink_colour); // IMPORTANT: implicit jump -MRC-
 
     return false;
 }
@@ -1409,9 +1409,9 @@ bool EUGENE() {
 // SKYLABS:    to set the attributes for a Skylab
 // VGUARDIANS: to set the attributes for a vertical guardian
 // KONGBEAST:  to set the attributes for the Kong Beast
-void EUGENE_3(uint16_t addr, uint8_t ink_color) {
+void EUGENE_3(uint16_t addr, uint8_t ink_colour) {
     // Save the INK colour in the attribute buffer temporarily
-    speccy.memory[addr] = ink_color;
+    speccy.memory[addr] = ink_colour;
 
     // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
     // Combine its PAPER colour with the chosen INK colour
@@ -1420,23 +1420,23 @@ void EUGENE_3(uint16_t addr, uint8_t ink_color) {
 
     // Set the attribute byte for the top-right cell of the sprite in the attribute buffer at 23552
     addr++;
-    speccy.memory[addr] = ink_color;
+    speccy.memory[addr] = ink_colour;
 
     // Set the attribute byte for the middle-left cell of the sprite in the attribute buffer at 23552
     addr += 31;
-    speccy.memory[addr] = ink_color;
+    speccy.memory[addr] = ink_colour;
 
     // Set the attribute byte for the middle-right cell of the sprite in the attribute buffer at 23552
     addr++;
-    speccy.memory[addr] = ink_color;
+    speccy.memory[addr] = ink_colour;
 
     // Set the attribute byte for the bottom-left cell of the sprite in the attribute buffer at 23552
     addr += 31;
-    speccy.memory[addr] = ink_color;
+    speccy.memory[addr] = ink_colour;
 
     // Set the attribute byte for the bottom-right cell of the sprite in the attribute buffer at 23552
     addr++;
-    speccy.memory[addr] = ink_color;
+    speccy.memory[addr] = ink_colour;
 }
 
 // Move and draw the Skylabs in Skylab Landing Bay
@@ -1912,9 +1912,9 @@ bool NXSHEET() {
     // The next section of code cycles the INK and PAPER colours of the current cavern.
 
     // Initialise A to 63 (INK 7: PAPER 7)
-    uint8_t colors = 63;
+    uint8_t colours = 63;
 
-    for (uint8_t ink = colors; ink > 0; ink--) {
+    for (uint8_t ink = colours; ink > 0; ink--) {
         // Set the attributes for the top two-thirds of the screen to the value in A
         for (int i = 0; i < 512; i++) {
             Speccy_writeAttribute(22528 + i, ink);

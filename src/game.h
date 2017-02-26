@@ -127,7 +127,7 @@ void MOVEHG(void);
 void LIGHTBEAM(void);
 bool DRAWHG(void);
 bool EUGENE(void);
-void EUGENE_3(uint16_t addr, uint8_t ink_color);
+void EUGENE_3(uint16_t addr, uint8_t ink_colour);
 bool SKYLABS(void);
 bool VGUARDIANS(void);
 void DRAWITEMS(void);
