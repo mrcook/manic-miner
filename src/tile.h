@@ -7,7 +7,7 @@
 typedef struct Tile_ {
     // Attribute byte is used both to match the appropriate location in the cavern mapping,
     // and set the sprite Attributes (colours)....I think!
-    int id;
+    uint8_t id;
 
     // The actual tile sprite
     uint8_t sprite[8];

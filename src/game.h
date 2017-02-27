@@ -83,9 +83,6 @@ int processInput(void);
 // Check to see if player is pressing movement + jump keys
 int processMoveJumpInput(int firstInput);
 
-// check if the user has entered the cheat code
-bool checkCheatCode(void);
-
 // Draws the AIR bar graphics to the screen
 void drawAirBar(void);
 

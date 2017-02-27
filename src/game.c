@@ -233,8 +233,6 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
             }
         }
 
-        checkCheatCode(); // if in cheat mode, detect cavern teleport number
-
         Speccy_tick();
     } // end main loop
 
@@ -1027,10 +1025,10 @@ void MOVEWILLY2_7() {
     }
 
     // Pick up the attribute byte of the wall tile for the current cavern from WALL
-    // FIXME: does this Carry flag get used anywhere?
-    // OR A                    // Clear the carry flag for subtraction
-    // SBC HL,DE               // Point HL at the cell at (x-1,y)
+    // Clear the carry flag for subtraction
+    // Point HL at the cell at (x-1,y)
     addr -= 32;
+
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked)
     if (speccy.memory[addr] == cavern.WALL.id) {
@@ -1375,19 +1373,13 @@ bool EUGENE() {
     y_coord |= 7;
 
     // IMPORTANT: SCF should set the carry flag, and the following RL loads that into bit 0 -MRC-
-    // SCF
-    // RL A
     msb = 0;
     if ((y_coord >> 7) & 1) {
         msb = 1;
     }
     y_coord = rotl(y_coord, 1);
     y_coord |= 1 << 0;
-    // LD L,A
-    // LD A,0
-    // ADC A,92
     msb += 92;
-    // LD H,A
     addr = build_address(msb, y_coord);
 
     // Assume we will draw Eugene with white INK
@@ -2630,71 +2622,6 @@ void Game_play_intro() {
             return;
         }
     }
-}
-
-bool checkCheatCode() {
-    // IMPORTANT: not handling cheat codes just yet -MRC-
-    /* TODO
-      // Here we check the teleport keys.
-      // NODEM1:
-      LD BC,61438             // Read keys 6-7-8-9-0
-      IN A,(C)
-      BIT 4,A                 // Is '6' (the activator key) being pressed?
-      JP NZ,CKCHEAT           // Jump if not
-      LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
-      CP 7                    // Has 6031769 been keyed in yet?
-      JP NZ,CKCHEAT           // Jump if not
-      LD B,247                // Read keys 1-2-3-4-5
-      IN A,(C)
-      CPL                     // Keep only bits 0-4 and flip them
-      AND 31
-      CP 20                   // Is the result 20 or greater?
-      JP NC,CKCHEAT           // Jump if so (this is not a cavern number)
-      LD (SHEET),A            // Store the cavern number at SHEET
-      JP NEWSHT               // Teleport into the cavern
-
-    // Now check the 6031769 keys.
-    CKCHEAT:
-      LD A,(CHEAT)            // Pick up the 6031769 key counter from CHEAT
-      CP 7                    // Has 6031769 been keyed in yet?
-      JP Z,LOOP               // If so, jump back to the start of the main loop
-      RLCA                    // Point IX at the corresponding entry in the 6031769
-      LD E,A                  // table at CHEATDT
-      LD D,0
-      LD IX,CHEATDT
-      ADD IX,DE
-      LD BC,63486             // Read keys 1-2-3-4-5
-      IN A,(C)
-      AND 31                  // Keep only bits 0-4
-      CP (IX+0)               // Does this match the first byte of the entry in the 6031769 table?
-      JR Z,CKNXCHT            // Jump if so
-      CP 31                   // Are any of the keys 1-2-3-4-5 being pressed?
-      JP Z,LOOP               // If not, jump back to the start of the main loop
-      CP (IX-2)               // Does the keyboard reading match the first byte of the previous entry in the 6031769 table?
-      JP Z,LOOP               // If so, jump back to the start of the main loop
-      XOR A                   // Reset the 6031769 key counter at CHEAT to 0 (an
-      LD (CHEAT),A            // incorrect key is being pressed)
-      JP LOOP                 // Jump back to the start of the main loop
-    CKNXCHT:
-      LD B,239                // Read keys 6-7-8-9-0
-      IN A,(C)
-      AND 31                  // Keep only bits 0-4
-      CP (IX+1)               // Does this match the second byte of the entry in the 6031769 table?
-      JR Z,INCCHT             // If so, jump to increment the 6031769 key counter
-      CP 31                   // Are any of the keys 6-7-8-9-0 being pressed?
-      JP Z,LOOP               // If not, jump back to the start of the main loop
-      CP (IX-1)               // Does the keyboard reading match the second byte of the previous entry in the 6031769 table?
-      JP Z,LOOP               // If so, jump back to the start of the main loop
-      XOR A                   // Reset the 6031769 key counter at CHEAT to 0 (an
-      LD (CHEAT),A            // incorrect key is being pressed)
-      JP LOOP                 // Jump back to the start of the main loop
-    INCCHT:
-      LD A,(CHEAT)            // Increment the 6031769 key counter at CHEAT (the
-      INC A                   // next key in the sequence is being pressed)
-      LD (CHEAT),A
-    */
-
-    return false;
 }
 
 void drawAirBar() {
