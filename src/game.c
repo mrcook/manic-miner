@@ -1128,14 +1128,11 @@ void MOVEHG() {
 
     // The guardian-moving loop begins here.
     for (int i = 0; i < 4; i++) {
-        GuardianHorizontal *guardian = &HGUARDS[i];
-
-        // FIXME: double check this, but probably correct.
-        if (guardian->speedColour == 255) {
+        if (HGUARDS[i].speedColour == 255) {
             return;
         }
 
-        if (GuardianH_is_blank(guardian)) {
+        if (HGUARDS[i].speedColour == 0) {
             continue;
         }
 
@@ -1144,7 +1141,7 @@ void MOVEHG() {
         current_clock = rotr(current_clock, 3);
 
         // Jump to consider the next guardian if this one is not due to be moved on this pass
-        if ((current_clock & guardian->speedColour)) {
+        if ((current_clock & HGUARDS[i].speedColour)) {
             continue;
         }
 
@@ -1153,49 +1150,49 @@ void MOVEHG() {
 
         // Is it 3 (the terminal frame for a guardian moving right)?
         // If so move the guardian right across a cell boundary or turn it round
-        if (guardian->frame == 3) {
+        if (HGUARDS[i].frame == 3) {
             // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
-            split_address(guardian->attributeAddress, &msb, &lsb);
+            split_address(HGUARDS[i].attributeAddress, &msb, &lsb);
 
             // Has the guardian reached the rightmost point in its path?
-            if (lsb == guardian->addressRightLSB) {
+            if (lsb == HGUARDS[i].addressRightLSB) {
                 // Set the animation frame to 7 (turning the guardian round to face left)
-                guardian->frame = 7;
+                HGUARDS[i].frame = 7;
                 // Jump forward to consider the next guardian
             } else {
                 // Set the animation frame to 0 (the initial frame for a guardian moving right)
-                guardian->frame = 0;
+                HGUARDS[i].frame = 0;
                 // Increment the guardian's x-coordinate (moving it right across a cell boundary)
                 lsb++;
-                guardian->attributeAddress = build_address(msb, lsb);
+                HGUARDS[i].attributeAddress = build_address(msb, lsb);
                 // Jump forward to consider the next guardian
             }
 
             // Is the current animation frame 4 (the terminal frame for a guardian moving left)?
             // If so move the guardian left across a cell boundary or turn it round
-        } else if (guardian->frame == 4) {
+        } else if (HGUARDS[i].frame == 4) {
             // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
-            split_address(guardian->attributeAddress, &msb, &lsb);
+            split_address(HGUARDS[i].attributeAddress, &msb, &lsb);
 
             // Has the guardian reached the leftmost point in its path?
-            if (lsb == guardian->addressLeftLSB) {
+            if (lsb == HGUARDS[i].addressLeftLSB) {
                 // Set the animation frame to 0 (turning the guardian round to face right)
-                guardian->frame = 0;
+                HGUARDS[i].frame = 0;
             } else {
                 // Set the animation frame to 7 (the initial frame for a guardian moving left)
-                guardian->frame = 7;
+                HGUARDS[i].frame = 7;
                 // Decrement the guardian's x-coordinate (moving it left across a cell boundary)
                 lsb--;
-                guardian->attributeAddress = build_address(msb, lsb);
+                HGUARDS[i].attributeAddress = build_address(msb, lsb);
             }
+        } else if (HGUARDS[i].frame > 4) {
+            // the animation frame is 5, 6 or 7
 
-            // Jump if the animation frame is 5, 6 or 7
-        } else if (guardian->frame == 5 || guardian->frame == 6 || guardian->frame == 7) {
             // Decrement the animation frame (this guardian is moving left)
-            guardian->frame--;
+            HGUARDS[i].frame--;
         } else {
             // Increment the animation frame (this guardian is moving right)
-            guardian->frame++;
+            HGUARDS[i].frame++;
         }
 
         // The current guardian definition has been dealt with. Time for the next one.
@@ -1259,24 +1256,21 @@ bool DRAWHG() {
 
     // The guardian-drawing loop begins here.
     for (int i = 0; i < 4; i++) {
-        GuardianHorizontal *guardian = &HGUARDS[i];
-
         // Have we dealt with all the guardians yet?
-        if (guardian->speedColour == 255) {
+        if (HGUARDS[i].speedColour == 255) {
             return false;
         }
 
         // Is this guardian definition blank? If so, skip it and consider the next one.
-        if (guardian->attributeAddress == 0) {
+        if (HGUARDS[i].speedColour == 0) {
             continue;
         }
 
         // Point HL at the address of the guardian's location in the attribute buffer at 23552
-        addr = guardian->attributeAddress;
+        addr = HGUARDS[i].attributeAddress;
 
         // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
-        uint8_t attr = (uint8_t) guardian->speedColour;
-        attr &= 127;
+        uint8_t attr = (uint8_t) (HGUARDS[i].speedColour & 127);
 
         // Set the attribute bytes for the guardian in the buffer at 23552
         speccy.memory[addr] = attr;
@@ -1288,24 +1282,23 @@ bool DRAWHG() {
         speccy.memory[addr] = attr;
 
         // Pick up the animation frame (0-7)
-        uint8_t anim_frame = (uint8_t) guardian->frame;
+        uint8_t anim_frame = (uint8_t) HGUARDS[i].frame;
         // Multiply it by 32
         anim_frame = rotr(anim_frame, 3);
 
-        // FIXME: we need to check this logic.
-        // Are we not in one of the first seven caverns, The Endorian Forest, or The Sixteenth Cavern?
-        if (cavern.SHEET > 7 && cavern.SHEET != 9 && cavern.SHEET != 15) {
+        // If we are not in one of the first seven caverns, The Endorian Forest, or The Sixteenth Cavern...
+        if (cavern.SHEET >= 7 && cavern.SHEET != 9 && cavern.SHEET != 15) {
             // Add 128 to E (the horizontal guardians in this cavern use frames 4-7 only)
             anim_frame |= (1 << 7);
         }
 
         // Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E)
         // Point HL at the address of the guardian's location in the screen buffer at 24576
-        split_address(guardian->attributeAddress, &msb, &lsb);
-        addr = build_address((uint8_t) guardian->addressMSB, lsb);
+        split_address(HGUARDS[i].attributeAddress, &msb, &lsb);
+        addr = build_address((uint8_t) HGUARDS[i].addressMSB, lsb);
 
         // Draw the guardian to the screen buffer at 24576
-        bool kill_willy = DRWFIX(&guardian->GGDATA[anim_frame], addr, 1);
+        bool kill_willy = DRWFIX(&HGUARDS[i].GGDATA[anim_frame], addr, 1);
 
         // Kill Willy if the guardian collided with him
         if (kill_willy) {
@@ -1459,69 +1452,61 @@ bool SKYLABS() {
 
     // The Skylab-moving loop begins here.
     for (int i = 0; i < 4; i++) {
-        GuardianVertical *guardian = &VGUARDS[i];
-
         // Have we dealt with all the Skylabs yet? If so, re-enter the main loop
-        if (guardian->attribute == 255) {
-            break;
+        if (VGUARDS[i].attribute == 255) {
+            return false;
         }
 
         // Has it reached its crash site yet?
-        if (guardian->yCoord != guardian->yCoordMaximum) {
+        if (VGUARDS[i].yCoord < VGUARDS[i].yCoordMaximum) {
             // Increment the Skylab's y-coordinate (moving it downwards)
-            guardian->yCoord += guardian->yPixelIncrement;
+            VGUARDS[i].yCoord += VGUARDS[i].yPixelIncrement;
         } else {
             // The Skylab has reached its crash site. Start or continue its disintegration.
 
             // Increment the animation frame
-            guardian->frame++;
+            VGUARDS[i].frame++;
 
             // Pick up the animation frame.
             // Has the Skylab completely disintegrated yet?
-            if (guardian->frame == 8) {
+            if (VGUARDS[i].frame == 8) {
                 // Reset the Skylab's pixel y-coordinate
-                guardian->yCoord = guardian->yCoordMinimum;
+                VGUARDS[i].yCoord = VGUARDS[i].yCoordMinimum;
 
                 // Add 8 to the Skylab's x-coordinate (wrapping around at the right side of the screen)
-                guardian->xCoord += 8;
-                guardian->xCoord &= 31;
+                VGUARDS[i].xCoord += 8;
+                VGUARDS[i].xCoord &= 31;
 
                 // Reset the animation frame to 0
-                guardian->frame = 0;
+                VGUARDS[i].frame = 0;
             }
         }
 
         // Now that the Skylab's movement has been dealt with, time to draw it.
 
-        // FIXME: are these address calculations correct? -MRC-
-        // Are x/y coords uint16_t or uint8_t values?
+        // Pickup the entry in the screen buffer address lookup table at SBUFADDRS
+        // that corresponds to the Skylab's pixel y-coordinate
+        uint8_t y_coord = rotl(VGUARDS[i].yCoord, 1);
 
-        // LD E,(IY+2)             // Pick up the Skylab's pixel y-coordinate in E
-        // RLC E                   // Point DE at the entry in the screen buffer address
-        // LD D,131                // lookup table at SBUFADDRS that corresponds to the Skylab's pixel y-coordinate
-        uint8_t y_coord = rotl(guardian->yCoord, 1);
-        // LD A,(DE)               // Point HL at the address of the Skylab's location in
+        // Point HL at the address of the Skylab's location in the screen buffer at 24576
         addr = SBUFADDRS[y_coord / 2];
-        // ADD A,(IY+3)            // the screen buffer at 24576
-        addr += guardian->xCoord;
+        addr += VGUARDS[i].xCoord;
+
         split_address(addr, &msb, &lsb);
-        // LD L,A
-        // INC DE
         y_coord++;
-        // LD A,(DE)
+
         addr = SBUFADDRS[y_coord / 2];
 
         uint8_t y_msb, y_lsb;
         split_address(addr, &y_msb, &y_lsb);
-        // LD H,A
         addr = build_address(y_msb, lsb);
 
         // Pick up the animation frame (0-7). Multiply it by 32.
         // Skylab sprite (at GGDATA+A)
-        uint8_t sprite_offset = rotr(guardian->frame, 3);
+        uint8_t sprite_offset = rotr(VGUARDS[i].frame, 3);
 
         // Draw the Skylab to the screen buffer at 24576
-        bool kill_willy = DRWFIX(&guardian->GGDATA[sprite_offset], addr, 1);
+        bool kill_willy = DRWFIX(&VGUARDS[i].GGDATA[sprite_offset], addr, 1);
 
         // Kill Willy if the Skylab collided with him
         if (kill_willy) {
@@ -1530,16 +1515,16 @@ bool SKYLABS() {
         }
 
         // Point HL at the address of the Skylab's location in the attribute buffer at 23552
-        addr = (uint16_t) (rotl((uint8_t) (guardian->yCoord & 64), 2) + 92);
+        addr = (uint16_t) (rotl((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
         split_address(addr, &msb, &lsb);
         uint8_t msb_bak = msb;
-        addr = (uint8_t) (rotl(guardian->yCoord, 2) & 224);
-        addr |= guardian->xCoord;
+        addr = (uint8_t) (rotl(VGUARDS[i].yCoord, 2) & 224);
+        addr |= VGUARDS[i].xCoord;
         split_address(addr, &msb, &lsb);
         addr = build_address(msb_bak, lsb);
 
         // Set the attribute bytes for the Skylab
-        EUGENE_3(addr, guardian->attribute);
+        EUGENE_3(addr, VGUARDS[i].attribute);
 
         // The current guardian definition has been dealt with. Time for the next one.
     }

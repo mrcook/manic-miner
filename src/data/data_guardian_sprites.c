@@ -8,6 +8,7 @@
 
 // HGUARDS define the horizontal guardians.
 uint16_t Data_horizontalGuardianLocations[20][4][6] = {
+        // Cavern #0 - Central Cavern
         {
                 // Horizontal guardian 1: y=7, initial x=8, 8<=x<=15, speed=normal
                 {70, 23784, 96, 0, 232, 239},
@@ -18,6 +19,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {0,0,0,0,0,0},
         },
+        // Cavern #1 - The Cold Room
         {
                 // Horizontal guardian 1: y=3, initial x=18, 1<=x<=18, speed=normal
                 {14, 23666, 96, 7, 97, 114},
@@ -28,6 +30,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {0,0,0,0,0,0},
         },
+        // Cavern #2 - The Menagerie
         {
                 // Horizontal guardian 1: y=13, initial x=19, 1<=x<=19, speed=normal
                 {68, 23987, 104, 7, 161, 179},
@@ -38,6 +41,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {255,0,0,0,0,0},
         },
+        // Cavern #3 - Abandoned Uranium Workings
         {
                 // Horizontal guardian 1: y=13, initial x=1, 1<=x<=10, speed=normal
                 {66, 23969, 104, 0, 161, 170},
@@ -48,6 +52,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {0,0,0,0,0,0},
         },
+        // Cavern #4 - Eugene's Lair
         {
                 // Horizontal guardian 1: y=3, initial x=12, 1<=x<=12, speed=normal
                 {22, 23660, 96, 7, 97, 108},
@@ -58,6 +63,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {0,0,0,0,0,0},
         },
+        // Cavern #5 - Processing Plant
         {
                 // Horizontal guardian 1: y=8, initial x=6, 6<=x<=13, speed=normal
                 {70, 23814, 104, 0, 6, 13},
@@ -68,6 +74,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4: y=13, initial x=24, 24<=x<=29, speed=normal
                 {6, 23992, 104, 3, 184, 189}
         },
+        // Cavern #6 - The Vat
         {
                 // Horizontal guardian 1: y=1, initial x=15, 15<=x<=29, speed=normal
                 {69, 23599, 96, 0, 47, 61},
@@ -78,6 +85,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {255,0,0,0,0,0},
         },
+        // Cavern #7 - Miner Willy meets the Kong
         {
                 // Horizontal guardian 1: y=13, initial x=9, 1<=x<=9, speed=normal
                 {68, 23977, 104, 7, 161, 169},
@@ -88,6 +96,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4: y=7, initial x=18, 18<=x<=21, speed=normal
                 {5, 23794, 96, 0, 242, 245}
         },
+        // Cavern #8 - Wacky Amoebatrons
         {
                 // Horizontal guardian 1: y=3, initial x=12, 12<=x<=18, speed=normal
                 {68, 23660, 96, 0, 108, 114},
@@ -98,6 +107,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {0,0,0,0,0,0},
         },
+        // Cavern #9 - The Endorian Forest
         {
                 // Horizontal guardian 1: y=7, initial x=9, 9<=x<=14, speed=normal
                 {70, 23785, 96, 0, 233, 238},
@@ -108,6 +118,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4: y=5, initial x=18, 17<=x<=21, speed=normal
                 {5, 23730, 96, 0, 177, 181}
         },
+        // Cavern #10 - Attack of the Mutant Telephones
         {
                 // Horizontal guardian 1: y=3, initial x=15, 15<=x<=24, speed=normal
                 {70, 23663, 96, 0, 111, 120},
@@ -118,6 +129,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {255,0,0,0,0,0},
         },
+        // Cavern #11 - Return of the Alien Kong Beast
         {
                 // Horizontal guardian 1: y=13, initial x=9, 1<=x<=9, speed=normal
                 {68, 23977, 104, 7, 161, 169},
@@ -128,6 +140,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4: y=6, initial x=25, 25<=x<=28, speed=normal
                 {5, 23769, 96, 0, 217, 220}
         },
+        // Cavern #12 - Ore Refinery
         {
                 // Horizontal guardian 1: y=1, initial x=7, 7<=x<=29, speed=normal
                 {67, 23591, 96, 0, 39, 61},
@@ -138,6 +151,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4: y=10, initial x=18, 7<=x<=29, speed=slow
                 {194, 23890, 104, 0, 71, 93}
         },
+        // Cavern #13 - Skylab Landing Bay
         {
                 // Horizontal guardian 1: y=7, initial x=9, 9<=x<=14, speed=slow (unused)
                 {255, 23785, 96, 0, 233, 238},
@@ -148,6 +162,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {0,0,0,0,0,0},
         },
+        // Cavern #14 - The Bank
         {
                 // Horizontal guardian 1: y=13, initial x=17, 17<=x<=19, speed=normal
                 {69, 23985, 104, 0, 177, 179},
@@ -158,6 +173,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {0,0,0,0,0,0},
         },
+        // Cavern #15 - The Sixteenth Cavern
         {
                 // Horizontal guardian 1: y=13, initial x=9, 1<=x<=18, speed=normal
                 {68, 23977, 104, 0, 161, 178},
@@ -168,6 +184,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4: y=5, initial x=26, 25<=x<=29, speed=slow
                 {133, 23738, 96, 0, 185, 189}
         },
+        // Cavern #16 - The Warehouse
         {
                 // Horizontal guardian 1: y=13, initial x=5, 5<=x<=8, speed=slow
                 {194, 23973, 104, 0, 165, 168},
@@ -178,6 +195,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4 (unused)
                 {0,0,0,0,0,0},
         },
+        // Cavern #17 - Amoebatrons' Revenge
         {
                 // Horizontal guardian 1: y=3, initial x=12, 12<=x<=18, speed=slow
                 {196, 23660, 96, 0, 108, 114},
@@ -188,6 +206,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4: y=13, initial x=16, 12<=x<=18, speed=normal
                 {6, 23984, 104, 7, 172, 178}
         },
+        // Cavern #18 - Solar Power Generator
         {
                 // Horizontal guardian 1: y=3, initial x=24, 23<=x<=29, speed=normal
                 {38, 23672, 96, 0, 119, 125},
@@ -198,6 +217,7 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
                 // Horizontal guardian 4: y=13, initial x=16, 13<=x<=29, speed=normal
                 {38, 23984, 104, 0, 173, 189}
         },
+        // Cavern #19 - The Final Barrier
         {
                 // Horizontal guardian 1: y=13, initial x=7, 7<=x<=22, speed=normal
                 {70, 23975, 104, 0, 167, 182},
