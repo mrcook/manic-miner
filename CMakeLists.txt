@@ -11,7 +11,8 @@ set(CMAKE_C_STANDARD 11)
 
 set(SOURCE_FILES
         src/headers.h
-        src/externs.h
+        src/globals.h
+        src/helpers.h
         src/helpers.c
         src/globals.c
         src/speccy.h
@@ -31,7 +32,6 @@ set(SOURCE_FILES
         src/cavern.h
         src/cavern.c
         src/guardian_horizontal.h
-        src/guardian_horizontal.c
         src/guardian_vertical.h
         src/item.h
         src/portal.h

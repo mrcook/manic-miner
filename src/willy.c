@@ -1,6 +1,10 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#include "externs.h"
+#include "headers.h"
+#include "data.h"
+#include "globals.h"
+#include "willy.h"
 
 void Willy_initialize(int lives) {
     willy.NOMEN = lives;

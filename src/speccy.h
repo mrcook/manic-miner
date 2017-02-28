@@ -1,5 +1,11 @@
 // Speccy library Copyright 2017 Michael R. Cook
 
+#ifndef MANIC_MINER_SPECCY_H
+#define MANIC_MINER_SPECCY_H
+
+
+#include "headers.h"
+
 // Simple ZX Spectrum platform wrapper to aid developers porting Z80 software.
 
 // Memory Layout
@@ -11,23 +17,17 @@
 // 23672: Interrupt counter (stored in the system variables).
 // The interrupt service routine in the ROM updates the Spectrum’s 24-bit
 // frames counter 50 times per second, as well as doing other things.
+// The Spectrum generates 50 screen updates per second (frames/interrupts)
+// and dictates the speed at which your game runs at.
+// Usually 50, 25, or 17. E.g. Manic Miner runs at 17 FPS
 
 // NOTE: the user can use the address space from 23552 onwards!
-
-#pragma once
-
-#include "headers.h"
 
 static const int TOTAL_MEMORY = 1024 * 64;
 static const int SCREEN_SIZE = 6144;
 static const int ATTR_SIZE = 768;
 
 typedef struct Speccy_ {
-    // The Spectrum generates 50 screen updates per second (frames/interrupts)
-    // and dictates the speed at which your game runs at.
-    // Usually 50, 25, or 17. E.g. Manic Miner runs at 17 FPS
-    int framesPerSecond;
-
     // Used to calculate the correct frame rate, during play
     int frameTick;
 
@@ -123,3 +123,6 @@ uint8_t rotl(uint8_t a, uint8_t n);
 
 // Rotate right n places
 uint8_t rotr(uint8_t a, uint8_t n);
+
+
+#endif //MANIC_MINER_SPECCY_H

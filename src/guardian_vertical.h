@@ -1,6 +1,9 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#pragma once
+#ifndef MANIC_MINER_GUARDIAN_VERTICAL_H
+#define MANIC_MINER_GUARDIAN_VERTICAL_H
+
 
 #include "headers.h"
 
@@ -36,3 +39,6 @@ typedef struct GuardianVertical_ {
     // Guardian graphic data
     uint8_t GGDATA[256];
 } GuardianVertical;
+
+
+#endif //MANIC_MINER_GUARDIAN_VERTICAL_H

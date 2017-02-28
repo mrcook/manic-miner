@@ -1,6 +1,8 @@
 // Curses Terminal Wrapper Copyright 2017 Michael R. Cook
 
-#pragma once
+#ifndef MANIC_MINER_TERMINAL_H
+#define MANIC_MINER_TERMINAL_H
+
 
 #include "coord.h"
 
@@ -37,3 +39,6 @@ void Terminal_getString(char *str, int bufferSize);
 int Terminal_getKey(void);
 
 void Terminal_redraw(void);
+
+
+#endif //MANIC_MINER_TERMINAL_H

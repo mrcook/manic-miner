@@ -1,6 +1,9 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#pragma once
+#ifndef MANIC_MINER_PORTAL_H
+#define MANIC_MINER_PORTAL_H
+
 
 #include "headers.h"
 
@@ -17,3 +20,6 @@ typedef struct Portal_ {
     // Graphic data
     uint8_t PORTALG[32];
 } Portal;
+
+
+#endif //MANIC_MINER_PORTAL_H

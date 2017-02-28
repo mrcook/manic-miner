@@ -1,6 +1,9 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#pragma once
+#ifndef MANIC_MINER_TILE_H
+#define MANIC_MINER_TILE_H
+
 
 #include "headers.h"
 
@@ -12,3 +15,6 @@ typedef struct Tile_ {
     // The actual tile sprite
     uint8_t sprite[8];
 } Tile;
+
+
+#endif //MANIC_MINER_TILE_H

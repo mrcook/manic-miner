@@ -1,15 +1,15 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
+#ifndef MANIC_MINER_GLOBALS_H
+#define MANIC_MINER_GLOBALS_H
+
+
 #include "speccy.h"
-#include "data.h"
 #include "cavern.h"
-#include "conveyor.h"
 #include "game.h"
 #include "guardian_horizontal.h"
 #include "guardian_vertical.h"
-#include "item.h"
-#include "portal.h"
 #include "willy.h"
 
 // Setup all game objects
@@ -25,9 +25,5 @@ extern uint8_t EUGDIR;
 extern uint8_t EUGHGT;
 extern uint8_t GGDATA[256];
 
-// helpers.c
-void millisleep(int milliseconds);
 
-int timediff(clock_t t1, clock_t t2);
-
-int getTickCount();
+#endif //MANIC_MINER_GLOBALS_H

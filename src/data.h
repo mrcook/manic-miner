@@ -1,6 +1,10 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
+#ifndef MANIC_MINER_DATA_H
+#define MANIC_MINER_DATA_H
+
+
 // Data arrays from which we read cavern data into the game
 
 #include "headers.h"
@@ -58,3 +62,6 @@ extern uint8_t LOWERATTRS[512];
 
 // data_willy_sprites.c
 extern uint8_t WILLYDATA[256];
+
+
+#endif //MANIC_MINER_DATA_H

@@ -1,6 +1,9 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#pragma once
+#ifndef MANIC_MINER_GUARDIAN_HORIZONTAL_H
+#define MANIC_MINER_GUARDIAN_HORIZONTAL_H
+
 
 #include "headers.h"
 
@@ -52,3 +55,6 @@ typedef struct GuardianHorizontal_ {
 } GuardianHorizontal;
 
 bool GuardianH_is_blank(GuardianHorizontal *guardian);
+
+
+#endif //MANIC_MINER_GUARDIAN_HORIZONTAL_H

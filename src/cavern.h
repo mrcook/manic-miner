@@ -1,6 +1,9 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#pragma once
+#ifndef MANIC_MINER_CAVERN_H
+#define MANIC_MINER_CAVERN_H
+
 
 #include "headers.h"
 
@@ -61,3 +64,6 @@ typedef struct Cavern_ {
 bool Cavern_loadData(uint8_t id);
 
 bool Cavern_isAirDepleted(void);
+
+
+#endif //MANIC_MINER_CAVERN_H

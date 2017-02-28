@@ -6,8 +6,7 @@
 // http://skoolkit.ca/
 
 #include "headers.h"
-#include "externs.h"
-
+#include "globals.h"
 #include "terminal.h"
 
 // Current game version

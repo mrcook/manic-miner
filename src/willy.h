@@ -1,6 +1,9 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#pragma once
+#ifndef MANIC_MINER_WILLY_H
+#define MANIC_MINER_WILLY_H
+
 
 #include "headers.h"
 
@@ -59,3 +62,6 @@ typedef struct Willy_ {
 } Willy;
 
 void Willy_initialize(int lives);
+
+
+#endif //MANIC_MINER_WILLY_H

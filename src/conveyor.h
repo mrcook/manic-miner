@@ -1,14 +1,12 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#pragma once
+#ifndef MANIC_MINER_CONVEYOR_H
+#define MANIC_MINER_CONVEYOR_H
+
 
 #include "headers.h"
 #include "tile.h"
-
-enum ConveyorDirection {
-    ConveyorLeft,
-    ConveyorRight,
-};
 
 typedef struct ConveyorTile_ {
     // ID used to match the appropriate location in the cavern mapping.
@@ -26,3 +24,6 @@ typedef struct ConveyorTile_ {
     uint8_t sprite[8];
 
 } ConveyorTile;
+
+
+#endif //MANIC_MINER_CONVEYOR_H

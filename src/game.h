@@ -1,6 +1,9 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#pragma once
+#ifndef MANIC_MINER_GAME_H
+#define MANIC_MINER_GAME_H
+
 
 #include "headers.h"
 
@@ -111,37 +114,74 @@ void printScores(void);
 void playGameMusic(void);
 
 bool MANDEAD(void);
+
 void ENDGAM(void);
+
 void DECAIR(void);
+
 void DRAWSHEET(void);
+
 bool MOVEWILLY(int keyIntput);
+
 void MOVEWILLY_7(uint8_t y_coord);
+
 void MOVEWILLY_10(void);
+
 void CRUMBLE(uint16_t addr);
+
 bool MOVEWILLY2(int keyIntput, uint16_t addr);
+
 void MOVEWILLY2_6(void);
+
 void MOVEWILLY2_7(void);
+
 void MOVEWILLY2_9(void);
+
 void MOVEWILLY2_10(void);
+
 bool KILLWILLY(void);
+
 void MOVEHG(void);
+
 void LIGHTBEAM(void);
+
 bool DRAWHG(void);
+
 bool EUGENE(void);
+
 void EUGENE_3(uint16_t addr, uint8_t ink_colour);
+
 bool SKYLABS(void);
+
 bool VGUARDIANS(void);
+
 void DRAWITEMS(void);
+
 bool CHKPORTAL(void);
+
 bool DRWFIX(void *sprite, uint16_t addr, uint8_t mode);
+
 bool NXSHEET(void);
+
 void INCSCORE_0(uint16_t addr);
+
 void MVCONVEYOR(void);
+
 bool KONGBEAST(void);
+
 bool KONGBEAST_8(void);
+
 bool CHKSWITCH(uint16_t addr);
+
 bool WILLYATTRS(void);
+
 bool WILLYATTR(uint16_t addr, uint8_t pix_y);
+
 void DRAWWILLY(void);
+
 bool PLAYTUNE(void);
+
 uint16_t PIANOKEY(uint8_t frequency);
+
+
+#endif //MANIC_MINER_GAME_H

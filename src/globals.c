@@ -2,13 +2,7 @@
 // Manic Miner Copyright 1983 Bug-Byte Ltd.
 
 #include "headers.h"
-
-#include "speccy.h"
-#include "cavern.h"
-#include "game.h"
-#include "guardian_horizontal.h"
-#include "guardian_vertical.h"
-#include "willy.h"
+#include "globals.h"
 
 // Setup all game objects
 Speccy speccy;

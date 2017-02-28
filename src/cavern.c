@@ -1,6 +1,8 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
-#include "externs.h"
+#include "globals.h"
+#include "data.h"
 
 bool Cavern_isAirDepleted() {
     // For some reason 36 means no air left

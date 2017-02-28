@@ -1,27 +1,29 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
 
+#ifndef MANIC_MINER_HEADERS_H
+#define MANIC_MINER_HEADERS_H
+
+
 // Header includes for standard libraries
 
-#pragma once
-
 #ifdef _WIN32
-  #define _CRT_SECURE_NO_WARNINGS
-  #define _CRT_NONSTDC_NO_DEPRECATE
-  #define WIN32_LEAN_AND_MEAN
+#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NONSTDC_NO_DEPRECATE
+#define WIN32_LEAN_AND_MEAN
 
-  #include <windows.h>
-  #include <io.h>
+#include <windows.h>
+#include <io.h>
 
 #elif __APPLE__
 
-  #include <unistd.h>
+#include <unistd.h>
 
 #elif __linux__
 
-  #include <unistd.h>
+#include <unistd.h>
 
 #else
-  error "Unknown compiler"
+error "Unknown compiler"
 #endif
 
 
@@ -35,3 +37,6 @@
 #include <time.h>
 
 #include <assert.h>
+
+
+#endif //MANIC_MINER_HEADERS_H

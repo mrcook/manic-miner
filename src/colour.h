@@ -1,6 +1,8 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
 
-#pragma once
+#ifndef MANIC_MINER_COLOUR_H
+#define MANIC_MINER_COLOUR_H
+
 
 #include "headers.h"
 
@@ -9,3 +11,6 @@ typedef struct Colour_ {
     uint8_t PAPER;
     uint8_t INK;
 } Colour;
+
+
+#endif //MANIC_MINER_COLOUR_H

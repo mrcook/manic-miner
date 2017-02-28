@@ -1,7 +1,7 @@
 // Curses Terminal Wrapper Copyright 2017 Michael R. Cook
 
 #include "headers.h"
-#include "externs.h"
+#include "globals.h"
 #include "terminal.h"
 
 // keep ncurses functions private to this file
@@ -11,7 +11,6 @@
 // this is defined in Windows and also in ncurses
 #undef KEY_EVENT
 #endif
-
 
 void Terminal_init() {
     static bool cursesStarted = false;
@@ -23,13 +22,7 @@ void Terminal_init() {
 
     initscr(); // <curses.h> do initialization work 
 
-    // Make sure our terminal is big enough
-//    if (rows > LINES || columns > COLS) {
-//        printf("Your terminal is not big enough!\n");
-//        exit(-1);
-//    }
-
-    // cbreak();              // <curses.h> not needed when using raw()...does not disable Ctrl chars
+    // cbreak();           // <curses.h> not needed when using raw()...does not disable Ctrl chars
     raw();                 // <curses.h> disable control characters. I.e. Ctrl-C does not work!
     nonl();                // <curses.h> disable translation return/ newline for detection of return key
     noecho();              // <curses.h> do not echo typed characters
@@ -122,7 +115,8 @@ int Terminal_getKey() {
             input = T_KEY_ENTER;
             break;
         default:
-            input = key; // NOOP, forward all other key inputs to caller
+            // forward all other key inputs to caller
+            input = key;
     }
 
     return input;

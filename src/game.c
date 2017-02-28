@@ -1,8 +1,10 @@
 // Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
 
 #include "headers.h"
-#include "externs.h"
-
+#include "data.h"
+#include "globals.h"
+#include "helpers.h"
 #include "terminal.h"
 
 // Original password to enable cheat mode
