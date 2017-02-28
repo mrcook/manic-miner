@@ -29,19 +29,24 @@ int main(int argc, char *argv[]) {
     Game_initialize(lives, cheat, teleport);
 
     while (true) {
-        // Initialise the game mode indicator at DEMO.
+        // Initialise demo mode
         game.DEMO = 64;
 
         // Display the title screen and play the theme tune
         Game_play_intro();
 
-        // Initialise a new game, and play!
+        // Play the game!
         if (Game_play()) {
             break; // aka QUIT!
         }
     }
 
     Terminal_exit();
+    printf("You helped Miner Willy acquire treasure worth %d.\n", game.highscore);
+    if (game.highscore > 10000) {
+        printf("He's on his way to joining the Jet Set!\n");
+    }
+
     return 0;
 }
 
@@ -85,7 +90,7 @@ bool getOptions(int argc, char *argv[], int *teleport, int *fps, int *lives, boo
                 printf("-t  NUMBER        Teleport, and play only this cavern number (1-20, enables CHEAT mode)\n");
                 printf("\n");
                 return false;
-            default:; // return true;
+            default:;
         }
     }
 
