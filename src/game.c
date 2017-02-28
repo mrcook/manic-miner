@@ -7,14 +7,10 @@
 #include "helpers.h"
 #include "terminal.h"
 
-// Original password to enable cheat mode
-int CHEATDT[7] = {6, 0, 3, 1, 7, 6, 9};
-
-bool gameIsRunning = true;
+static bool gameIsRunning = true;
 
 void Game_initialize(int lives, bool cheat, int teleport) {
     Terminal_init();
-    // Terminal_init(192, 512);
 
     Willy_initialize(lives);
 
@@ -41,9 +37,10 @@ void Game_initialize(int lives, bool cheat, int teleport) {
     strcpy(game.MESSO, "Over");
 }
 
-// Returning true quits the game!
+// PLay the game already!
+// Returning `true` quits the application.
 bool Game_play() {
-    // Should reset the current cavern data. Used in place of the `goto NEWSHT`
+    // We should reset the current cavern data. This is used in place of those `goto NEWSHT`.
     static bool reinitialiseCavern = true;
 
     if (game.teleportMode) {
@@ -52,27 +49,28 @@ bool Game_play() {
         cavern.SHEET = 0;
     }
 
-    // Initialise the in-game music note index at NOTEINDEX
+    // Initialise the in-game music note index.
     game.NOTEINDEX = 0;
 
-    // Initialise the screen flash counter at FLASH
+    // Initialise the screen flash counter.
     game.FLASH = 0;
 
-    // Initialise in game music state
+    // Initialise in game music play state.
     game.playMusic = true;
 
-    // Initialise the score at SCORE
+    // Initialise the current game score.
     game.current_score = 0;
 
     EUGDIR = 0;
     EUGHGT = 0;
 
-    // Prepare the screen; clear the entire Spectrum display file
+    // Prepare the screen; clear the entire Spectrum display file.
     Speccy_clearScreen();
 
+    // Store the keyboard input for use within the loop.
     int keyIntput;
 
-    // Yup, the game has started successfully
+    // Yup, the game has started successfully.
     gameIsRunning = true;
 
     // The Main Loop
@@ -92,7 +90,7 @@ bool Game_play() {
         // Next, prepare the screen and attribute buffers for drawing to the screen.
         resetScreenAttrBuffers();
 
-        // Check key press to toggle the in-game music.
+        // Check to see if the user muted the in-game music, or paused, or wants to quit.
         switch (keyIntput) {
             case MM_KEY_MUTE:
                 game.playMusic = ~game.playMusic;
@@ -102,13 +100,13 @@ bool Game_play() {
             case MM_KEY_PAUSE:
                 keyIntput = MM_KEY_NONE;
                 while (Terminal_getKey() != MM_KEY_PAUSE) {
-                    millisleep(50); // keep the FPS under control
+                    millisleep(25); // keep the FPS under control.
                 }
                 break;
             default:;
         }
 
-        // Move the horizontal guardians in the current cavern
+        // Move the horizontal guardians in the current cavern.
         MOVEHG();
 
         // Are we in demo mode?
@@ -125,15 +123,16 @@ bool Game_play() {
             }
         }
 
-        // Draw the horizontal guardians in the current cavern
+        // Draw the horizontal guardians in the current cavern.
         DRAWHG();
 
-        // Move the conveyor in the current cavern
+        // Move the conveyor in the current cavern.
         MVCONVEYOR();
 
-        // Draw the items in the current cavern and collect any that Willy is touching
+        // Draw the items in the current cavern and collect any that Willy is touching.
         DRAWITEMS();
 
+        // Handle the different vertical guardians.
         switch (cavern.SHEET) {
             case 4:
                 // Eugene's Lair
@@ -142,31 +141,25 @@ bool Game_play() {
                 }
                 break;
             case 13:
-                // Skylab Landing Bay
+                // Skylab Landing Bay.
                 if (SKYLABS()) {
                     goto LOOP_4; // Willy has died!
                 }
                 break;
             case 8: case 10: case 12: case 14: case 16: case 17: case 19:
-                // Wacky Amoebatrons, or beyond
+                // Wacky Amoebatrons, and other regular guardians.
                 if (VGUARDIANS()) {
                     goto LOOP_4; // Willy has died!
                 }
                 break;
-            case 7:
-                // Miner Willy meets the Kong Beast
-                if (KONGBEAST()) {
-                    goto LOOP_4; // Willy has died!
-                }
-                break;
-            case 11:
-                // Return of the Alien Kong Beast
+            case 7: case 11:
+                // Miner Willy meets the Kong Beast and Return of the Alien Kong Beast.
                 if (KONGBEAST()) {
                     goto LOOP_4; // Willy has died!
                 }
                 break;
             case 18:
-                // Solar Power Generator
+                // Solar Power Generator.
                 // LIGHTBEAM(); // FIXME: LIGHTBEAM() is broken!
                 break;
             default:
@@ -174,18 +167,20 @@ bool Game_play() {
         }
 
         // FIXME: this should be moved up, directly after moving Willy...?
-        // Draw the portal, or move to the next cavern if Willy has entered it
+        // Draw the portal, or move to the next cavern if Willy has entered it.
         if (CHKPORTAL()) {
             reinitialiseCavern = true;
             continue;
         }
 
-LOOP_4: // This entry point is used by the routine at KILLWILLY.
+    // Okay, ugly goto! We should try to remove this.
+    LOOP_4:
         copyScrBufToDisplayFile();
 
         Terminal_redraw();
 
-        flashScreen(); // redraws the screen too!
+        // this also redraws the screen.
+        flashScreen();
 
         copyAttrBufToAttrFile();
 
@@ -193,7 +188,7 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
 
         Terminal_redraw();
 
-        // Decrease the air remaining in the current cavern
+        // Decrease the air remaining in the current cavern.
         DECAIR();
 
         // Has willy ran our of air or had a fatal accident?
@@ -209,12 +204,12 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
             }
         }
 
-        // Play some music, unless in-game music been switched off
+        // Play some music, unless in-game music been switched off.
         if (game.playMusic) {
             playGameMusic();
         }
 
-        // If we're in demo mode, return to the title screen if user presses a key
+        // If we're in demo mode, return to the title screen if user presses the enter key.
         if (game.DEMO > 0) {
             // We're in demo mode; is it time to show the next cavern?
             if (game.DEMO == 1) {
@@ -225,7 +220,7 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
                 continue;
             }
 
-            // Update the game mode indicator at DEMO
+            // Update the game mode indicator at DEMO.
             game.DEMO--;
 
             if (keyIntput == MM_KEY_ENTER) {
@@ -236,21 +231,21 @@ LOOP_4: // This entry point is used by the routine at KILLWILLY.
         }
 
         Speccy_tick();
-    } // end main loop
+    }
 
-    // return but don't quit
+    // return, but don't quit!
     return false;
 }
 
-// Load the current cavern data (was NEWSHT)
-// This entry point is used when:
-//     teleporting into a cavern
-//     reinitialising the current cavern after Willy has lost a life)
-//     after NXSHEET.
+// Load/Reload the cavern data for the current SHEET (was NEWSHT)
+// This function is called when:
+//   * teleporting into a cavern
+//   * reinitialising the current cavern after Willy has lost a life)
+//   * after NXSHEET.
 void loadCurrentCavern() {
-    // Copy the cavern definition into the game status buffer at 32768
+    // Copy the cavern definition into the game status buffer at 32768.
     if (!Cavern_loadData(cavern.SHEET)) {
-        // Oops! We've not loaded the right amount of cavern data into memory
+        // Oops! We've not loaded the right amount of cavern data into memory.
         Terminal_exit();
         exit(-1);
     }
@@ -259,39 +254,36 @@ void loadCurrentCavern() {
     // Now, draw the screen
     //
 
-    // Copy the cavern's attribute bytes into the buffer at 24064
+    // Copy the cavern's attribute bytes into the buffer at 24064.
     // FIXME: uses Attr Buff (Blank): Attr File = 22528
     for (int i = 0; i < 512; i++) {
         Speccy_writeAttribute(24064 + i, cavern.layout[i]);
     }
 
-    // Draw the current cavern to the screen buffer at 28672
+    // Draw the current cavern to the screen buffer at 28672.
     DRAWSHEET();
 
-    // Clear the bottom third of the display file
-    for (int i = 0; i < 2048; i++) {
-        Speccy_writeScreen(20480 + i, 0);
-    }
+    Speccy_clearBottomThirdOfDisplayFile();
 
-    // Print the cavern name (see CAVERNNAME) at 20480 (16,0)
+    // Print the cavern name at 20480 (16,0).
     Speccy_printMessage(cavern.CAVERNNAME, 20480, 32);
 
-    // Print 'AIR' (see MESSAIR) at 20512 (17,0)
+    // Print 'AIR' label at 20512 (17,0).
     Speccy_printMessage(&game.airLabel, 20512, 3);
 
     drawAirBar();
 
-    // Print scores text at 20576 (19,0)
+    // Print scores text at 20576 (19,0).
     Speccy_printMessage(&game.MESSHSSC, 20576, 32);
 
-    // Set the border colour
+    // Set the border colour.
     OUT(cavern.BORDER);
 
     Terminal_redraw();
 
     // Are we in demo mode?
     if (game.DEMO > 0) {
-        // Reset the game mode indicator (we're in demo mode)
+        // Reset the game mode indicator (we're in demo mode).
         game.DEMO = 64;
     }
 }
@@ -300,24 +292,26 @@ void flashScreen() {
     if (game.FLASH > 0) {
         game.FLASH--;
 
-        // Move bits 0-2 into bits 3-5 and clear all the other bits
+        // Move bits 0-2 into bits 3-5 and clear all the other bits.
         uint8_t new_flash_value = (uint8_t) (rotl(game.FLASH, 3) & 56);
 
-        // Set every attribute byte in the buffer at 23552 to this value
+        // Set every attribute byte in the buffer at 23552 to this value.
         // FIXME: Uses Attr Buffer: Attr File= 22528
         for (int i = 0; i < 512; i++) {
-            speccy.memory[23552 + i] = new_flash_value;
+            Speccy_write(23552 + i, new_flash_value);
         }
 
         Terminal_redraw();
     }
 }
 
-// The air in the cavern has run out, or Willy has had a fatal accident, or it's
-// demo mode and it's time to show the next cavern.
-// IMPORTANT: return `true` is `goto START`, `false` is `goto NEWSHT` -MRC-
+// Willy is Dead!
+//   * The air in the cavern has run out;
+//   * or Willy has had a fatal accident;
+//   * or it's demo mode and it's time to show the next cavern.
+// IMPORTANT: return `true` is `goto START`, `false` is `goto NEWSHT`
 bool MANDEAD() {
-    // If in demo mode move to the next cavern
+    // If in demo mode move to the next cavern.
     if (game.DEMO) {
         // IMPORTANT: no need to check NXSHEET return value,
         // we know we should `goto NEWSHT` after it -MRC-
@@ -330,28 +324,27 @@ bool MANDEAD() {
     // The following loop fills the top two thirds of the attribute file with
     // a single value (71 TO 64 STEP -1) and makes a sound effect.
     // A=71 (INK 7: PAPER 0: BRIGHT 1)
-    // Decrement `attr` (effectively decrementing the INK colour)
+    // Decrement `attr` (effectively decrementing the INK colour).
     // Have we used attribute value 64 (INK 0) yet?
-    // Update the INK colour in the top two thirds of the screen and make another sound effect
+    // Update the INK colour in the top two thirds of the screen and make another sound effect.
     for (uint8_t attr = 71; attr > 64; attr--) {
-        // Fill the top two thirds of the attribute file with the value in A
-        for (int i = 0; i < 512; i++) {
-            speccy.memory[22528 + i] = attr;
-        }
+        Speccy_fillTopTwoThirdsOfAttributeFileWith(attr);
 
-        // D=63-8*(E AND 7); this value determines the pitch of the short note that will be played
+        // D=63-8*(E AND 7).
+        // This value determines the pitch of the short note that will be played.
         pitch = ~attr;
         pitch = (uint8_t)(pitch & 7);
         pitch = rotl(pitch, 3);
         pitch |= 7;
 
-        // C=8+32*(E AND 7); this value determines the duration of the short note that will be played
+        // C=8+32*(E AND 7).
+        // This value determines the duration of the short note that will be played.
         duration = attr;
         duration = rotr(duration, 3);
-        // Set bit 4 of A (for no apparent reason)
+        // Set bit 4 of A (for no apparent reason).
         duration |= 16;
 
-        // Set A=0 (this will make the border black)
+        // Set A=0 (this will make the border black).
         uint8_t border = 0;
 
         Speccy_setBorderColour(border);
@@ -360,23 +353,23 @@ bool MANDEAD() {
 
     // Finally, check whether any lives remain.
     if (willy.NOMEN < 1) {
-        // If not, display the game over sequence
+        // If not, display the game over sequence.
         ENDGAM();
         return true; // goto START;
     }
 
-    // Decrease the number of lives remaining by one
+    // Decrease the number of lives remaining by one.
     if (!game.CHEAT) {
         willy.NOMEN--;
     }
 
-    // Jump back to reinitialise the current cavern
+    // Jump back to reinitialise the current cavern.
     return false; // goto NEWSHT;
 }
 
 // Display the game over sequence
 void ENDGAM() {
-    // First check whether we have a new high score.
+    // Check if we have a new high score.
     if (game.current_score > game.highscore) {
         game.highscore = game.current_score;
         memcpy(game.HGHSCOR, game.SCORBUF, sizeof(&game.SCORBUF));
@@ -384,18 +377,16 @@ void ENDGAM() {
 
     // Now prepare the screen for the game over sequence.
 
-    // Clear the top two-thirds of the display file
-    Speccy_clearScreenDownTo(4096);
-
+    Speccy_clearTopTwoThirdsOfDisplayFile();
     Terminal_redraw();
 
-    // determines the distance of the boot from the top of the screen
+    // determines the distance of the boot from the top of the screen.
     uint8_t bootDistanceFromTop = 0;
 
-    // Draw Willy at 18575 (12,15) using frame 3
+    // Draw Willy at 18575 (12,15) using frame 3.
     DRWFIX(&willy.sprites[64], 18575, 0);
 
-    // Draw the plinth (see PLINTH) underneath Willy at 18639 (14,15)
+    // Draw the plinth (see PLINTH) underneath Willy at 18639 (14,15).
     DRWFIX(&PLINTH, 18639, 0);
 
     Terminal_redraw();
@@ -406,7 +397,9 @@ void ENDGAM() {
     // The following loop draws the boot's descent onto the plinth that supports Willy.
     for (bootDistanceFromTop = 0; bootDistanceFromTop < 98; bootDistanceFromTop += 4) {
         split_address(SBUFADDRS[bootDistanceFromTop], &msb, &lsb);
-        addr = build_address((uint8_t)(msb - 32), (uint8_t)(lsb | 15)); // center of screen
+
+        // center of screen
+        addr = build_address((uint8_t)(msb - 32), (uint8_t)(lsb | 15));
 
         // Draw the boot (see BOOT) at this location, without erasing the boot
         // at the previous location; this leaves the portion of the boot sprite
@@ -414,7 +407,7 @@ void ENDGAM() {
         // it's at the end of a long, extending trouser leg.
         DRWFIX(&BOOT, addr, 0);
 
-        // Pick up the distance variable from EUGHGT  (A=255-A)
+        // Pick up the distance variable from EUGHGT  (A=255-A).
         uint8_t distance = (uint8_t) (255 - bootDistanceFromTop);
 
         // Store this value (63-255) in E; it determines the (rising) pitch of
@@ -426,22 +419,19 @@ void ENDGAM() {
         // Speccy_makeSound(border, 64, (uint8_t)(distance / 216));
 
         // FIXME: delay would be in makeSound (which is wrong anyway),
-        // so we must delay to get the correct boot descending effect
+        // so we must delay to get the correct boot descending effect.
         for (int d = 64; d > 0; d--) {
             millisleep(distance / 216);
         }
 
-        // Keep only bits 2 and 3
+        // Keep only bits 2 and 3.
         distance = (uint8_t) (bootDistanceFromTop & 12);
-        // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3
+        // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3.
         distance = rotl(distance, 1);
-        // Set bits 0-2 (INK 7) and 6 (BRIGHT 1)
+        // Set bits 0-2 (INK 7) and 6 (BRIGHT 1).
         distance |= 71;
 
-        // Copy this attribute value into the top two-thirds of the screen
-        for (int i = 0; i < 512; i++) {
-            Speccy_writeAttribute(22528 + i, distance);
-        }
+        Speccy_fillTopTwoThirdsOfAttributeFileWith(distance);
         Terminal_redraw();
 
         Speccy_tick();
@@ -452,9 +442,9 @@ void ENDGAM() {
     Speccy_printMessage(&game.MESSO, 16594, 4);
 
     // The following loop makes the "Game Over" message glisten for about 1.57s.
-    // The counter will also determine the INK colours to use for the "Game Over" message
+    // The counter will also determine the INK colours to use for the "Game Over" message.
     for (int d = 6; d > 0; d--) {
-        // Delay for about a millisecond
+        // Delay for about a millisecond.
         millisleep(1);
 
         for (int a = 0; a < 8; a++) {
@@ -500,10 +490,9 @@ void ENDGAM() {
     // IMPORTANT: caller must return to START
 }
 
-// Decrease the air remaining in the current cavern,
-// and the game CLOCK
+// Decrease the air remaining in the current cavern, along with the game CLOCK.
 void DECAIR() {
-    // Update the game clock at CLOCK
+    // Update the game clock.
     cavern.CLOCK -= 4;
 
     // Was it just decreased from zero?
@@ -516,18 +505,18 @@ void DECAIR() {
     }
 
     // A=INT(A/32); this value specifies how many pixels to draw from left to
-    // right in the cell at the right end of the air bar
+    // right in the cell at the right end of the air bar.
     uint8_t count = (uint8_t) (cavern.CLOCK & 224);
     count = rotl(count, 3);
 
-    // Initialise E to 0 (all bits reset)
+    // Initialise E to 0 (all bits reset).
     uint8_t pixels = 0;
 
     // Do we need to draw any pixels in the cell at the right end of the air bar?
     if (count != 0) {
-        // Copy the number of pixels to draw (1-7) to B
+        // Copy the number of pixels to draw (1-7) to B.
         for (int i = count; i > 0; i--) {
-            // Set this many bits in E (from bit 7 towards bit 0)
+            // Set this many bits in E (from bit 7 towards bit 0).
             pixels = rotr(pixels, 1);
             pixels |= 1 << 7;
         }
@@ -535,15 +524,15 @@ void DECAIR() {
 
     // Set HL to the display file address at which to draw the top row of
     // pixels in the cell at the right end of the air bar.
-    // There are four rows of pixels to draw
+    // There are four rows of pixels to draw.
     for (uint8_t msb = 82; msb < 86; msb++) {
-        // Draw the four rows of pixels at the right end of the air bar
+        // Draw the four rows of pixels at the right end of the air bar.
         Speccy_writeScreen(build_address(msb, cavern.AIR), pixels);
     }
     Terminal_redraw();
 }
 
-// Draw the current cavern to the screen buffer at 28672
+// Draw the current cavern to the screen buffer at 28672.
 void DRAWSHEET() {
     // FIXME: Screen Buffer: Screen File = 16384
     uint16_t addr = 28672;
@@ -554,9 +543,8 @@ void DRAWSHEET() {
     int offset = 0;
     int col;
 
-    // The following loop draws the 512 tiles for the cavern
-    // to the screen buffer at 28672.
-    // This is done for each of the 3 screen blocks.
+    // The following loop draws the 512 tiles for the cavern to the screen buffer at 28672.
+    // This is done for each of the 2 screen blocks (top two thirds of the screen)
     for (int i = 0; i < 512; i++) {
         if (i > 255) {
             offset = 2048;
@@ -582,11 +570,11 @@ void DRAWSHEET() {
             sprite = &cavern.EXTRA.sprite[0];
         }
 
-        // Copy the graphic bytes to their destination cells
+        // Copy the graphic bytes to their destination cells.
         uint16_t row_addr = addr;
         for (int b = 0; b < 8; b++) {
             if (sprite != NULL) {
-                speccy.memory[row_addr + offset] = sprite[b];
+                Speccy_write(row_addr + offset, sprite[b]);
             }
             split_address(row_addr, &msb, &lsb);
             msb++;
@@ -607,10 +595,10 @@ void DRAWSHEET() {
     // If we're in The Final Barrier, however, there is further work to do.
     if (cavern.SHEET == 19) {
         // Copy the graphic data from TITLESCR1 to the top half
-        // of the screen buffer at 28672
+        // of the screen buffer at 28672.
         // FIXME: Blank Screen Buffer: Screen File = 16384
         for (int i = 0; i <= 2048; i++) {
-            speccy.memory[28672 + i] = TITLESCR1[i];
+            Speccy_write(28672 + i, TITLESCR1[i]);
         }
     }
 }
@@ -623,30 +611,30 @@ bool MOVEWILLY(int keyIntput) {
     if (willy.AIRBORNE == 1) {
         // Willy is currently jumping.
 
-        // Pick up the jumping animation counter (0-17) from JUMPING
+        // Pick up the jumping animation counter (0-17).
         uint8_t jump = willy.JUMPING;
 
-        // Now -8<=A<=8 (and A is even)
+        // Now -8<=A<=8 (and A is even).
         jump &= ~(1 << 0); // RES 0,A
         jump -= 8;         // SUB 8
 
-        // Adjust Willy's pixel y-coordinate at PIXEL_Y depending on where Willy is in the jump
+        // Adjust Willy's pixel y-coordinate at PIXEL_Y depending on where Willy is in the jump.
         willy.PIXEL_Y += jump;
 
-        // Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate
+        // Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate.
         MOVEWILLY_7(willy.PIXEL_Y);
 
         // NOTE: Pick up the attribute byte of the wall tile. The byte, not the whole sprite!
         // Is the top-left or top-right cell of Willy's sprite overlapping a wall tile?
-        if (speccy.memory[willy.PIXEL_Y] == cavern.WALL.id || speccy.memory[willy.PIXEL_Y + 1] == cavern.WALL.id) {
+        if (Speccy_read(willy.PIXEL_Y) == cavern.WALL.id || Speccy_read(willy.PIXEL_Y + 1) == cavern.WALL.id) {
             MOVEWILLY_10();
             return false;
         }
 
-        // Increment the jumping animation counter at JUMPING
+        // Increment the jumping animation counter.
         willy.JUMPING++;
 
-        // A=J-8, where J (1-18) is the new value of the jumping animation counter
+        // A=J-8, where J (1-18) is the new value of the jumping animation counter.
         // Jump if J>=8
         // A=8-J (1<=J<=7, 1<=A<=7)
         uint8_t anim_counter;
@@ -660,29 +648,28 @@ bool MOVEWILLY(int keyIntput) {
         anim_counter++;
 
         // D=8*(1+ABS(J-8)); this value determines the pitch of the jumping
-        // sound effect (rising as Willy rises, falling as Willy falls)
+        // sound effect (rising as Willy rises, falling as Willy falls).
         anim_counter = rotl(anim_counter, 3);
 
         uint8_t delay = anim_counter;
 
-        // Pick up the border colour for the current cavern from BORDER
+        // Pick up the border colour for the current cavern.
         uint8_t border = cavern.BORDER;
         Speccy_setBorderColour(border);
 
-        // C=32; this value determines the duration of the jumping sound effect
+        // C=32; this value determines the duration of the jumping sound effect.
         Speccy_makeSound(border, 32, delay);
 
         // Jumping animation counter will have a value of 1-18.
-        // FIXME: another part of the program says a value of 0-17.
         // Has Willy reached the end of the jump? Is the jumping animation counter now 16 or 13?
         if (willy.JUMPING == 18) {
             // Willy has just finished a jump.
-            // Set the airborne status indicator at AIRBORNE to 6:
-            // Willy will continue to fall unless he's landed on a wall or floor block
+            // Set the airborne status indicator at AIRBORNE to 6: Willy will
+            // continue to fall unless he's landed on a wall or floor block.
             willy.AIRBORNE = 6;
             return false;
         } else if (willy.JUMPING == 16) {
-            // jump to MOVEWILLY_3
+            // NOOP
         } else if (willy.JUMPING != 13) {
             MOVEWILLY2_6();
             return false;
@@ -699,49 +686,45 @@ bool MOVEWILLY(int keyIntput) {
 
     // Does Willy's sprite occupy six cells at the moment?
     if ((willy.PIXEL_Y & 15) == 0) {
-        // Point HL at the left-hand cell below Willy's sprite
+        // Point HL at the left-hand cell below Willy's sprite.
         addr = (uint16_t) (willy.LOCATION + 64);
 
-        // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
+        // Pick up the attribute byte of the crumbling floor tile for the current cavern.
         // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
-        // If so, make it crumble
-        if (speccy.memory[addr] == cavern.CRUMBLING.id) {
+        // If so, make it crumble.
+        if (Speccy_read(addr) == cavern.CRUMBLING.id) {
             CRUMBLE(addr);
         }
 
-        if (speccy.memory[addr] == cavern.NASTY1.id) {
-            // Does the left-hand cell below Willy's sprite contain a nasty tile?
-            // Jump if so
-        } else if (speccy.memory[addr] == cavern.NASTY2.id) {
-            // Does the left-hand cell below Willy's sprite contain a nasty tile?
-            // Jump if so
+        if (Speccy_read(addr) == cavern.NASTY1.id) {
+            // the left-hand cell below Willy's sprite contain a nasty tile.
+        } else if (Speccy_read(addr) == cavern.NASTY2.id) {
+            // the left-hand cell below Willy's sprite contain a nasty tile.
         } else {
-            // Point HL at the right-hand cell below Willy's sprite
+            // Point to the right-hand cell below Willy's sprite
             addr++;
 
-            // Pick up the attribute byte of the crumbling floor tile for the current cavern from CRUMBLING
+            // Pick up the attribute byte of the crumbling floor tile for the current cavern.
             // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
-            // If so, make it crumble
-            if (speccy.memory[addr] == cavern.CRUMBLING.id) {
+            if (Speccy_read(addr) == cavern.CRUMBLING.id) {
                 CRUMBLE(addr);
             }
 
-            if (speccy.memory[addr] == cavern.NASTY1.id) {
-                // Does the right-hand cell below Willy's sprite contain a nasty tile?
-                // Jump if so
-            } else if (speccy.memory[addr] == cavern.NASTY2.id) {
-                // Does the right-hand cell below Willy's sprite contain a nasty tile?
-                // Jump if so
+            if (Speccy_read(addr) == cavern.NASTY1.id) {
+                // the right-hand cell below Willy's sprite contain a nasty tile.
+            } else if (Speccy_read(addr) == cavern.NASTY2.id) {
+                // the right-hand cell below Willy's sprite contain a nasty tile.
             } else {
-                // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-                // Set the zero flag if the right-hand cell below Willy's sprite is empty
-                // Point HL at the left-hand cell below Willy's sprite
-                // Jump if the right-hand cell below Willy's sprite is not empty
-                if (speccy.memory[addr] != cavern.BACKGROUND.id) {
+                // Pick up the attribute byte of the background tile for the current cavern.
+                // Set the zero flag if the right-hand cell below Willy's sprite is empty.
+                // Point HL at the left-hand cell below Willy's sprite.
+
+                // Is the right-hand cell below Willy's sprite empty?
+                if (Speccy_read(addr) != cavern.BACKGROUND.id) {
                     return MOVEWILLY2(keyIntput, addr);
                 }
                 // Is the left-hand cell below Willy's sprite empty?
-                if (speccy.memory[addr - 1] != cavern.BACKGROUND.id) {
+                if (Speccy_read(addr - 1) != cavern.BACKGROUND.id) {
                     return MOVEWILLY2(keyIntput, addr);
                 }
             }
@@ -754,35 +737,33 @@ bool MOVEWILLY(int keyIntput) {
         return false;
     }
 
-    // If we get here, then Willy is either in the process of falling
-    // or just about to start falling.
+    // If we get here, then Willy is either in the process of falling or just about to start falling.
 
-    // Reset bit 1 at DMFLAGS: Willy is not moving left or right
+    // Reset bit 1 at DMFLAGS: Willy is not moving left or right.
     willy.DMFLAGS &= ~(1 << 1);
 
     // Is Willy already falling?
     if (willy.AIRBORNE > 1) {
-        // Willy has just started falling.
-        // Set the airborne status indicator at AIRBORNE to 2
+        // Willy has just started falling. Set the airborne status indicator at AIRBORNE to 2.
         willy.AIRBORNE = 2;
 
         return false;
     }
 
-    // Increment the airborne status indicator at AIRBORNE
+    // Increment the airborne status indicator.
     willy.AIRBORNE++;
 
-    // D=16*A; this value determines the pitch of the falling sound effect
+    // D=16*A; this value determines the pitch of the falling sound effect.
     uint8_t pitch = rotl(willy.AIRBORNE, 4);
 
-    // Pick up the border colour for the current cavern from BORDER
+    // Pick up the border colour for the current cavern.
     uint8_t border = cavern.BORDER;
     Speccy_setBorderColour(border);
 
-    // C=32; this value determines the duration of the falling sound effect
+    // C=32; this value determines the duration of the falling sound effect.
     Speccy_makeSound(pitch, 32, 1);
 
-    // Add 8 to Willy's pixel y-coordinate at PIXEL_Y; this moves Willy downwards by 4 pixels
+    // Add 8 to Willy's pixel y-coordinate at PIXEL_Y; this moves Willy downwards by 4 pixels.
     willy.PIXEL_Y += 8;
 
     MOVEWILLY_7(willy.PIXEL_Y);
@@ -790,103 +771,102 @@ bool MOVEWILLY(int keyIntput) {
     return false;
 }
 
-// Adjust Willy's attribute buffer location at LOCATION
-// to account for this new pixel y-coordinate.
+// Adjust Willy's attribute buffer location at LOCATION to
+// account for this new pixel y-coordinate.
 void MOVEWILLY_7(uint8_t y_coord) {
     uint8_t msb, lsb;
 
-    // L=16*Y, where Y is Willy's screen y-coordinate (0-14)
+    // L=16*Y, where Y is Willy's screen y-coordinate (0-14).
     lsb = (uint8_t) (y_coord & 240);
 
-    // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8)
-    // if LSB bit 7 is set the `RL L` will set the Carry, which means we need to add one to the MSB
+    // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8).
+    // If LSB bit 7 is set the `RL L` will set the Carry, which means we need to add one to the MSB.
     // H=92 or 93 (MSB of the address of Willy's location in the attribute buffer)
     msb = 92;
-    // pickup bit-7 of lsb, the [C]arry flag, and check if it's set
+    // Pickup bit-7 of lsb, the Carry flag, and check if it's set.
     if (((lsb >> 7) & 1) == 1) {
         msb = 93;
     }
 
-    // RL lsb
-    lsb = rotl(lsb, 1);
-    lsb &= ~(1 << 0); // set bit `0` to the [C]arry, which was set to `0`
+    lsb = rotl(lsb, 1); // RL lsb
+    lsb &= ~(1 << 0);   // set bit `0` to the Carry, which was set to `0`.
 
-    // Pick up Willy's screen x-coordinate (1-29) from bits 0-4 at LOCATION
+    // Pick up Willy's screen x-coordinate (1-29) from bits 0-4 at LOCATION.
     uint8_t msb_dummy, x_lsb;
     split_address((uint16_t)(willy.LOCATION & 31), &msb_dummy, &x_lsb);
 
-    // Now L holds the LSB of Willy's attribute buffer address
+    // Now L holds the LSB of Willy's attribute buffer address.
     x_lsb |= lsb;
 
-    // Store Willy's updated attribute buffer location at LOCATION
+    // Store Willy's updated attribute buffer location at LOCATION.
     willy.LOCATION = build_address(msb, x_lsb);
 }
 
 // The top-left or top-right cell of Willy's sprite is overlapping a wall tile.
 void MOVEWILLY_10() {
-    // Adjust Willy's pixel y-coordinate at PIXEL_Y so that the top row of
-    // cells of his sprite is just below the wall tile
+    // Adjust Willy's pixel y-coordinate at PIXEL_Y so that the top
+    // row of cells of his sprite is just below the wall tile.
     willy.PIXEL_Y = (uint8_t) ((willy.PIXEL_Y + 16) & 240);
 
-    // Adjust Willy's attribute buffer location at LOCATION to account for this new pixel y-coordinate
+    // Adjust Willy's attribute buffer location to account for this new pixel y-coordinate.
     MOVEWILLY_7(willy.PIXEL_Y);
 
-    // Set the airborne status indicator at AIRBORNE to 2: Willy has started falling
+    // Set the airborne status indicator to 2: Willy has started falling.
     willy.AIRBORNE = 2;
 
     // Reset bit 1 at DMFLAGS: Willy is not moving left or right
     willy.DMFLAGS &= ~(1 << 1);
 }
 
-// Animate a crumbling floor tile in the current cavern
-// HL Address of the crumbling floor tile's location in the attribute buffer at 23552
+// Animate a crumbling floor tile in the current cavern.
+// Takes the address of the crumbling floor tile's location in the attribute buffer at 23552.
 void CRUMBLE(uint16_t addr) {
     uint8_t msb, lsb;
 
-    // Point BC at the bottom row of pixels of the crumbling floor tile
-    // in the screen buffer at 28672
+    // Point to the bottom row of pixels of the crumbling
+    // floor tile in the screen buffer at 28672.
     split_address(addr, &msb, &lsb);
 
     msb += 27;
     msb |= 7;
 
     while (true) {
-        // Collect the pixels from the row above in A
+        // Collect the pixels from the row above.
         msb--;
 
-        // Copy these pixels into the row below it. Point BC at the next row of pixels up
-        speccy.memory[build_address((uint8_t) (msb + 1), lsb)] = speccy.memory[build_address(msb, lsb)];
+        // Copy these pixels into the row below it. Point BC at the next row of pixels up.
+        Speccy_write(build_address((uint8_t) (msb + 1), lsb), Speccy_read(build_address(msb, lsb)));
 
         // Have we dealt with the bottom seven pixel rows of the crumbling floor tile yet?
-        // If not, jump back to deal with the next one up
+        // If not, jump back to deal with the next one up.
         if ((msb & 7) == 0) {
             break;
         }
     }
 
-    // Clear the top row of pixels in the crumbling floor tile
-    speccy.memory[build_address(msb, lsb)] = 0;
+    // Clear the top row of pixels in the crumbling floor tile.
+    Speccy_write(build_address(msb, lsb), 0);
 
-    // Point BC at the bottom row of pixels in the crumbling floor tile
+    // Point to the bottom row of pixels in the crumbling floor tile.
     msb += 7;
 
-    // Pick up the bottom row of pixels in A. Is the bottom row clear? Return if not
-    if (speccy.memory[build_address(msb, lsb)] == 0) {
+    // Pick up the bottom row of pixels. Is the bottom row clear? Return if not.
+    if (Speccy_read(build_address(msb, lsb)) == 0) {
         return;
     }
 
     // The bottom row of pixels in the crumbling floor tile is clear.
     // Time to put a background tile in its place.
 
-    // Set HL to the address of the crumbling floor tile's location in the attribute buffer at 24064
-    // Set the attribute at this location to that of the background tile
-    // Set HL back to the address of the crumbling floor tile's location in the attribute buffer at 23552
-    speccy.memory[build_address((uint8_t) (msb + 2), lsb)] = cavern.BACKGROUND.id;
+    // Set HL to the address of the crumbling floor tile's location in the attribute buffer at 24064.
+    // Set the attribute at this location to that of the background tile.
+    // Set HL back to the address of the crumbling floor tile's location in the attribute buffer at 23552.
+    Speccy_write(build_address((uint8_t) (msb + 2), lsb), cavern.BACKGROUND.id);
 }
 
 // Move Willy (2)
 // This routine checks the keyboard and joystick, and moves Willy left or right if necessary.
-// HL Attribute buffer address of the left-hand cell below Willy's sprite
+// HL Attribute buffer address of the left-hand cell below Willy's sprite.
 bool MOVEWILLY2(int keyIntput, uint16_t addr) {
     // Has Willy just landed after falling from too great a height? If so, kill him!
     if (willy.AIRBORNE == 12) { // FIXME: should this be `>= 12` ?
@@ -902,7 +882,7 @@ bool MOVEWILLY2(int keyIntput, uint16_t addr) {
 
     uint8_t converyor_dir = 255;
     // Does the attribute byte of the left or right hand cell below Willy's sprite match that of the conveyor tile?
-    if (speccy.memory[addr] == cavern.CONVEYOR.id || speccy.memory[addr + 1] == cavern.CONVEYOR.id) {
+    if (Speccy_read(addr) == cavern.CONVEYOR.id || Speccy_read(addr + 1) == cavern.CONVEYOR.id) {
         // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
         // Now E=253 (bit 1 reset) if the conveyor is moving left, or 254 (bit 0 reset) if it's moving right
         // input = (uint8_t) (cavern.CONVEYOR.CONVDIR - 3);
@@ -950,8 +930,8 @@ bool MOVEWILLY2(int keyIntput, uint16_t addr) {
     // that corresponds to the direction Willy is facing, and the direction
     // in which he is being moved or trying to move.
     movement = willy.DMFLAGS + movement;
-    // Update Willy's direction and movement flags at DMFLAGS with the entry
-    // from the left-right movement table.
+    // Update Willy's direction and movement flags at DMFLAGS with the
+    // entry from the left-right movement table.
     willy.DMFLAGS = LRMOVEMENT[movement];
 
 
@@ -959,11 +939,10 @@ bool MOVEWILLY2(int keyIntput, uint16_t addr) {
 
     // Is jump being pressed?
     if (keyIntput == MM_KEY_JUMP || keyIntput == MM_KEY_LEFT_JUMP || keyIntput == MM_KEY_RIGHT_JUMP) {
-        // Time to make Willy jump.
-        // Initialise the jumping animation counter at JUMPING
+        // Time to make Willy jump. Initialise the jumping animation counter.
         willy.JUMPING = 0;
 
-        // Set the airborne status indicator at AIRBORNE to 1: Willy is jumping
+        // Set the airborne status indicator to 1: Willy is jumping.
         willy.AIRBORNE = 1;
     }
 
@@ -974,7 +953,7 @@ bool MOVEWILLY2(int keyIntput, uint16_t addr) {
 
 // This entry point is used by the routine at MOVEWILLY.
 void MOVEWILLY2_6() {
-    // Is Willy moving? Return if not
+    // Is Willy moving? Return if not.
     if ((willy.DMFLAGS & 2) == 0) {
         return;
     }
@@ -987,14 +966,14 @@ void MOVEWILLY2_6() {
 
     // Willy is moving left.
 
-    // Pick up Willy's animation frame from FRAME.
-    // Is it 0? If so, jump to move Willy's sprite left across a cell boundary
+    // Pick up Willy's animation frame. Is it 0?
+    // If so, jump to move Willy's sprite left across a cell boundary.
     if (willy.FRAME == 0) {
         MOVEWILLY2_7();
         return;
     }
 
-    // Decrement Willy's animation frame at FRAME
+    // Decrement Willy's animation frame.
     willy.FRAME--;
 }
 
@@ -1002,56 +981,56 @@ void MOVEWILLY2_6() {
 // In the comments that follow, (x,y) refers to the coordinates
 // of the top-left cell currently occupied by Willy's sprite.
 void MOVEWILLY2_7() {
-    // Collect Willy's attribute buffer coordinates from LOCATION
-    // Point HL at the cell at (x-1,y+1)
+    // Collect Willy's attribute buffer coordinates from LOCATION.
+    // Point HL at the cell at (x-1,y+1).
     uint16_t addr = (uint16_t) (willy.LOCATION - 1);
 
     addr += 32;
 
-    // Pick up the attribute byte of the wall tile for the current cavern from WALL
+    // Pick up the attribute byte of the wall tile for the current cavern from WALL.
     // Is there a wall tile in the cell pointed to by HL?
-    // Return if so without moving Willy (his path is blocked)
-    if (speccy.memory[addr] == cavern.WALL.id) {
+    // Return if so without moving Willy (his path is blocked).
+    if (Speccy_read(addr) == cavern.WALL.id) {
         return;
     }
 
     // Does Willy's sprite currently occupy only two rows of cells?
     if (willy.PIXEL_Y & 15) {
-        // Pick up the attribute byte of the wall tile for the current cavern from WALL
-        // Point HL at the cell at (x-1,y+2)
+        // Pick up the attribute byte of the wall tile for the current cavern from WALL.
+        // Point HL at the cell at (x-1,y+2).
         // Is there a wall tile in the cell pointed to by HL?
-        // Return if so without moving Willy (his path is blocked)
-        if (speccy.memory[addr + 32] == cavern.WALL.id) {
+        // Return if so without moving Willy (his path is blocked).
+        if (Speccy_read(addr + 32) == cavern.WALL.id) {
             return;
         }
     }
 
-    // Pick up the attribute byte of the wall tile for the current cavern from WALL
-    // Clear the carry flag for subtraction
-    // Point HL at the cell at (x-1,y)
+    // Pick up the attribute byte of the wall tile for the current cavern from WALL.
+    // Clear the carry flag for subtraction.
+    // Point HL at the cell at (x-1,y).
     addr -= 32;
 
     // Is there a wall tile in the cell pointed to by HL?
-    // Return if so without moving Willy (his path is blocked)
-    if (speccy.memory[addr] == cavern.WALL.id) {
+    // Return if so without moving Willy (his path is blocked).
+    if (Speccy_read(addr) == cavern.WALL.id) {
         return;
     }
 
-    // Save Willy's new attribute buffer coordinates (in HL) at LOCATION
+    // Save Willy's new attribute buffer coordinates (in HL) at LOCATION.
     willy.LOCATION = addr;
 
-    // Change Willy's animation frame at FRAME from 0 to 3
+    // Change Willy's animation frame at FRAME from 0 to 3.
     willy.FRAME = 3;
 }
 
 // Willy is moving right.
 void MOVEWILLY2_9() {
-    // Pick up Willy's animation frame from FRAME
-    // Is it 3? If so, move Willy's sprite right across a cell boundary
+    // Pick up Willy's animation frame. Is it 3?
+    // If so, move Willy's sprite right across a cell boundary.
     if (willy.FRAME == 3) {
         MOVEWILLY2_10();
     } else {
-        // Increment Willy's animation frame at FRAME
+        // Increment Willy's animation frame.
         willy.FRAME++;
     }
 }
@@ -1060,27 +1039,27 @@ void MOVEWILLY2_9() {
 // In the comments that follow, (x,y) refers to the coordinates
 // of the top-left cell currently occupied by Willy's sprite.
 void MOVEWILLY2_10() {
-    // Collect Willy's attribute buffer coordinates from LOCATION
-    // Point HL at the cell at (x+2,y)
+    // Collect Willy's attribute buffer coordinates from LOCATION.
+    // Point HL at the cell at (x+2,y).
     uint16_t addr = (uint16_t)(willy.LOCATION + 2);
 
-    // Pick up the attribute byte of the wall tile for the current cavern from WALL
-    // Point HL at the cell at (x+2,y+1)
+    // Pick up the attribute byte of the wall tile for the current cavern from WALL.
+    // Point HL at the cell at (x+2,y+1).
     addr += 32;
 
     // Is there a wall tile in the cell pointed to by HL?
-    // Return if so without moving Willy (his path is blocked)
-    if (speccy.memory[addr] == cavern.WALL.id) {
+    // Return if so without moving Willy (his path is blocked).
+    if (Speccy_read(addr) == cavern.WALL.id) {
         return;
     }
 
     // Does Willy's sprite currently occupy only two rows of cells?
     if ((willy.PIXEL_Y & 15)) {
-        // Pick up the attribute byte of the wall tile for the current cavern from WALL
-        // Point HL at the cell at (x+2,y+2)
+        // Pick up the attribute byte of the wall tile for the current cavern from WALL.
+        // Point HL at the cell at (x+2,y+2).
         // Is there a wall tile in the cell pointed to by HL?
-        // Return if so without moving Willy (his path is blocked)
-        if (speccy.memory[addr + 32] == cavern.WALL.id) {
+        // Return if so without moving Willy (his path is blocked).
+        if (Speccy_read(addr + 32) == cavern.WALL.id) {
             return;
         }
     }
@@ -1088,41 +1067,41 @@ void MOVEWILLY2_10() {
     addr -= 32;
 
     // Is there a wall tile in the cell pointed to by HL?
-    // Return if so without moving Willy (his path is blocked)
-    if (speccy.memory[addr] == cavern.WALL.id) {
+    // Return if so without moving Willy (his path is blocked).
+    if (Speccy_read(addr) == cavern.WALL.id) {
         return;
     }
 
-    // Point HL at the cell at (x+1,y)
+    // Point HL at the cell at (x+1,y).
     addr--;
 
-    // Save Willy's new attribute buffer coordinates (in HL) at LOCATION
+    // Save Willy's new attribute buffer coordinates (in HL) at LOCATION.
     willy.LOCATION = addr;
 
-    // Change Willy's animation frame at FRAME from 3 to 0
+    // Change Willy's animation frame at FRAME from 3 to 0.
     willy.FRAME = 0;
 }
 
-// Kill Willy
-// when Willy hits a nasty
-// when Willy lands after falling from too great a height
-// when Willy collides with a horizontal guardian)
-// when Willy collides with Eugene)
-// when Willy collides with a vertical guardian)
-// when Willy collides with the Kong Beast
+// Kill Willy when:
+//   * Willy hits a nasty
+//   * Willy lands after falling from too great a height
+//   * Willy collides with a horizontal guardian)
+//   * Willy collides with Eugene)
+//   * Willy collides with a vertical guardian)
+//   * Willy collides with the Kong Beast
 bool KILLWILLY() {
     // NOTE: merged KILLWILLY_0 and KILLWILLY_1 with this function as it was only caller,
     // even though the following message:
     //     This entry point is used by the routine at SKYLABS when a Skylab falls on Willy.
 
-    // Set the airborne status indicator at AIRBORNE to 255 (meaning Willy has had a fatal accident)
+    // Set the airborne status indicator at AIRBORNE to 255 (meaning Willy has had a fatal accident).
     willy.AIRBORNE = 255;
 
-    // Jump back into the main loop
+    // Jump back into the main loop.
     return true;
 }
 
-// Move the horizontal guardians in the current cavern
+// Move the horizontal guardians in the current cavern.
 void MOVEHG() {
     uint8_t msb, lsb;
 
@@ -1140,58 +1119,58 @@ void MOVEHG() {
         current_clock &= 4;
         current_clock = rotr(current_clock, 3);
 
-        // Jump to consider the next guardian if this one is not due to be moved on this pass
+        // Jump to consider the next guardian if this one is not due to be moved on this pass.
         if ((current_clock & HGUARDS[i].speedColour)) {
             continue;
         }
 
         // The guardian will be moved on this pass.
-        // Pick up the current animation frame (0-7)
+        // Pick up the current animation frame (0-7).
 
         // Is it 3 (the terminal frame for a guardian moving right)?
-        // If so move the guardian right across a cell boundary or turn it round
+        // If so move the guardian right across a cell boundary or turn it round.
         if (HGUARDS[i].frame == 3) {
-            // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
+            // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552.
             split_address(HGUARDS[i].attributeAddress, &msb, &lsb);
 
             // Has the guardian reached the rightmost point in its path?
             if (lsb == HGUARDS[i].addressRightLSB) {
-                // Set the animation frame to 7 (turning the guardian round to face left)
+                // Set the animation frame to 7 (turning the guardian round to face left).
                 HGUARDS[i].frame = 7;
-                // Jump forward to consider the next guardian
+                // Jump forward to consider the next guardian.
             } else {
-                // Set the animation frame to 0 (the initial frame for a guardian moving right)
+                // Set the animation frame to 0 (the initial frame for a guardian moving right).
                 HGUARDS[i].frame = 0;
-                // Increment the guardian's x-coordinate (moving it right across a cell boundary)
+                // Increment the guardian's x-coordinate (moving it right across a cell boundary).
                 lsb++;
                 HGUARDS[i].attributeAddress = build_address(msb, lsb);
-                // Jump forward to consider the next guardian
+                // Jump forward to consider the next guardian.
             }
 
             // Is the current animation frame 4 (the terminal frame for a guardian moving left)?
-            // If so move the guardian left across a cell boundary or turn it round
+            // If so move the guardian left across a cell boundary or turn it round.
         } else if (HGUARDS[i].frame == 4) {
-            // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552
+            // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552.
             split_address(HGUARDS[i].attributeAddress, &msb, &lsb);
 
             // Has the guardian reached the leftmost point in its path?
             if (lsb == HGUARDS[i].addressLeftLSB) {
-                // Set the animation frame to 0 (turning the guardian round to face right)
+                // Set the animation frame to 0 (turning the guardian round to face right).
                 HGUARDS[i].frame = 0;
             } else {
-                // Set the animation frame to 7 (the initial frame for a guardian moving left)
+                // Set the animation frame to 7 (the initial frame for a guardian moving left).
                 HGUARDS[i].frame = 7;
-                // Decrement the guardian's x-coordinate (moving it left across a cell boundary)
+                // Decrement the guardian's x-coordinate (moving it left across a cell boundary).
                 lsb--;
                 HGUARDS[i].attributeAddress = build_address(msb, lsb);
             }
         } else if (HGUARDS[i].frame > 4) {
-            // the animation frame is 5, 6 or 7
+            // the animation frame is 5, 6 or 7.
 
-            // Decrement the animation frame (this guardian is moving left)
+            // Decrement the animation frame (this guardian is moving left).
             HGUARDS[i].frame--;
         } else {
-            // Increment the animation frame (this guardian is moving right)
+            // Increment the animation frame (this guardian is moving right).
             HGUARDS[i].frame++;
         }
 
@@ -1199,60 +1178,57 @@ void MOVEHG() {
     }
 }
 
-// Move and draw the light beam in Solar Power Generator
+// Move and draw the light beam in Solar Power Generator.
 void LIGHTBEAM() {
-    // Point HL at the cell at (0,23) in the attribute buffer at 23552 (the source of the light beam)
+    // Point HL at the cell at (0,23) in the attribute buffer at 23552 (the source of the light beam).
     // FIXME: Screen Buffer: Screen File = 22551
     uint16_t addr = 23575;
 
-    // Prepare DE for addition (the beam travels vertically downwards to start with)
+    // Prepare DE for addition (the beam travels vertically downwards to start with).
     int8_t dir = 32; // gets toggled between 32 and -1.
 
     // The beam-drawing loop begins here.
     while (true) {
-        // Does HL point at a floor or wall tile? Return if so (the light beam stops here)
-        if (speccy.memory[addr] == cavern.FLOOR.id || speccy.memory[addr] == cavern.WALL.id) {
+        // Does HL point at a floor or wall tile? Return if so (the light beam stops here).
+        if (Speccy_read(addr) == cavern.FLOOR.id || Speccy_read(addr) == cavern.WALL.id) {
             return;
         }
 
         // A=39 (INK 7: PAPER 4)
         // Does HL point at a tile with this attribute value?
-        // Jump if not (the light beam is not touching Willy)
-        if (speccy.memory[addr] == 39) {
+        // Jump if not (the light beam is not touching Willy).
+        if (Speccy_read(addr) == 39) {
             // Decrease the air supply by four units
             DECAIR();
             DECAIR();
             DECAIR();
             DECAIR();
-            // Jump forward to draw the light beam over Willy
+            // Jump forward to draw the light beam over Willy.
         } else {
-            // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point)
-            if (speccy.memory[addr] == cavern.BACKGROUND.id) {
-                // Toggle the value in DE between 32 and -1 (and therefore the
-                // direction of the light beam between vertically downwards and
-                // horizontally to the left): the light beam has hit a guardian
+            // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point).
+            if (Speccy_read(addr) == cavern.BACKGROUND.id) {
+                // Toggle the value in DE between 32 and -1 (and therefore the direction of the light beam between
+                // vertically downwards and horizontally to the left): the light beam has hit a guardian.
                 dir ^= 223;
                 dir = ~dir;
             }
         }
 
-        // Draw a portion of the light beam with attribute value 119 (INK 7: PAPER 6: BRIGHT 1)
-        speccy.memory[addr] = 119;
+        // Draw a portion of the light beam with attribute value 119 (INK 7: PAPER 6: BRIGHT 1).
+        Speccy_write(addr, 119);
 
-        // Point HL at the cell where the next portion of the light beam will be drawn
+        // Point HL at the cell where the next portion of the light beam will be drawn.
         addr += dir;
-
-        // Jump back to draw the next portion of the light beam
     }
 }
 
-// Draw the horizontal guardians in the current cavern
+// Draw the horizontal guardians in the current cavern,
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool DRAWHG() {
     uint8_t msb, lsb;
     uint16_t addr;
 
-    // Point IY at the first byte of the first horizontal guardian definition at HGUARDS
+    // Point IY at the first byte of the first horizontal guardian definition at HGUARDS.
 
     // The guardian-drawing loop begins here.
     for (int i = 0; i < 4; i++) {
@@ -1266,41 +1242,41 @@ bool DRAWHG() {
             continue;
         }
 
-        // Point HL at the address of the guardian's location in the attribute buffer at 23552
+        // Point HL at the address of the guardian's location in the attribute buffer at 23552,
         addr = HGUARDS[i].attributeAddress;
 
-        // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH
+        // Reset bit 7 (which specifies the animation speed) of the attribute byte, ensuring no FLASH,
         uint8_t attr = (uint8_t) (HGUARDS[i].speedColour & 127);
 
-        // Set the attribute bytes for the guardian in the buffer at 23552
-        speccy.memory[addr] = attr;
+        // Set the attribute bytes for the guardian in the buffer at 23552,
+        Speccy_write(addr, attr);
         addr++;
-        speccy.memory[addr] = attr;
+        Speccy_write(addr, attr);
         addr += 31;
-        speccy.memory[addr] = attr;
+        Speccy_write(addr, attr);
         addr++;
-        speccy.memory[addr] = attr;
+        Speccy_write(addr, attr);
 
-        // Pick up the animation frame (0-7)
+        // Pick up the animation frame (0-7),
         uint8_t anim_frame = (uint8_t) HGUARDS[i].frame;
-        // Multiply it by 32
+        // Multiply it by 32,
         anim_frame = rotr(anim_frame, 3);
 
         // If we are not in one of the first seven caverns, The Endorian Forest, or The Sixteenth Cavern...
         if (cavern.SHEET >= 7 && cavern.SHEET != 9 && cavern.SHEET != 15) {
-            // Add 128 to E (the horizontal guardians in this cavern use frames 4-7 only)
+            // Add 128 to E (the horizontal guardians in this cavern use frames 4-7 only),
             anim_frame |= (1 << 7);
         }
 
-        // Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E)
-        // Point HL at the address of the guardian's location in the screen buffer at 24576
+        // Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E),
+        // Point HL at the address of the guardian's location in the screen buffer at 24576,
         split_address(HGUARDS[i].attributeAddress, &msb, &lsb);
         addr = build_address((uint8_t) HGUARDS[i].addressMSB, lsb);
 
-        // Draw the guardian to the screen buffer at 24576
+        // Draw the guardian to the screen buffer at 24576,
         bool kill_willy = DRWFIX(&HGUARDS[i].GGDATA[anim_frame], addr, 1);
 
-        // Kill Willy if the guardian collided with him
+        // Kill Willy if the guardian collided with him,
         if (kill_willy) {
             KILLWILLY();
             return true;
@@ -1310,30 +1286,30 @@ bool DRAWHG() {
     return false; // IMPORTANT Willy has not died! -MRC-
 }
 
-// Move and draw Eugene in Eugene's Lair
+// Move and draw Eugene in Eugene's Lair.
 // First we move Eugene up or down, or change his direction.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool EUGENE() {
     // Have all the items been collected, or is Eugene moving downwards?
     if (game.ITEMATTR != 0 && EUGDIR != 0) {
-        // Pick up Eugene's pixel y-coordinate from EUGHGT
+        // Pick up Eugene's pixel y-coordinate from EUGHGT.
         // Decrement it (moving Eugene up)
-        // Jump if Eugene has reached the top of the cavern
+        // Jump if Eugene has reached the top of the cavern.
         if (EUGHGT - 1 == 0) {
-            // Toggle Eugene's direction at EUGDIR
+            // Toggle Eugene's direction at EUGDIR.
             EUGDIR = (uint8_t) !EUGDIR;
         } else {
-            // Update Eugene's pixel y-coordinate at EUGHGT
+            // Update Eugene's pixel y-coordinate at EUGHGT.
             EUGHGT--;
         }
     } else {
-        // Pick up Eugene's pixel y-coordinate from EUGHGT
-        // Increment it (moving Eugene down)
-        // Has Eugene reached the portal yet? Jump if so
+        // Pick up Eugene's pixel y-coordinate from EUGHGT.
+        // Increment it (moving Eugene down).
+        // Has Eugene reached the portal yet? Jump if so.
         if (EUGHGT + 1 == 88) {
             EUGDIR = (uint8_t) !EUGDIR;
         } else {
-            // Update Eugene's pixel y-coordinate at EUGHGT
+            // Update Eugene's pixel y-coordinate at EUGHGT.
             EUGHGT++;
         }
     }
@@ -1344,10 +1320,10 @@ bool EUGENE() {
 
     // Now that Eugene's movement has been dealt with, it's time to draw him.
 
-    // Pick up Eugene's pixel y-coordinate from EUGHGT
+    // Pick up Eugene's pixel y-coordinate from EUGHGT.
     // Point DE at the entry in the screen buffer address lookup table at
     // SBUFADDRS that corresponds to Eugene's y-coordinate.
-    // Point HL at the address of Eugene's location in the screen buffer at 24576
+    // Point HL at the address of Eugene's location in the screen buffer at 24576.
     uint8_t y_coord = (uint8_t) (EUGHGT & 127);
     y_coord = rotl(y_coord, 1);
     addr = SBUFADDRS[y_coord / 2];
@@ -1358,18 +1334,18 @@ bool EUGENE() {
     split_address(addr, &x_msb, &x_lsb);
     addr = build_address(x_msb, lsb);
 
-    // Draw Eugene to the screen buffer at 24576
+    // Draw Eugene to the screen buffer at 24576.
     bool kill_willy = DRWFIX(&EUGENEG, addr, 1);
 
-    // Kill Willy if Eugene collided with him
+    // Kill Willy if Eugene collided with him.
     if (kill_willy) {
         KILLWILLY();
         return true;
     }
 
 
-    // Pick up Eugene's pixel y-coordinate from EUGHGT
-    // Point HL at the address of Eugene's location in the attribute buffer at 23552
+    // Pick up Eugene's pixel y-coordinate from EUGHGT.
+    // Point HL at the address of Eugene's location in the attribute buffer at 23552.
     y_coord = (uint8_t) (EUGHGT & 120);
     y_coord = rotl(y_coord, 1);
     y_coord |= 7;
@@ -1384,17 +1360,17 @@ bool EUGENE() {
     msb += 92;
     addr = build_address(msb, y_coord);
 
-    // Assume we will draw Eugene with white INK
+    // Assume we will draw Eugene with white INK.
     uint8_t ink_colour = 7;
 
-    // Pick up the attribute of the last item drawn from ITEMATTR
-    // Set the zero flag if all the items have been collected
-    // Jump if there are items remaining to be collected
+    // Pick up the attribute of the last item drawn from ITEMATTR.
+    // Set the zero flag if all the items have been collected.
+    // Jump if there are items remaining to be collected.
     if (game.ITEMATTR == 0) {
-        // Pick up the value of the game clock at CLOCK
+        // Pick up the value of the game clock at CLOCK.
         // Move bits 2-4 into bits 0-2 and clear the other bits; this value
         // (which decreases by one on each pass through the main loop) will
-        // be Eugene's INK colour
+        // be Eugene's INK colour.
         ink_colour = (uint8_t) (rotr(cavern.CLOCK, 2) & 7);
     }
 
@@ -1403,41 +1379,41 @@ bool EUGENE() {
     return false;
 }
 
-// Sets the colour attributes for a 16x16 pixel sprite
-// SKYLABS:    to set the attributes for a Skylab
-// VGUARDIANS: to set the attributes for a vertical guardian
-// KONGBEAST:  to set the attributes for the Kong Beast
+// Sets the colour attributes for a 16x16 pixel sprite.
+// SKYLABS:    to set the attributes for a Skylab.
+// VGUARDIANS: to set the attributes for a vertical guardian.
+// KONGBEAST:  to set the attributes for the Kong Beast.
 void EUGENE_3(uint16_t addr, uint8_t ink_colour) {
-    // Save the INK colour in the attribute buffer temporarily
-    speccy.memory[addr] = ink_colour;
+    // Save the INK colour in the attribute buffer temporarily.
+    Speccy_write(addr, ink_colour);
 
-    // Pick up the attribute byte of the background tile for the current cavern from BACKGROUND
-    // Combine its PAPER colour with the chosen INK colour
-    // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552
-    speccy.memory[addr] = (uint8_t) ((cavern.BACKGROUND.id & 248) | speccy.memory[addr]);
+    // Pick up the attribute byte of the background tile for the current cavern.
+    // Combine its PAPER colour with the chosen INK colour.
+    // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552.
+    Speccy_write(addr, (uint8_t) ((cavern.BACKGROUND.id & 248) | Speccy_read(addr)));
 
-    // Set the attribute byte for the top-right cell of the sprite in the attribute buffer at 23552
+    // Set the attribute byte for the top-right cell of the sprite in the attribute buffer at 23552.
     addr++;
-    speccy.memory[addr] = ink_colour;
+    Speccy_write(addr, ink_colour);
 
-    // Set the attribute byte for the middle-left cell of the sprite in the attribute buffer at 23552
+    // Set the attribute byte for the middle-left cell of the sprite in the attribute buffer at 23552.
     addr += 31;
-    speccy.memory[addr] = ink_colour;
+    Speccy_write(addr, ink_colour);
 
-    // Set the attribute byte for the middle-right cell of the sprite in the attribute buffer at 23552
+    // Set the attribute byte for the middle-right cell of the sprite in the attribute buffer at 23552.
     addr++;
-    speccy.memory[addr] = ink_colour;
+    Speccy_write(addr, ink_colour);
 
-    // Set the attribute byte for the bottom-left cell of the sprite in the attribute buffer at 23552
+    // Set the attribute byte for the bottom-left cell of the sprite in the attribute buffer at 23552.
     addr += 31;
-    speccy.memory[addr] = ink_colour;
+    Speccy_write(addr, ink_colour);
 
-    // Set the attribute byte for the bottom-right cell of the sprite in the attribute buffer at 23552
+    // Set the attribute byte for the bottom-right cell of the sprite in the attribute buffer at 23552.
     addr++;
-    speccy.memory[addr] = ink_colour;
+    Speccy_write(addr, ink_colour);
 }
 
-// Move and draw the Skylabs in Skylab Landing Bay
+// Move and draw the Skylabs in Skylab Landing Bay.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool SKYLABS() {
     uint8_t msb;
@@ -1446,19 +1422,19 @@ bool SKYLABS() {
 
     // The Skylab-moving loop begins here.
     for (int i = 0; i < 4; i++) {
-        // Have we dealt with all the Skylabs yet? If so, re-enter the main loop
+        // Have we dealt with all the Skylabs yet? If so, re-enter the main loop.
         if (VGUARDS[i].attribute == 255) {
             return false;
         }
 
         // Has it reached its crash site yet?
         if (VGUARDS[i].yCoord < VGUARDS[i].yCoordMaximum) {
-            // Increment the Skylab's y-coordinate (moving it downwards)
+            // Increment the Skylab's y-coordinate (moving it downwards).
             VGUARDS[i].yCoord += VGUARDS[i].yPixelIncrement;
         } else {
             // The Skylab has reached its crash site. Start or continue its disintegration.
 
-            // Increment the animation frame
+            // Increment the animation frame.
             VGUARDS[i].frame++;
 
             // Pick up the animation frame.
@@ -1467,11 +1443,11 @@ bool SKYLABS() {
                 // Reset the Skylab's pixel y-coordinate
                 VGUARDS[i].yCoord = VGUARDS[i].yCoordMinimum;
 
-                // Add 8 to the Skylab's x-coordinate (wrapping around at the right side of the screen)
+                // Add 8 to the Skylab's x-coordinate (wrapping around at the right side of the screen).
                 VGUARDS[i].xCoord += 8;
                 VGUARDS[i].xCoord &= 31;
 
-                // Reset the animation frame to 0
+                // Reset the animation frame to 0.
                 VGUARDS[i].frame = 0;
             }
         }
@@ -1479,10 +1455,10 @@ bool SKYLABS() {
         // Now that the Skylab's movement has been dealt with, time to draw it.
 
         // Pickup the entry in the screen buffer address lookup table at SBUFADDRS
-        // that corresponds to the Skylab's pixel y-coordinate
+        // that corresponds to the Skylab's pixel y-coordinate.
         uint8_t y_coord = rotl(VGUARDS[i].yCoord, 1);
 
-        // Point HL at the address of the Skylab's location in the screen buffer at 24576
+        // Point HL at the address of the Skylab's location in the screen buffer at 24576.
         addr = SBUFADDRS[y_coord / 2];
         addr += VGUARDS[i].xCoord;
 
@@ -1496,19 +1472,19 @@ bool SKYLABS() {
         addr = build_address(y_msb, lsb);
 
         // Pick up the animation frame (0-7). Multiply it by 32.
-        // Skylab sprite (at GGDATA+A)
+        // Skylab sprite (at GGDATA+A).
         uint8_t sprite_offset = rotr(VGUARDS[i].frame, 3);
 
-        // Draw the Skylab to the screen buffer at 24576
+        // Draw the Skylab to the screen buffer at 24576.
         bool kill_willy = DRWFIX(&VGUARDS[i].GGDATA[sprite_offset], addr, 1);
 
-        // Kill Willy if the Skylab collided with him
+        // Kill Willy if the Skylab collided with him.
         if (kill_willy) {
             KILLWILLY();
             return true;
         }
 
-        // Point HL at the address of the Skylab's location in the attribute buffer at 23552
+        // Point HL at the address of the Skylab's location in the attribute buffer at 23552.
         addr = (uint16_t) (rotl((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
         split_address(addr, &msb, &lsb);
         uint8_t msb_bak = msb;
@@ -1517,7 +1493,7 @@ bool SKYLABS() {
         split_address(addr, &msb, &lsb);
         addr = build_address(msb_bak, lsb);
 
-        // Set the attribute bytes for the Skylab
+        // Set the attribute bytes for the Skylab.
         EUGENE_3(addr, VGUARDS[i].attribute);
 
         // The current guardian definition has been dealt with. Time for the next one.
@@ -1526,7 +1502,7 @@ bool SKYLABS() {
     return false; // Willy is not dead!
 }
 
-// Move and draw the vertical guardians in the current cavern
+// Move and draw the vertical guardians in the current cavern.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool VGUARDIANS() {
     uint8_t msb, lsb;
@@ -1539,36 +1515,36 @@ bool VGUARDIANS() {
             return false;
         }
 
-        // Increment the guardian's animation frame, or reset to 0 if it overflowed to 4
+        // Increment the guardian's animation frame, or reset to 0 if it overflowed to 4.
         if (VGUARDS[i].frame < 3) {
             VGUARDS[i].frame++;
         } else {
             VGUARDS[i].frame = 0;
         }
 
-        // Pick up the guardian's pixel y-coordinate
-        // Add the current y-coordinate increment
+        // Pick up the guardian's pixel y-coordinate.
+        // Add the current y-coordinate increment.
         uint8_t y_coord = (uint8_t) (VGUARDS[i].yCoord + VGUARDS[i].yPixelIncrement);
 
         // Has the guardian reached the lowest/highest point of its path (minimum y-coordinate)?
         // If so, change its direction of movement
         if (y_coord < VGUARDS[i].yCoordMinimum || y_coord >= VGUARDS[i].yCoordMaximum) {
-            // Negate the y-coordinate increment; this changes the guardian's direction of movement
+            // Negate the y-coordinate increment; this changes the guardian's direction of movement.
             VGUARDS[i].yPixelIncrement = (uint8_t) (-VGUARDS[i].yPixelIncrement);
         } else {
-            // Update the guardian's pixel y-coordinate
+            // Update the guardian's pixel y-coordinate.
             VGUARDS[i].yCoord = y_coord;
         }
 
         // Now that the guardian's movement has been dealt with, time to draw it.
 
-        // Pick up the guardian's pixel y-coordinate
+        // Pick up the guardian's pixel y-coordinate.
         // Point DE at the entry in the screen buffer address lookup table at
         // SBUFADDRS that corresponds to the guardian's pixel y-coordinate.
         y_coord = rotl((uint8_t) (VGUARDS[i].yCoord & 127), 1);
         uint16_t addr = SBUFADDRS[y_coord / 2];
 
-        // Point HL at the address of the guardian's location in the screen buffer at 24576
+        // Point HL at the address of the guardian's location in the screen buffer at 24576.
         split_address(addr, &msb, &lsb);
         lsb_bak = lsb | VGUARDS[i].xCoord;
         y_coord++;
@@ -1582,14 +1558,14 @@ bool VGUARDIANS() {
         // Draw the guardian to the screen buffer at 24576
         bool kill_willy = DRWFIX(&VGUARDS[i].GGDATA[anim_frame], addr, 1);
 
-        // Kill Willy if the guardian collided with him
+        // Kill Willy if the guardian collided with him.
         if (kill_willy) {
             KILLWILLY();
             return true;
         }
 
-        // Pick up the guardian's pixel y-coordinate
-        // Point HL at the address of the guardian's location in the attribute buffer at 23552
+        // Pick up the guardian's pixel y-coordinate.
+        // Point HL at the address of the guardian's location in the attribute buffer at 23552.
         addr = (uint16_t) (rotl((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
         split_address(addr, &msb, &lsb);
         msb_bak = msb;
@@ -1599,7 +1575,7 @@ bool VGUARDIANS() {
         lsb |= VGUARDS[i].xCoord;
         addr = build_address(msb_bak, lsb);
 
-        // Set the attribute bytes for the guardian
+        // Set the attribute bytes for the guardian.
         EUGENE_3(addr, VGUARDS[i].attribute);
 
         // The current guardian definition has been dealt with. Time for the next one.
@@ -1608,14 +1584,14 @@ bool VGUARDIANS() {
     return false; // Willy is not dead.
 }
 
-// Draw the items in the current cavern and collect any that Willy is touching
+// Draw the items in the current cavern and collect any that Willy is touching.
 void DRAWITEMS() {
     uint8_t msb;
     uint8_t lsb;
     uint16_t addr;
 
-    // Initialise the attribute of the last item drawn at ITEMATTR
-    // to 0 (in case there are no items left to draw)
+    // Initialise the attribute of the last item drawn in ITEMATTR to 0
+    // (in case there are no items left to draw).
     game.ITEMATTR = 0;
 
     // The item-drawing loop begins here.
@@ -1630,52 +1606,52 @@ void DRAWITEMS() {
             continue;
         }
 
-        // Point DE at the address of the item's location in the attribute buffer at 23552
+        // Point DE at the address of the item's location in the attribute buffer at 23552.
         addr = cavern.ITEMS[i].address;
 
-        // Pick up the current attribute byte at the item's location
+        // Pick up the current attribute byte at the item's location.
         // Is the INK white (which happens if Willy is touching the item)?
-        if ((speccy.memory[addr] & 7) == 7) {
+        if ((Speccy_read(addr) & 7) == 7) {
             // Willy is touching this item, so add it to his collection.
 
-            // Add 100 to the score
+            // Add 100 to the score.
             game.current_score += 100;
             INCSCORE_0(33836);
 
-            // Set the item's attribute byte to 0 so that it will be skipped the next time
+            // Set the item's attribute byte to 0 so that it will be skipped the next time.
             cavern.ITEMS[i].attribute = 0;
 
-            // Jump forward to consider the next item
+            // Jump forward to consider the next item.
         } else {
             // This item has not been collected yet.
 
-            // Pick up the item's current attribute byte
-            // Keep the BRIGHT and PAPER bits, and set the INK to 3 (magenta)
-            // Store this value in B
+            // Pick up the item's current attribute byte.
+            // Keep the BRIGHT and PAPER bits, and set the INK to 3 (magenta).
+            // Store this value in B.
             uint8_t attribute = (uint8_t) ((cavern.ITEMS[i].attribute & 248) | 3);
 
-            // Pick up the item's current attribute byte again
-            // Keep only bits 0 and 1 and add the value in B; this maintains the
-            // BRIGHT and PAPER bits, and cycles the INK colour through 3, 4, 5 and 6
+            // Pick up the item's current attribute byte again.
+            // Keep only bits 0 and 1 and add the value in B; this maintains the BRIGHT and
+            // PAPER bits, and cycles the INK colour through 3, 4, 5 and 6
             attribute += (cavern.ITEMS[i].attribute & 3);
 
-            // Store the new attribute byte
+            // Store the new attribute byte.
             cavern.ITEMS[i].attribute = attribute;
 
-            // Update the attribute byte at the item's location in the buffer at 23552
-            speccy.memory[addr] = attribute;
+            // Update the attribute byte at the item's location in the buffer at 23552.
+            Speccy_write(addr, attribute);
 
-            // Store the new attribute byte at ITEMATTR as well
+            // Store the new attribute byte at ITEMATTR as well.
             game.ITEMATTR = attribute;
 
-            // Point DE at the address of the item's location in the screen buffer at 24576
+            // Point DE at the address of the item's location in the screen buffer at 24576.
             split_address(addr, &msb, &lsb);
             msb = (uint8_t) cavern.ITEMS[i].addressMSB;
             addr = build_address(msb, lsb);
 
-            // Point HL at the item graphic for the current cavern (at ITEM)
-            // There are eight pixel rows to copy
-            // Draw the item to the screen buffer at 24576
+            // Point HL at the item graphic for the current cavern (at ITEM).
+            // There are eight pixel rows to copy.
+            // Draw the item to the screen buffer at 24576.
             Speccy_printSpriteAt(cavern.ITEMS[i].tile, addr, 8);
         }
 
@@ -1684,34 +1660,34 @@ void DRAWITEMS() {
 
     // All the items have been dealt with. Check whether there were any left.
 
-    // Pick up the attribute of the last item drawn at ITEMATTR
+    // Pick up the attribute of the last item drawn at ITEMATTR.
     // Were any items drawn? Return if so (some remain to be collected).
     if (game.ITEMATTR != 0) {
         return;
     }
 
-    // Ensure that the portal is flashing by setting bit 7 of its attribute byte at PORTAL
+    // Ensure that the portal is flashing by setting bit 7 of its attribute byte at PORTAL.
     cavern.portal.PORTAL |= (1 << 7);
 }
 
-// Draw the portal, or move to the next cavern if Willy has entered it
+// Draw the portal, or move to the next cavern if Willy has entered it.
 // First check whether Willy has entered the portal.
 // IMPORTANT: the CALL-ers should be able to handle the `goto NEWSHT` themselves, on the return. -MRC-
 bool CHKPORTAL() {
     uint8_t msb, lsb;
     uint8_t w_msb, w_lsb;
 
-    // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1
+    // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1.
     uint16_t addr = cavern.portal.PORTALLOC1;
     split_address(addr, &msb, &lsb);
 
-    // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
+    // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION.
     uint16_t w_addr = willy.LOCATION;
     split_address(w_addr, &w_msb, &w_lsb);
 
     // Does it match that of the portal?
     if (lsb == w_lsb) {
-        // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
+        // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877.
         // Does it match that of the portal?
         if (w_msb == msb) {
             // Is the portal flashing?
@@ -1727,26 +1703,26 @@ bool CHKPORTAL() {
 
     // Willy has not entered the portal, or it's not flashing, so just draw it.
 
-    // Pick up the portal's attribute byte from PORTAL
-    // Set the attribute bytes for the portal in the buffer at 23552
-    speccy.memory[addr] = cavern.portal.PORTAL;
+    // Pick up the portal's attribute byte from PORTAL.
+    // Set the attribute bytes for the portal in the buffer at 23552.
+    Speccy_write(addr, cavern.portal.PORTAL);
     addr++;
-    speccy.memory[addr] = cavern.portal.PORTAL;
+    Speccy_write(addr, cavern.portal.PORTAL);
     addr += 31;
-    speccy.memory[addr] = cavern.portal.PORTAL;
+    Speccy_write(addr, cavern.portal.PORTAL);
     addr++;
-    speccy.memory[addr] = cavern.portal.PORTAL;
+    Speccy_write(addr, cavern.portal.PORTAL);
 
-    // Point DE at the graphic data for the portal at PORTALG
-    // Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2
-    // C=0: overwrite mode
+    // Point DE at the graphic data for the portal at PORTALG.
+    // Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2.
+    // C=0: overwrite mode.
     DRWFIX(&cavern.portal.PORTALG, cavern.portal.PORTALLOC2, 0);
     // This routine continues into the one at DRWFIX.
 
     return false; // NOTE: callers should not `goto NEWSHT`.
 }
 
-// Draw a sprite
+// Draw a sprite.
 //
 // Used by the routines at:
 //   START:      draw Willy on the title screen
@@ -1763,27 +1739,28 @@ bool CHKPORTAL() {
 // If C=1 on entry, this routine returns with the zero flag reset if any of the
 // set bits in the sprite being drawn collides with a set bit in the background.
 //
-// C Drawing mode: 0 (overwrite) or 1 (blend)
-// DE Address of sprite graphic data
-// HL Address to draw at
+// `sprite`: Address of sprite graphic data.
+// `addr`:   Address to draw at.
+// `mode`:   Drawing mode: 0 (overwrite) or 1 (blend).
 bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
     uint8_t *sprite = gfx_sprite;
 
     uint8_t msb;
     uint8_t lsb;
 
-    // Note: each sprite is 16x16 pixels, so we need to work in pairs of bytes
+    // Note: each sprite is 16x16 pixels, so we need to work in pairs of bytes.
     for (int i = 0; i < 32; i += 2) {
         // Are we in blend mode?
         if (mode == 1) {
             if (sprite[i] & Speccy_readScreen(addr) || sprite[i + 1] & Speccy_readScreen(addr + 1)) {
-                return true; // collision detected
+                // collision detected.
+                return true;
             }
             sprite[i] |= Speccy_readScreen(addr);
             sprite[i + 1] |= Speccy_readScreen(addr + 1);
         }
 
-        // Copy the graphic bytes to their destination cells
+        // Copy the graphic bytes to their destination cells.
         Speccy_writeScreen(addr, sprite[i]);
         Speccy_writeScreen(addr + 1, sprite[i + 1]);
 
@@ -1797,13 +1774,13 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
             continue;
         }
 
-        // Otherwise move to the top pixel row in the cell below
+        // Otherwise move to the top pixel row in the cell below.
         msb -= 8;
         lsb += 32;
 
         // Was the last pair of cells at y-coordinate 7 or 15?
         // Otherwise adjust to account for the movement from the top
-        // or middle third of the screen to the next one down
+        // or middle third of the screen to the next one down.
         if ((lsb & 224) == 0) {
             msb += 8;
         }
@@ -1811,16 +1788,17 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
         addr = build_address(msb, lsb);
     }
 
-    return false; // no collision detected
+    // no collision detected.
+    return false;
 }
 
-// Move to the next cavern
+// Move to the next cavern.
 // IMPORTANT: the CALLers should be able to handle the `goto NEWSHT` themselves, on the return. -MRC-
 bool NXSHEET() {
     uint16_t addr;
 
-    // Pick up the number of the current cavern from SHEET
-    // Increment the cavern number
+    // Pick up the number of the current cavern from SHEET.
+    // Increment the cavern number.
     uint8_t next_sheet = (uint8_t) (cavern.SHEET + 1);
 
     // Is the current cavern The Final Barrier?
@@ -1829,23 +1807,23 @@ bool NXSHEET() {
         if (game.DEMO == 0 && game.CHEAT == false) {
             // Willy has made it through The Final Barrier without cheating.
 
-            // Draw Willy at (2,19) on the ground above the portal
+            // Draw Willy at (2,19) on the ground above the portal.
             DRWFIX(&willy.sprites[96], 16467, 0);
 
-            // Draw the swordfish graphic (see SWORDFISH) over the portal
+            // Draw the swordfish graphic (see SWORDFISH) over the portal.
             DRWFIX(&SWORDFISH, 16563, 0);
 
-            // Point HL at (2,19) in the attribute file
+            // Point HL at (2,19) in the attribute file.
             addr = 22611;
 
-            // Set the attributes for the upper half of Willy's
-            // sprite at (2,19) and (2,20) to 47 (INK 7: PAPER 5)
+            // Set the attributes for the upper half of Willy's sprite
+            // at (2,19) and (2,20) to 47 (INK 7: PAPER 5).
             Speccy_writeAttribute(addr, 47);
             addr++;
             Speccy_writeAttribute(addr, 47);
 
-            // Set the attributes for the lower half of Willy's
-            // sprite at (3,19) and (3,20) to 39 (INK 7: PAPER 4)
+            // Set the attributes for the lower half of Willy's sprite
+            // at (3,19) and (3,20) to 39 (INK 7: PAPER 4).
             addr += 31;
             Speccy_writeAttribute(addr, 39);
             addr++;
@@ -1856,30 +1834,30 @@ bool NXSHEET() {
             addr++;
             addr += 31;
 
-            // Set the attributes for the fish at (5,19) and (5,20) to 69 (INK 5: PAPER 0: BRIGHT 1)
+            // Set the attributes for the fish at (5,19) and (5,20) to 69 (INK 5: PAPER 0: BRIGHT 1).
             Speccy_writeAttribute(addr, 69);
             addr++;
             Speccy_writeAttribute(addr, 69);
 
-            // Set the attribute for the handle of the sword at (6,19) to 70 (INK 6: PAPER 0: BRIGHT 1)
+            // Set the attribute for the handle of the sword at (6,19) to 70 (INK 6: PAPER 0: BRIGHT 1).
             addr += 31;
             Speccy_writeAttribute(addr, 70);
 
-            // Set the attribute for the blade of the sword at (6,20) to 71 (INK 7: PAPER 0: BRIGHT 1)
+            // Set the attribute for the blade of the sword at (6,20) to 71 (INK 7: PAPER 0: BRIGHT 1).
             addr++;
             Speccy_writeAttribute(addr, 71);
 
-            // Set the attributes at (7,19) and (7,20) to 0 (to hide Willy's feet just below where the portal was)
+            // Set the attributes at (7,19) and (7,20) to 0 (to hide Willy's feet just below where the portal was).
             addr += 31;
             Speccy_writeAttribute(addr, 0);
             addr++;
             Speccy_writeAttribute(addr, 0);
 
-            // Prepare C and D for the celebratory sound effect
+            // Prepare C and D for the celebratory sound effect.
             uint8_t border = 0; // (black border)
 
             for (int i = 0; i < 50; i++) {
-                // Produce the celebratory sound effect: Willy has escaped from the mine
+                // Produce the celebratory sound effect: Willy has escaped from the mine.
                 OUT(border);
                 border ^= 24;
 
@@ -1887,11 +1865,11 @@ bool NXSHEET() {
             }
         }
 
-        // The next cavern will be Central Cavern
+        // The next cavern will be Central Cavern.
         next_sheet = 0;
     }
 
-    // Update the cavern number at SHEET
+    // Update the cavern number at SHEET.
     if (game.teleportMode) {
         cavern.SHEET = (uint8_t) game.teleportCavernNumber;
     } else {
@@ -1900,52 +1878,47 @@ bool NXSHEET() {
 
     // The next section of code cycles the INK and PAPER colours of the current cavern.
 
-    // Initialise A to 63 (INK 7: PAPER 7)
+    // Initialise A to 63 (INK 7: PAPER 7).
     uint8_t colours = 63;
 
+    // Iterate through all attribute values from 63 down to 1.
     for (uint8_t ink = colours; ink > 0; ink--) {
-        // Set the attributes for the top two-thirds of the screen to the value in A
-        for (int i = 0; i < 512; i++) {
-            Speccy_writeAttribute(22528 + i, ink);
-        }
+        Speccy_fillTopTwoThirdsOfAttributeFileWith(ink);
+        Terminal_redraw();
 
         // Pause for about 0.004s
         millisleep(4);
-
-        Terminal_redraw();
-
-        // Jump back until we've gone through all attribute values from 63 down to 1
     }
 
     // Are we in demo mode?
     if (game.DEMO) {
-        // If so, demo the next cavern
+        // If so, demo the next cavern.
         return true;
     }
 
     // The following loop increases the score and decreases the air supply until it runs out.
     while (true) {
-        // Decrease the air remaining in the current cavern
+        // Decrease the air remaining in the current cavern.
         DECAIR();
 
-        // Move to the next cavern if the air supply is now gone
+        // Move to the next cavern if the air supply is now gone.
         if (Cavern_isAirDepleted()) {
             return true;
         }
 
-        // Add 1 to the score
+        // Add 1 to the score.
         game.current_score++;
         INCSCORE_0(33838);
 
-        // Print the new score at (19,26)
+        // Print the new score at (19,26).
         Speccy_printMessage(&game.SCORBUF, 20602, 6);
 
-        // C=4; this value determines the duration of the sound effect
+        // C=4; this value determines the duration of the sound effect.
         uint8_t duration = 4;
 
-        // Pick up the remaining air supply (S) from AIR
+        // Pick up the remaining air supply (S) from AIR.
         // D=2*(63-S); this value determines the pitch of the sound effect
-        // (which decreases with the amount of air remaining)
+        // (which decreases with the amount of air remaining).
         uint8_t pitch = rotl((uint8_t) (~cavern.AIR & 63), 1);
 
         for (int i = duration; i > 0; i--) {
@@ -1956,7 +1929,7 @@ bool NXSHEET() {
             millisleep(1);
         }
 
-        // Jump back to decrease the air supply again
+        // Jump back to decrease the air supply again.
     }
 
     return false; // IMPORTANT: no `goto NEWSHT` required. -MRC-
@@ -1971,15 +1944,15 @@ void INCSCORE_0(uint16_t addr) {
 
     for (;;) {
         // Pick up a digit of the score, is it '9'?
-        if (speccy.memory[addr] < 57) {
-            speccy.memory[addr]++;
+        if (Speccy_read(addr) < 57) {
+            Speccy_write(addr, (uint8_t) Speccy_read(addr) + 1);
             return;
         }
 
-        // Roll the digit over from '9' to '0'
-        speccy.memory[addr] = 48;
+        // Roll the digit over from '9' to '0'.
+        Speccy_write(addr, 48);
 
-        // Point HL at the next digit to the left
+        // Point HL at the next digit to the left.
         addr--;
 
         // Is this the 10000s digit?
@@ -1991,49 +1964,49 @@ void INCSCORE_0(uint16_t addr) {
     }
 }
 
-// Move the conveyor in the current cavern
+// Move the conveyor in the current cavern.
 void MVCONVEYOR() {
     uint8_t h, l, d, e; // MSB/LSB for the address.
     uint8_t pixels_a, pixels_c;
 
-    // Pick up the address of the conveyor's location in the screen buffer at 28672 from CONVLOC
+    // Pick up the address of the conveyor's location in the screen buffer at 28672 from CONVLOC.
     uint16_t row_hl = cavern.CONVEYOR.CONVLOC;
 
-    // Copy this address to DE
+    // Copy this address to DE.
     uint16_t row_de = cavern.CONVEYOR.CONVLOC;
 
     // Is the conveyor moving left?
     if (cavern.CONVEYOR.CONVDIR == 0) {
-        // Copy the first pixel row of the conveyor tile to A
+        // Copy the first pixel row of the conveyor tile to A.
         // Rotate it left twice
-        pixels_a = rotl(speccy.memory[row_hl], 2);
+        pixels_a = rotl(Speccy_read(row_hl), 2);
 
-        // Point HL at the third pixel row of the conveyor tile
+        // Point HL at the third pixel row of the conveyor tile.
         split_address(row_hl, &h, &l);
         h += 2;
         row_hl = build_address(h, l);
 
         // Copy this pixel row to C
-        pixels_c = rotr(speccy.memory[row_hl], 2);
+        pixels_c = rotr(Speccy_read(row_hl), 2);
     } else {
         // The conveyor is moving right.
 
-        // Copy the first pixel row of the conveyor tile to A
-        pixels_a = rotr(speccy.memory[row_hl], 2);
+        // Copy the first pixel row of the conveyor tile to A.
+        pixels_a = rotr(Speccy_read(row_hl), 2);
 
-        // Point HL at the third pixel row of the conveyor tile
+        // Point HL at the third pixel row of the conveyor tile.
         split_address(row_hl, &h, &l);
         h += 2;
         row_hl = build_address(h, l);
 
-        // Copy this pixel row to C
-        pixels_c = rotl(speccy.memory[row_hl], 2);
+        // Copy this pixel row to C.
+        pixels_c = rotl(Speccy_read(row_hl), 2);
     }
 
     for (int b = cavern.CONVEYOR.CONVLEN; b > 0; b--) {
-        // Update the first and third pixel rows of every conveyor tile in the screen buffer at 28672
-        speccy.memory[row_de] = pixels_a;
-        speccy.memory[row_hl] = pixels_c;
+        // Update the first and third pixel rows of every conveyor tile in the screen buffer at 28672.
+        Speccy_write(row_de, pixels_a);
+        Speccy_write(row_hl, pixels_c);
 
         split_address(row_hl, &h, &l);
         l++;
@@ -2045,37 +2018,37 @@ void MVCONVEYOR() {
     }
 }
 
-// Move and draw the Kong Beast in the current cavern
+// Move and draw the Kong Beast in the current cavern.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool KONGBEAST() {
     uint16_t addr;
     uint8_t msb, lsb;
 
-    // Flip the left-hand switch at (0,6) if Willy is touching it
+    // Flip the left-hand switch at (0,6) if Willy is touching it.
     // FIXME: Screen Buffer: Screen File = 22534
     CHKSWITCH(23558);
 
-    // Pick up the Kong Beast's status from EUGDIR
+    // Pick up the Kong Beast's status from EUGDIR.
     // Is the Kong Beast already dead?
     if (EUGDIR == 2) {
         return false; // NOTE: willy is not dead!
     }
 
-    // Pick up the sixth pixel row of the left-hand switch from the screen buffer at 28672
+    // Pick up the sixth pixel row of the left-hand switch from the screen buffer at 28672.
 
     // Has the switch been flipped?
     // FIXME: Blank Screen Buffer: Screen File = 17670
-    if (speccy.memory[29958] != 16) {
+    if (Speccy_read(29958) != 16) {
         return KONGBEAST_8(); // return dead-ness state of Willy! -MRC-
     }
 
     // The left-hand switch has been flipped. Deal with opening up the wall if that is still in progress.
 
-    // Pick up the attribute byte of the tile at (11,17) in the buffer at 24064
+    // Pick up the attribute byte of the tile at (11,17) in the buffer at 24064.
     // Has the wall there been removed yet?
     // FIXME: Blank Screen Buffer: Screen File = 22897
-    if (speccy.memory[24433] != 0) {
-        // Point HL at the bottom row of pixels of the wall tile at (11,17) in the screen buffer at 28672
+    if (Speccy_read(24433) != 0) {
+        // Point HL at the bottom row of pixels of the wall tile at (11,17) in the screen buffer at 28672.
         // FIXME: Blank Screen Buffer: Screen File = 20337
         addr = 32625;
 
@@ -2083,25 +2056,26 @@ bool KONGBEAST() {
             split_address(addr, &msb, &lsb);
 
             // Pick up a pixel row. Is it blank yet?
-            if (speccy.memory[addr] != 0) {
-                // Clear a pixel row of the wall tile at (11,17) in the screen buffer at 28672
-                speccy.memory[addr] = 0;
+            if (Speccy_read(addr) != 0) {
+                // Clear a pixel row of the wall tile at (11,17) in the screen buffer at 28672.
+                Speccy_write(addr, 0);
 
-                // Point HL at the opposite pixel row of the wall tile one cell down at (12,17)
+                // Point HL at the opposite pixel row of the wall tile one cell down at (12,17).
                 lsb = 145;
                 msb ^= 7;
                 addr = build_address(msb, lsb);
 
-                // Clear that pixel row as well
-                speccy.memory[addr] = 0;
+                // Clear that pixel row as well.
+                Speccy_write(addr, 0);
 
                 break;
             }
 
-            // Point HL at the next pixel row up
+            // Point HL at the next pixel row up.
             msb--;
+
             // Have we checked all 8 pixel rows yet?
-            // If not, jump back to check the next one
+            // If not, jump back to check the next one.
             if (msb != 119) {
                 break;
             }
@@ -2109,56 +2083,56 @@ bool KONGBEAST() {
             addr = build_address(msb, lsb);
         }
 
-        // Change the attributes at (11,17) and (12,17) in the buffer at 24064
-        // to match the background tile (the wall there is now gone)
+        // Change the attributes at (11,17) and (12,17) in the buffer at 24064.
+        // to match the background tile (the wall there is now gone).
         // FIXME: Blank Screen Buffer: Screen File = 22897
-        speccy.memory[24433] = cavern.BACKGROUND.id;
+        Speccy_write(24433, cavern.BACKGROUND.id);
         // FIXME: Blank Screen Buffer: Screen File = 22929
-        speccy.memory[24465] = cavern.BACKGROUND.id;
+        Speccy_write(24465, cavern.BACKGROUND.id);
 
         // FIXME: I guess we need to update HGUARD2 directly rather than this memeory address.
         // Update the seventh byte of the guardian definition at HGUARD2 so
-        // that the guardian moves through the opening in the wall
-        speccy.memory[32971] = 114;
+        // that the guardian moves through the opening in the wall.
+        Speccy_write(32971, 114);
     }
 
     // Now check the right-hand switch.
 
-    // Flip the right-hand switch at (0,18) if Willy is touching it (and it hasn't already been flipped)
-    // Jump if the switch was not flipped
+    // Flip the right-hand switch at (0,18) if Willy is touching it (and it hasn't already been flipped).
+    // Jump if the switch was not flipped.
     // FIXME: Screen Buffer: Screen File = 22546
     if (!CHKSWITCH(23570)) {
-        // Initialise the Kong Beast's pixel y-coordinate at EUGHGT to 0
+        // Initialise the Kong Beast's pixel y-coordinate at EUGHGT to 0.
         EUGHGT = 0;
 
-        // Update the Kong Beast's status at EUGDIR to 1: he is falling
+        // Update the Kong Beast's status at EUGDIR to 1: he is falling.
         EUGDIR = 1;
 
         // Change the attributes of the floor beneath the Kong Beast in the
-        // buffer at 24064 to match that of the background tile
+        // buffer at 24064 to match that of the background tile.
         // FIXME: Blank Screen Buffer: Screen File = 22607
-        speccy.memory[24143] = cavern.BACKGROUND.id;
+        Speccy_write(24143, cavern.BACKGROUND.id);
         // FIXME: Blank Screen Buffer: Screen File = 16463
-        speccy.memory[24144] = cavern.BACKGROUND.id;
+        Speccy_write(24144, cavern.BACKGROUND.id);
 
-        // Point HL at (2,15) in the screen buffer at 28672
+        // Point HL at (2,15) in the screen buffer at 28672.
         // FIXME: Blank Screen Buffer: Screen File = 22608
         addr = 28751;
 
-        // Clear the cells at (2,15) and (2,16), removing the floor beneath the Kong Beast
+        // Clear the cells at (2,15) and (2,16), removing the floor beneath the Kong Beast.
         for (int i = 8; i > 0; i--) {
             split_address(addr, &msb, &lsb);
-            speccy.memory[addr] = 0;
+            Speccy_write(addr, 0);
             lsb++;
             addr = build_address(msb, lsb);
-            speccy.memory[addr] = 0;
+            Speccy_write(addr, 0);
             lsb--;
             msb++;
             addr = build_address(msb, lsb);
         }
     }
 
-    // Pick up the Kong Beast's status from EUGDIR
+    // Pick up the Kong Beast's status from EUGDIR.
     // Is the Kong Beast still on the ledge?
     if (EUGDIR == 0) {
         return KONGBEAST_8();  // return dead-ness state of Willy! -MRC-
@@ -2166,45 +2140,45 @@ bool KONGBEAST() {
 
     // The Kong Beast is falling.
 
-    // Pick up the Kong Beast's pixel y-coordinate from EUGHGT
+    // Pick up the Kong Beast's pixel y-coordinate from EUGHGT.
     // Has he fallen into the portal yet?
     if (EUGHGT != 100) {
-        // Add 4 to the Kong Beast's pixel y-coordinate at EUGHGT (moving him downwards)
+        // Add 4 to the Kong Beast's pixel y-coordinate at EUGHGT (moving him downwards).
         EUGHGT += 4;
 
-        // Copy the pixel y-coordinate to C; this value determines the pitch of the sound effect
+        // Copy the pixel y-coordinate to C; this value determines the pitch of the sound effect.
 
-        // D=16; this value determines the duration of the sound effect
-        // Pick up the border colour for the current cavern from BORDER
+        // D=16; this value determines the duration of the sound effect.
+        // Pick up the border colour for the current cavern from BORDER.
         uint8_t border = cavern.BORDER;
 
         for (int i = 0; i < 16; i++) {
-            // Make a falling sound effect
+            // Make a falling sound effect.
             OUT(border);
             border ^= 24;
             millisleep(4);
         }
 
-        // Copy the Kong Beast's pixel y-coordinate back into A
+        // Copy the Kong Beast's pixel y-coordinate back into A.
         // Point DE at the entry in the screen buffer address lookup table at
-        // SBUFADDRS that corresponds to the Kong Beast's pixel y-coordinate
-        // Point HL at the address of the Kong Beast's location in the screen buffer at 24576
+        // SBUFADDRS that corresponds to the Kong Beast's pixel y-coordinate.
+        // Point HL at the address of the Kong Beast's location in the screen buffer at 24576.
         addr = (uint16_t) (SBUFADDRS[rotl(EUGHGT, 1)] | 15);
 
         // Use bit 5 of the value of the game clock at CLOCK (which is toggled
         // once every eight passes through the main loop) to point DE at the
-        // graphic data for the appropriate Kong Beast sprite
+        // graphic data for the appropriate Kong Beast sprite.
         uint16_t sprite_id = (uint16_t) ((cavern.CLOCK & 32) | 64);
 
-        // Draw the Kong Beast to the screen buffer at 24576
+        // Draw the Kong Beast to the screen buffer at 24576.
         DRWFIX(&GGDATA[sprite_id], addr, 0);
 
-        // Add 100 to the score
+        // Add 100 to the score.
         game.current_score += 100;
         INCSCORE_0(33836);
 
-        // Pick up the Kong Beast's pixel y-coordinate from EUGHGT
-        // Point HL at the address of the Kong Beast's location in the attribute buffer at 23552
+        // Pick up the Kong Beast's pixel y-coordinate from EUGHGT.
+        // Point HL at the address of the Kong Beast's location in the attribute buffer at 23552.
         lsb = (uint8_t) (EUGHGT & 120);
         msb = 23;
         addr = build_address(msb, lsb);
@@ -2217,15 +2191,15 @@ bool KONGBEAST() {
         lsb |= 15;
         addr = build_address(msb, lsb);
 
-        // The Kong Beast is drawn with yellow INK
-        // Set the attribute bytes for the Kong Beast
+        // The Kong Beast is drawn with yellow INK.
+        // Set the attribute bytes for the Kong Beast.
         EUGENE_3(addr, 6);
 
         // return false; // FIXME: do we need to return here? Probably not.
     }
 
     // The Kong Beast has fallen into the portal.
-    // Set the Kong Beast's status at EUGDIR to 2: he is dead
+    // Set the Kong Beast's status at EUGDIR to 2: he is dead.
     EUGDIR = 2;
 
     return false; // return dead-ness state of Willy! -MRC-
@@ -2236,33 +2210,33 @@ bool KONGBEAST() {
 bool KONGBEAST_8() {
     // Use bit 5 of this value (which is toggled once every eight passes
     // through the main loop) to point DE at the graphic data for the
-    // appropriate Kong Beast sprite
+    // appropriate Kong Beast sprite.
     uint8_t sprite_id = (uint8_t) (cavern.CLOCK & 32);
 
     // Draw the Kong Beast at (0,15) in the screen buffer at 24576
     // FIXME: Screen Buffer: Screen File = 16399
     bool kill_willy = DRWFIX(&GGDATA[sprite_id], 24591, 1);
 
-    // Kill Willy if he collided with the Kong Beast
+    // Kill Willy if he collided with the Kong Beast.
     if (kill_willy) {
         return true;
     }
 
-    // A=68 (INK 4: PAPER 0: BRIGHT 1)
-    // Set the attribute bytes for the Kong Beast in the buffer at 23552
+    // A=68 (INK 4: PAPER 0: BRIGHT 1).
+    // Set the attribute bytes for the Kong Beast in the buffer at 23552.
     // FIXME: Screen Buffer: Screen File = 22575
-    speccy.memory[23599] = 68;
-    speccy.memory[23600] = 68;
+    Speccy_write(23599, 68);
+    Speccy_write(23600, 68);
     // FIXME: Screen Buffer: Screen File = 22543
-    speccy.memory[23567] = 68;
-    speccy.memory[23568] = 68;
+    Speccy_write(23567, 68);
+    Speccy_write(23568, 68);
 
     return false; // NOTE: willy is not dead.
 }
 
 // Flip a switch in a Kong Beast cavern if Willy is touching it
 // Returns with the zero flag set if Willy flips the switch.
-// HL Address of the switch's location in the attribute buffer at 23552
+// HL Address of the switch's location in the attribute buffer at 23552.
 bool CHKSWITCH(uint16_t addr) {
     uint8_t msb, lsb;
     uint16_t w_addr;
@@ -2270,12 +2244,12 @@ bool CHKSWITCH(uint16_t addr) {
     uint8_t sw_msb, sw_lsb;
     split_address(addr, &sw_msb, &sw_lsb);
 
-    // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION
+    // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION.
     // Is it equal to or one less than the LSB of the address of the switch's location?
-    // Return (with the zero flag reset) if not
-    // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877
+    // Return (with the zero flag reset) if not.
+    // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877.
     // Does it match the MSB of the address of the switch's location?
-    // Return (with the zero flag reset) if not
+    // Return (with the zero flag reset) if not.
     w_addr = willy.LOCATION;
     split_address(w_addr, &msb, &lsb);
     lsb++;
@@ -2286,94 +2260,94 @@ bool CHKSWITCH(uint16_t addr) {
 
     // IMPORTANT: I believe 32869 is the EXTRA[9] array, so I am using that -MRC-
 
-    // Pick up the sixth byte of the graphic data for the switch tile from 32869
-    // Point HL at the sixth row of pixels of the switch tile in the screen buffer at 28672
+    // Pick up the sixth byte of the graphic data for the switch tile from 32869.
+    // Point HL at the sixth row of pixels of the switch tile in the screen buffer at 28672.
     sw_msb = 117;
     addr = build_address(sw_msb, sw_lsb);
 
     // Has the switch already been flipped?
-    // Return (with the zero flag reset) if so
-    if (speccy.memory[addr] == cavern.EXTRA.id) {
+    // Return (with the zero flag reset) if so.
+    if (Speccy_read(addr) == cavern.EXTRA.id) {
         return true;
     }
 
     // Willy is flipping the switch.
 
     // Update the sixth, seventh and eighth rows of pixels of the switch tile
-    // in the screen buffer at 28672 to make it appear flipped
-    speccy.memory[addr] = 8;
+    // in the screen buffer at 28672 to make it appear flipped.
+    Speccy_write(addr, 8);
     sw_msb++;
     addr = build_address(sw_msb, sw_lsb);
-    speccy.memory[addr] = 6;
+    Speccy_write(addr, 6);
     sw_msb++;
     addr = build_address(sw_msb, sw_lsb);
-    speccy.memory[addr] = 6;
+    Speccy_write(addr, 6);
 
-    // Return true: Willy has flipped the switch
+    // Return true: Willy has flipped the switch.
     return true;
 }
 
-// Check and set the attribute bytes for Willy's sprite in the buffer at 23552
+// Check and set the attribute bytes for Willy's sprite in the buffer at 23552.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool WILLYATTRS() {
     bool kill_willy = false;
 
-    // Pick up the address of Willy's location in the attribute buffer at 23552 from LOCATION
+    // Pick up the address of Willy's location in the attribute buffer at 23552 from LOCATION.
     uint16_t addr = willy.LOCATION;
 
     // Set C=15 (`pix_y`) for the top two rows of cells
-    // (to make the routine at WILLYATTR force white INK)
+    // (to make the routine at WILLYATTR force white INK).
     uint8_t pix_y = 15;
 
-    // Check and set the attribute byte for the top-left cell
+    // Check and set the attribute byte for the top-left cell.
     if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Move HL to the next cell to the right
+    // Move HL to the next cell to the right.
     addr++;
 
-    // Check and set the attribute byte for the top-right cell
+    // Check and set the attribute byte for the top-right cell.
     if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Move down a row and back one cell to the left
+    // Move down a row and back one cell to the left.
     addr += 31;
 
-    // Check and set the attribute byte for the mid-left cell
+    // Check and set the attribute byte for the mid-left cell.
     if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Move to the next cell to the right
+    // Move to the next cell to the right.
     addr++;
 
-    // Check and set the attribute byte for the mid-right cell
+    // Check and set the attribute byte for the mid-right cell.
     if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Pick up Willy's pixel y-coordinate from PIXEL_Y. Copy it to pix_y
+    // Pick up Willy's pixel y-coordinate from PIXEL_Y. Copy it to pix_y.
     pix_y = willy.PIXEL_Y;
 
-    // Move down a row and back one cell to the left
+    // Move down a row and back one cell to the left.
     addr += 31;
 
-    // Check and set the attribute byte for the bottom-left cell
+    // Check and set the attribute byte for the bottom-left cell.
     if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Move to the next cell to the right
+    // Move to the next cell to the right.
     addr++;
 
-    // Check and set the attribute byte for the bottom-right cell
+    // Check and set the attribute byte for the bottom-right cell.
     if (WILLYATTR(addr, pix_y)) {
         kill_willy = true;
     }
 
-    // Draw Willy to the screen buffer at 24576
+    // Draw Willy to the screen buffer at 24576.
     DRAWWILLY();
 
     // Is Willy dead?
@@ -2384,30 +2358,30 @@ bool WILLYATTRS() {
     }
 }
 
-// Check and set the attribute byte for a cell occupied by Willy's sprite
+// Check and set the attribute byte for a cell occupied by Willy's sprite.
 //
-// C=15 or Willy's pixel y-coordinate
-// HL Address of the cell in the attribute buffer at 23552
+// C=15 or Willy's pixel y-coordinate.
+// HL Address of the cell in the attribute buffer at 23552.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool WILLYATTR(uint16_t addr, uint8_t pix_y) {
     // Does this cell contain a background tile?
-    if (speccy.memory[addr] == cavern.BACKGROUND.id) {
+    if (Speccy_read(addr) == cavern.BACKGROUND.id) {
         // Set the zero flag if we are going to retain the INK colour in this cell;
         // this happens only if the cell is in the bottom row and Willy's sprite
         // is confined to the top two rows.
 
-        // Jump if we are going to retain the current INK colour in this cell
+        // Jump if we are going to retain the current INK colour in this cell.
         if (pix_y == 15) {
             // Pick up the attribute byte of the BACKGROUND tile.
-            // Set bits 0-2, making the INK white
-            // Set the attribute byte for this cell in the buffer at 23552
-            speccy.memory[addr] = (uint8_t) (cavern.BACKGROUND.id | 7);
+            // Set bits 0-2, making the INK white.
+            // Set the attribute byte for this cell in the buffer at 23552.
+            Speccy_write(addr, (uint8_t) (cavern.BACKGROUND.id | 7));
         }
     }
 
-    // Pick up the attribute byte of the nasty tiles for the current cavern
+    // Pick up the attribute byte of the nasty tiles for the current cavern.
     // Has Willy hit a NASTY1 or NASTY2 kind? Kill Willy if so.
-    if (speccy.memory[addr] == cavern.NASTY1.id || speccy.memory[addr] == cavern.NASTY2.id) {
+    if (Speccy_read(addr) == cavern.NASTY1.id || Speccy_read(addr) == cavern.NASTY2.id) {
         KILLWILLY();
         return true;
     }
@@ -2415,53 +2389,53 @@ bool WILLYATTR(uint16_t addr, uint8_t pix_y) {
     return false;
 }
 
-// Draw Willy to the screen buffer at 24576
+// Draw Willy to the screen buffer at 24576.
 void DRAWWILLY() {
     // Pick up Willy's pixel y-coordinate from PIXEL_Y so we can
     // point to the entry in SBUFADDRS (the screen buffer address
-    // lookup table) that corresponds to Willy's y-coordinate
+    // lookup table) that corresponds to Willy's y-coordinate.
     uint8_t pix_y = (uint8_t) (willy.PIXEL_Y / 2);
 
-    // Pick up Willy's direction and movement flags from DMFLAGS
-    // Now 0 if Willy is facing right, or 128 if he's facing left
+    // Pick up Willy's direction and movement flags from DMFLAGS.
+    // Now 0 if Willy is facing right, or 128 if he's facing left.
     uint8_t frame = rotr((uint8_t) (willy.DMFLAGS & 1), 1);
 
-    // Pick up Willy's current animation frame (0-3) (see MANDAT)
+    // Pick up Willy's current animation frame (0-3) (see MANDAT).
     frame = rotr((uint8_t) (willy.FRAME & 3), 3) | frame;
 
     // Pick up Willy's screen x-coordinate (0-31) from LOCATION.
     uint8_t msb_dummy, pix_x;
     split_address((uint16_t) (willy.LOCATION & 31), &msb_dummy, &pix_x);
 
-    // There are 16 rows of pixels in a sprite
+    // There are 16 rows of pixels in a sprite.
     uint8_t h, l;
     for (int i = 0; i < 16; i++) {
         // Set to the address in the screen buffer at 24576 that corresponds
-        // to where we are going to draw the next pixel row of the sprite graphic
+        // to where we are going to draw the next pixel row of the sprite graphic.
         split_address(SBUFADDRS[pix_y], &h, &l);
         uint16_t addr = build_address(h, l | pix_x);
 
         // Merge the sprite byte with the background.
-        speccy.memory[addr] = willy.sprites[frame] | speccy.memory[addr];
+        Speccy_write(addr, willy.sprites[frame] | Speccy_read(addr));
 
-        // Move HL along to the next cell to the right
+        // Move HL along to the next cell to the right.
         addr++;
 
-        // Point to the next sprite byte
+        // Point to the next sprite byte.
         frame++;
 
         // Merge the sprite byte with the background.
-        speccy.memory[addr] = willy.sprites[frame] | speccy.memory[addr];
+        Speccy_write(addr, willy.sprites[frame] | Speccy_read(addr));
 
-        // Point to the next entry in the screen buffer address lookup table at SBUFADDRS
+        // Point to the next entry in the screen buffer address lookup table at SBUFADDRS.
         pix_y += 1;
 
-        // Point to the next sprite byte
+        // Point to the next sprite byte.
         frame++;
     }
 }
 
-// Play the theme tune (The Blue Danube)
+// Play the theme tune (The Blue Danube).
 //
 // Returns with the zero flag reset if ENTER or the fire button
 // is pressed while the tune is being played.
@@ -2479,30 +2453,30 @@ bool PLAYTUNE() {
     for (int i = 0; i < 95; i++) {
         uint8_t *note = THEMETUNE[i];
 
-        // Pick up the second byte of data for this note. Copy it to A
+        // Pick up the second byte of data for this note. Copy it to A.
         freq1 = note[1];
 
-        // Calculate the attribute file address for the corresponding piano key
+        // Calculate the attribute file address for the corresponding piano key.
         addr = PIANOKEY(freq1);
 
-        // Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1)
-        speccy.memory[addr] = 80;
+        // Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1).
+        Speccy_write(addr, 80);
 
-        // Pick up the third byte of data for this note
+        // Pick up the third byte of data for this note.
         freq2 = note[2];
 
-        // Copy it to A
+        // Copy it to A.
         uint8_t pitch = freq2;
 
-        // Calculate the attribute file address for the corresponding piano key
+        // Calculate the attribute file address for the corresponding piano key.
         addr = PIANOKEY(freq2);
 
-        // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0)
-        speccy.memory[addr] = 40;
+        // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0).
+        Speccy_write(addr, 40);
 
         for (uint8_t d = note[0]; d > 0; d--) {
             // Produce a sound based on the frequency parameters in the second
-            // and third bytes of data for this note (copied into D and E)
+            // and third bytes of data for this note (copied into D and E).
             OUT(pitch);
 
             freq1--;
@@ -2520,51 +2494,51 @@ bool PLAYTUNE() {
             millisleep(1);
         }
 
-        // Check whether ENTER or the fire button is being pressed
+        // Check whether ENTER or the fire button is being pressed.
         if (Terminal_getKey() == MM_KEY_ENTER) {
             return true;
         }
 
-        // Pick up the second byte of data for this note
-        // Calculate the attribute file address for the corresponding piano key
+        // Pick up the second byte of data for this note.
+        // Calculate the attribute file address for the corresponding piano key.
         addr = PIANOKEY(note[1]);
 
-        // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
-        speccy.memory[addr] = 56;
+        // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0).
+        Speccy_write(addr, 56);
 
-        // Pick up the third byte of data for this note
-        // Calculate the attribute file address for the corresponding piano key
+        // Pick up the third byte of data for this note.
+        // Calculate the attribute file address for the corresponding piano key.
         addr = PIANOKEY(note[2]);
 
-        // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0)
-        speccy.memory[addr] = 56;
+        // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0).
+        Speccy_write(addr, 56);
     }
 
     return false;
 }
 
-// Calculate the attribute file address for a piano key
+// Calculate the attribute file address for a piano key.
 // Returns with the attribute file address in HL.
-// A Frequency parameter from the tune data table at THEMETUNE
+// A Frequency parameter from the tune data table at THEMETUNE.
 uint16_t PIANOKEY(uint8_t frequency) {
     // Compute the piano key index (K) based on the frequency parameter (F),
-    // and store it in bits 0-4 of A: K=31-INT((F-8)/8)
+    // and store it in bits 0-4 of A: K=31-INT((F-8)/8).
     frequency -= 8;
     frequency = rotr(frequency, 3);
     frequency = (uint8_t) ~frequency;
 
-    // A=224+K; this is the LSB
+    // A=224+K; this is the LSB.
     frequency |= 224;
 
-    // Set HL to the attribute file address for the piano key
+    // Set HL to the attribute file address for the piano key.
     return build_address(89, frequency);
 }
 
 void Game_play_intro() {
-    // Clear the entire Spectrum display file
+    // Clear the entire Spectrum display file.
     Speccy_clearScreen();
 
-    // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file
+    // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file.
     for (int i = 0; i < 2048; i++) {
         Speccy_writeScreen(16384 + i, TITLESCR1[i]);
     }
@@ -2574,16 +2548,16 @@ void Game_play_intro() {
 
     Terminal_redraw();
 
-    // Draw Willy at 18493 (9,29)
+    // Draw Willy at 18493 (9,29).
     DRWFIX(&willy.sprites[64], 18493, 0);
 
-    // Copy the attribute bytes from CAVERN19 to the top third of the attribute file
+    // Copy the attribute bytes from CAVERN19 to the top third of the attribute file.
     uint16_t addr = 22528;
     for (int i = 0; i < 256; i++) {
         Speccy_writeAttribute(addr + i, Data_cavernLayouts[19][i]);
     }
 
-    // Copy LOWERATTRS to the bottom two-thirds of the attribute file
+    // Copy LOWERATTRS to the bottom two-thirds of the attribute file.
     addr += 256;
     for (int i = 0; i < 512; i++) {
         Speccy_writeAttribute(addr + i, LOWERATTRS[i]);
@@ -2593,23 +2567,23 @@ void Game_play_intro() {
 
     // And finally, play the theme tune and check for key presses.
 
-    // Play the theme tune -- start game if ENTER/FIRE button was pressed
+    // Play the theme tune -- start game if ENTER/FIRE button was pressed.
     if (PLAYTUNE()) {
         game.DEMO = 0;
         return;
     }
 
-    // Scroll intro message across the screen
+    // Scroll intro message across the screen.
     for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
-        // Print 32 characters of the message at 20576 (19,0)
+        // Print 32 characters of the message at 20576 (19,0).
         Speccy_printMessage(&MESSINTRO[pos], 20576, 32);
 
         // Keep only bits 1 and 2, and move them into bits 6 and 7,
         // so that A holds 0, 64, 128 or 192;
-        // this value determines the animation frame to use for Willy
+        // this value determines the animation frame to use for Willy.
         uint8_t sprite_id = rotr((uint8_t) (pos & 6), 3);
 
-        // Draw Willy at 18493 (9,29)
+        // Draw Willy at 18493 (9,29).
         DRWFIX(&willy.sprites[sprite_id], 18493, 0);
 
         Terminal_redraw();
@@ -2618,7 +2592,7 @@ void Game_play_intro() {
         millisleep(30);
         Speccy_tick();
 
-        // Is ENTER being pressed? If so, start the game
+        // Is ENTER being pressed? If so, start the game.
         if ( Terminal_getKey() == MM_KEY_ENTER) {
             game.DEMO = 0;
             return;
@@ -2632,7 +2606,7 @@ void drawAirBar() {
     for (uint8_t a = 82; a < 86; a++) {
         uint16_t addr = build_address(a, 36);
 
-        // Draw a single row of pixels across C cells
+        // Draw a single row of pixels across C cells.
         for (uint16_t i = 0; i < cavern.AIR - 36; i++) {
             Speccy_writeScreen(addr + i, 255);
         }
@@ -2640,22 +2614,22 @@ void drawAirBar() {
 }
 
 void drawRemainingLives() {
-    // Set address to the display file address at which to draw the first Willy sprite
+    // Set address to the display file address at which to draw the first Willy sprite.
     uint16_t addr = 20640;
 
     // The following loop draws the remaining lives at the bottom of the screen.
     for (int i = 0; i < willy.NOMEN; i++) {
         // Pick up the in-game music note index from NOTEINDEX;
-        // this will determine the animation frame for the Willy sprites
-        // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96 (frame 3)
+        // this will determine the animation frame for the Willy sprites.
+        // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96 (frame 3).
         uint8_t anim_frame = (uint8_t) (rotl(game.NOTEINDEX, 3) & 96);
 
         uint8_t *sprite = &willy.sprites[anim_frame];
 
-        // C=0; this tells DRWFIX to overwrite any existing graphics
+        // C=0; this tells DRWFIX to overwrite any existing graphics.
         DRWFIX(sprite, addr, 0);
 
-        // Move to the location at which to draw the next Willy sprite
+        // Move to the location at which to draw the next Willy sprite.
         addr += 2;
     }
 
@@ -2667,29 +2641,29 @@ void drawRemainingLives() {
 }
 
 void printScores() {
-    // Print the score (see SCORBUF) at (19,26)
+    // Print the score (see SCORBUF) at (19,26).
     Speccy_printMessage(&game.SCORBUF, 20602, 6);
 
-    // Print the high score (see HGHSCOR) at (19,11)
+    // Print the high score (see HGHSCOR) at (19,11).
     Speccy_printMessage(&game.HGHSCOR, 20587, 6);
 }
 
 void playGameMusic() {
-    // Increment the in-game music note index at NOTEINDEX
+    // Increment the in-game music note index at NOTEINDEX.
     game.NOTEINDEX++;
 
-    // Point HL at the appropriate entry in the tune data table at GAMETUNE
+    // Point HL at the appropriate entry in the tune data table at GAMETUNE.
     uint8_t index = rotr((uint8_t) (game.NOTEINDEX & 126), 1);
 
-    // Pick up the border colour for the current cavern from BORDER
+    // Pick up the border colour for the current cavern from BORDER.
     uint8_t note = cavern.BORDER;
 
-    // Initialise the pitch delay counter in E
+    // Initialise the pitch delay counter in E.
     uint8_t pitch_delay_counter = GAMETUNE[index];
 
-    // Initialise the duration delay counters in B (0) and C (3)
+    // Initialise the duration delay counters in B (0) and C (3).
     for (int i = 0; i < 3; i++) {
-        // Produce a note of the in-game music
+        // Produce a note of the in-game music.
         OUT(note);
 
         pitch_delay_counter--;
@@ -2704,17 +2678,17 @@ void playGameMusic() {
 }
 
 void copyScrBufToDisplayFile() {
-    // Copy the contents of the screen buffer at 24576 to the display file
+    // Copy the contents of the screen buffer at 24576 to the display file.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-        Speccy_writeScreen(16384 + i, speccy.memory[24576 + i]);
+        Speccy_writeScreen(16384 + i, Speccy_read(24576 + i));
     }
 }
 
 void copyAttrBufToAttrFile() {
-    // Copy the contents of the attribute buffer at 23552 to the attribute file
+    // Copy the contents of the attribute buffer at 23552 to the attribute file.
     for (int i = 0; i < 512; i++) {
-        Speccy_writeAttribute(22528 + i, speccy.memory[23552 + i]);
+        Speccy_writeAttribute(22528 + i, Speccy_read(23552 + i));
     }
 }
 
@@ -2725,13 +2699,13 @@ void resetScreenAttrBuffers() {
     // into the attribute buffer at 23552.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 512; i++) {
-        speccy.memory[23552 + i] = speccy.memory[24064 + i];
+        Speccy_write(23552 + i, Speccy_read(24064 + i));
     }
     // Copy the contents of the screen buffer at 28672 (empty cavern tiles)
-    // into the screen buffer at 24576
+    // into the screen buffer at 24576.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-        speccy.memory[24576 + i] = speccy.memory[28672 + i];
+        Speccy_write(24576 + i, Speccy_read(28672 + i));
     }
 }
 
@@ -2769,7 +2743,7 @@ int processInput() {
     return input;
 }
 
-// Check if player is pressing movement + jump keys
+// Check if player is pressing movement + jump keys.
 int processMoveJumpInput(int firstInput) {
     int input;
 

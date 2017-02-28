@@ -63,8 +63,14 @@ void Speccy_write(int address, uint8_t byte);
 // Clear the entire Spectrum display file
 void Speccy_clearScreen();
 
-// Clear the Spectrum display file from top by given bytesCount
-void Speccy_clearScreenDownTo(int bytesCount);
+// Clear the top two-thirds of the display file
+void Speccy_clearTopTwoThirdsOfDisplayFile();
+
+// Clear the bottom third of the display file.
+void Speccy_clearBottomThirdOfDisplayFile();
+
+// Fill the top two thirds of the attribute file with the value given.
+void Speccy_fillTopTwoThirdsOfAttributeFileWith(uint8_t byte);
 
 uint8_t Speccy_readScreen(int address);
 

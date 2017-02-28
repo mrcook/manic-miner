@@ -54,11 +54,23 @@ void Speccy_clearScreen() {
     }
 }
 
-void Speccy_clearScreenDownTo(int bytesCount) {
+void Speccy_clearTopTwoThirdsOfDisplayFile() {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
-    for (int i = 0; i < bytesCount; i++) {
+    for (int i = 0; i < 4096; i++) {
         speccy.memory[16384 + i] = 0;
+    }
+}
+
+void Speccy_clearBottomThirdOfDisplayFile() {
+    for (int i = 0; i < 2048; i++) {
+        Speccy_writeScreen(20480 + i, 0);
+    }
+}
+
+void Speccy_fillTopTwoThirdsOfAttributeFileWith(uint8_t byte) {
+    for (int i = 0; i < 512; i++) {
+        Speccy_writeAttribute(22528 + i, byte);
     }
 }
 
