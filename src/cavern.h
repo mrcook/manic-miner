@@ -22,10 +22,10 @@ typedef struct Cavern_ {
     // Game clock
     //
     // Initialised by the routine at STARTGAME, updated on every pass through
-    // the main loop by the routine at DECAIR, and used for timing purposes
-    // by the routines at MOVEHG, EUGENE and KONGBEAST.
+    // the main loop by the routine at Cavern_decreaseAir, and used for timing purposes
+    // by the routines at GuardianHorizontal_update, EUGENE and KONGBEAST.
     // Its value (which is always a multiple of 4) is also used by the routine
-    // at DECAIR to compute the amount of air to draw in the cell at the right
+    // at Cavern_decreaseAir to compute the amount of air to draw in the cell at the right
     // end of the air bar.
     uint8_t CLOCK;
 
@@ -63,7 +63,15 @@ typedef struct Cavern_ {
 
 bool Cavern_loadData(uint8_t id);
 
+void Cavern_updateGameClock(void);
+
 bool Cavern_isAirDepleted(void);
+
+void Cavern_decreaseAir(void);
+
+void Cavern_drawAirBar(void);
+
+void Cavern_moveConveyorBelts(void);
 
 
 #endif //MANIC_MINER_CAVERN_H

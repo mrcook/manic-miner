@@ -3,11 +3,7 @@
 
 #include "globals.h"
 #include "data.h"
-
-bool Cavern_isAirDepleted() {
-    // For some reason 36 means no air left
-    return cavern.AIR == 36;
-}
+#include "terminal.h"
 
 // Initialize arrays and copy the cavern definition into the game status buffer.
 // We must copy a total of 512 bytes into the buffer address from 32768.
@@ -318,4 +314,122 @@ bool Cavern_loadData(uint8_t id) {
     }
 
     return true;
+}
+
+void Cavern_updateGameClock() {
+    cavern.CLOCK -= 4;
+}
+
+bool Cavern_isAirDepleted() {
+    // For some reason 36 means no air left
+    return cavern.AIR == 36;
+}
+
+// Decrease the air remaining in the current cavern, along with the game CLOCK.
+void Cavern_decreaseAir() {
+    Cavern_updateGameClock();
+
+    // Was the game clock just decreased from zero?
+    if (cavern.CLOCK == 252) {
+        // Has the air supply run out?
+        if (Cavern_isAirDepleted()) {
+            return;
+        }
+        cavern.AIR--;
+    }
+
+    // A=INT(A/32); this value specifies how many pixels to draw from left to
+    // right in the cell at the right end of the air bar.
+    uint8_t count = (uint8_t) (cavern.CLOCK & 224);
+    count = rotl(count, 3);
+
+    // Initialise E to 0 (all bits reset).
+    uint8_t pixels = 0;
+
+    // Do we need to draw any pixels in the cell at the right end of the air bar?
+    if (count != 0) {
+        // Copy the number of pixels to draw (1-7) to B.
+        for (int i = count; i > 0; i--) {
+            // Set this many bits in E (from bit 7 towards bit 0).
+            pixels = rotr(pixels, 1);
+            pixels |= 1 << 7;
+        }
+    }
+
+    // Set HL to the display file address at which to draw the top row of
+    // pixels in the cell at the right end of the air bar.
+    // There are four rows of pixels to draw.
+    for (uint8_t msb = 82; msb < 86; msb++) {
+        // Draw the four rows of pixels at the right end of the air bar.
+        Speccy_writeScreen(build_address(msb, cavern.AIR), pixels);
+    }
+    Terminal_redraw();
+}
+
+// Draws the AIR bar graphics to the screen
+void Cavern_drawAirBar() {
+    // Initialise A to 82 (is 20992); this is the MSB of the display file address
+    // at which to start drawing the bar that represents the air supply.
+    for (uint8_t a = 82; a < 86; a++) {
+        uint16_t addr = build_address(a, 36);
+
+        // Draw a single row of pixels across C cells.
+        for (uint16_t i = 0; i < cavern.AIR - 36; i++) {
+            Speccy_writeScreen(addr + i, 255);
+        }
+    }
+}
+
+// Move the conveyor in the current cavern.
+void Cavern_moveConveyorBelts() {
+    uint8_t h, l, d, e; // MSB/LSB for the address.
+    uint8_t pixels_a, pixels_c;
+
+    // Pick up the address of the conveyor's location in the screen buffer at 28672 from CONVLOC.
+    uint16_t row_hl = cavern.CONVEYOR.CONVLOC;
+
+    // Copy this address to DE.
+    uint16_t row_de = cavern.CONVEYOR.CONVLOC;
+
+    // Is the conveyor moving left?
+    if (cavern.CONVEYOR.CONVDIR == 0) {
+        // Copy the first pixel row of the conveyor tile to A.
+        // Rotate it left twice
+        pixels_a = rotl(Speccy_read(row_hl), 2);
+
+        // Point HL at the third pixel row of the conveyor tile.
+        split_address(row_hl, &h, &l);
+        h += 2;
+        row_hl = build_address(h, l);
+
+        // Copy this pixel row to C
+        pixels_c = rotr(Speccy_read(row_hl), 2);
+    } else {
+        // The conveyor is moving right.
+
+        // Copy the first pixel row of the conveyor tile to A.
+        pixels_a = rotr(Speccy_read(row_hl), 2);
+
+        // Point HL at the third pixel row of the conveyor tile.
+        split_address(row_hl, &h, &l);
+        h += 2;
+        row_hl = build_address(h, l);
+
+        // Copy this pixel row to C.
+        pixels_c = rotl(Speccy_read(row_hl), 2);
+    }
+
+    for (int b = cavern.CONVEYOR.CONVLEN; b > 0; b--) {
+        // Update the first and third pixel rows of every conveyor tile in the screen buffer at 28672.
+        Speccy_write(row_de, pixels_a);
+        Speccy_write(row_hl, pixels_c);
+
+        split_address(row_hl, &h, &l);
+        l++;
+        row_hl = build_address(h, l);
+
+        split_address(row_de, &d, &e);
+        e++;
+        row_de = build_address(d, e);
+    }
 }

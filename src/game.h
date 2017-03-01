@@ -86,9 +86,6 @@ int processInput(void);
 // Check to see if player is pressing movement + jump keys
 int processMoveJumpInput(int firstInput);
 
-// Draws the AIR bar graphics to the screen
-void drawAirBar(void);
-
 // Draws the remaining lives at the bottom of the screen
 void drawRemainingLives(void);
 
@@ -117,43 +114,19 @@ bool MANDEAD(void);
 
 void ENDGAM(void);
 
-void DECAIR(void);
-
 void DRAWSHEET(void);
 
 bool MOVEWILLY(int keyIntput);
 
-void MOVEWILLY_7(uint8_t y_coord);
-
-void MOVEWILLY_10(void);
-
 void CRUMBLE(uint16_t addr);
 
-bool MOVEWILLY2(int keyIntput, uint16_t addr);
-
-void MOVEWILLY2_6(void);
-
-void MOVEWILLY2_7(void);
-
-void MOVEWILLY2_9(void);
-
-void MOVEWILLY2_10(void);
-
-bool KILLWILLY(void);
-
-void MOVEHG(void);
-
 void LIGHTBEAM(void);
-
-bool DRAWHG(void);
 
 bool EUGENE(void);
 
 void EUGENE_3(uint16_t addr, uint8_t ink_colour);
 
 bool SKYLABS(void);
-
-bool VGUARDIANS(void);
 
 void DRAWITEMS(void);
 
@@ -164,20 +137,6 @@ bool DRWFIX(void *sprite, uint16_t addr, uint8_t mode);
 bool NXSHEET(void);
 
 void INCSCORE_0(uint16_t addr);
-
-void MVCONVEYOR(void);
-
-bool KONGBEAST(void);
-
-bool KONGBEAST_8(void);
-
-bool CHKSWITCH(uint16_t addr);
-
-bool WILLYATTRS(void);
-
-bool WILLYATTR(uint16_t addr, uint8_t pix_y);
-
-void DRAWWILLY(void);
 
 bool PLAYTUNE(void);
 

@@ -32,7 +32,11 @@ set(SOURCE_FILES
         src/cavern.h
         src/cavern.c
         src/guardian_horizontal.h
+        src/guardian_horizontal.c
         src/guardian_vertical.h
+        src/guardian_vertical.c
+        src/kong_beast.h
+        src/kong_beast.c
         src/item.h
         src/portal.h
         src/tile.h

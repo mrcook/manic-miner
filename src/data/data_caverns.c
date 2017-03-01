@@ -653,7 +653,8 @@ uint8_t Data_cavernLayouts[20][512] = {
                 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 66, 66, 22,
                 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22,
                 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 0, 0, 0, 0, 0, 0, 22, 22, 22, 2, 2, 2, 2, 2, 66, 66, 66, 22,
-                22, 0, 0, 0, 0, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22,
+//                22, 0, 0, 0, 0, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22,
+                22, 0, 0, 0, 0, 2,2,2,2,2,2,2,2,2,2, 66, 66, 66, 66, 66, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22,
                 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22,
                 22, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 22,
         },
@@ -1023,8 +1024,8 @@ uint8_t Data_cavernLayouts[20][512] = {
 
 // Screen buffer address lookup table
 //
-// Used by the routines at ENDGAM, EUGENE, SKYLABS, VGUARDIANS, KONGBEAST and
-// DRAWWILLY. The value of the Nth entry (0<=N<=127) in this lookup table is the
+// Used by the routines at ENDGAM, EUGENE, SKYLABS, GuardianVertical_updateDraw, KONGBEAST and
+// Willy_draw. The value of the Nth entry (0<=N<=127) in this lookup table is the
 // screen buffer address for the point with pixel coordinates (x, y)=(0, N), with
 // the origin (0, 0) at the top-left corner.
 uint16_t SBUFADDRS[128] = {

@@ -63,5 +63,37 @@ typedef struct Willy_ {
 
 void Willy_initialize(int lives);
 
+void Willy_setToUnmoving(void);
+
+bool Willy_updateJumpingState(void);
+
+void Willy_adjustAttributes(uint8_t y_coord);
+
+void Willy_hitsWall(void);
+
+// MOVEWILLY2
+bool Willy_gerUserInputAndMove(int keyIntput, uint16_t addr);
+
+// MOVEWILLY2_6
+void Willy_moveInDirectionFacing(void);
+
+// MOVEWILLY2_7
+void Willy_moveWillyLeft(void);
+
+// MOVEWILLY2_9 / MOVEWILLY2_10
+void Willy_moveRight(void);
+
+// KILLWILLY
+void Willy_kill(void);
+
+// WILLYATTRS
+bool Willy_checkAttrs(void);
+
+// WILLYATTR
+bool Willy_setAttrByte(uint16_t addr, uint8_t pix_y);
+
+// DRAWWILLY
+void Willy_draw(void);
+
 
 #endif //MANIC_MINER_WILLY_H

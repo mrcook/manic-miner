@@ -40,5 +40,8 @@ typedef struct GuardianVertical_ {
     uint8_t GGDATA[256];
 } GuardianVertical;
 
+// VGUARDIANS
+bool GuardianVertical_updateDraw(void);
+
 
 #endif //MANIC_MINER_GUARDIAN_VERTICAL_H

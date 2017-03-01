@@ -32,10 +32,8 @@
 */
 
 typedef struct GuardianHorizontal_ {
-//    // animation speed (0=normal, 1=slow)
-//    bool slow;
-//    // Colour attribute (BRIGHT, PAPER and INK)
-//    Colour colour;
+    // animation speed (0=normal, 1=slow)
+    // Colour attribute (BRIGHT, PAPER and INK)
     uint8_t speedColour;
 
     // Address of the guardian's location in the attribute buffer at 23552
@@ -54,7 +52,11 @@ typedef struct GuardianHorizontal_ {
     uint8_t GGDATA[256];
 } GuardianHorizontal;
 
-bool GuardianH_is_blank(GuardianHorizontal *guardian);
+// MOVEHG
+void GuardianHorizontal_update(void);
+
+// DRAWHG
+bool GuardianHorizontal_draw(void);
 
 
 #endif //MANIC_MINER_GUARDIAN_HORIZONTAL_H
