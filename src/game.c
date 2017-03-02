@@ -621,8 +621,9 @@ bool MOVEWILLY(int keyIntput) {
                 if (Speccy_read(addr) != cavern.BACKGROUND.id) {
                     return Willy_gerUserInputAndMove(keyIntput, addr);
                 }
+                addr--;
                 // Is the left-hand cell below Willy's sprite empty?
-                if (Speccy_read(addr - 1) != cavern.BACKGROUND.id) {
+                if (Speccy_read(addr) != cavern.BACKGROUND.id) {
                     return Willy_gerUserInputAndMove(keyIntput, addr);
                 }
             }

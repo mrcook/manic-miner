@@ -84,7 +84,7 @@ bool Willy_updateJumpingState() {
         willy.AIRBORNE = 6;
         return true;
     } else if (willy.JUMPING == 16) {
-        return true; // Willy is still jumping!
+        return false;
     } else if (willy.JUMPING != 13) {
         Willy_moveInDirectionFacing();
         return true;
