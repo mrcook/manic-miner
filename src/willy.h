@@ -67,7 +67,7 @@ void Willy_setToUnmoving(void);
 
 bool Willy_updateJumpingState(void);
 
-void Willy_adjustAttributes(uint8_t y_coord);
+uint16_t Willy_adjustAttributes(uint8_t y_coord);
 
 void Willy_hitsWall(void);
 

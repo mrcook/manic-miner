@@ -38,10 +38,10 @@ bool Willy_updateJumpingState() {
     willy.PIXEL_Y += jump;
 
     // Adjust Willy's attribute buffer location at LOCATION depending on his pixel y-coordinate.
-    Willy_adjustAttributes(willy.PIXEL_Y);
+    uint16_t location = Willy_adjustAttributes(willy.PIXEL_Y);
 
     // Is the top-left or top-right cell of Willy's sprite overlapping a wall tile?
-    if (Speccy_read(willy.PIXEL_Y) == cavern.WALL.id || Speccy_read(willy.PIXEL_Y + 1) == cavern.WALL.id) {
+    if (Speccy_read(location) == cavern.WALL.id || Speccy_read(location + 1) == cavern.WALL.id) {
         Willy_hitsWall();
         return true;
     }
@@ -84,7 +84,7 @@ bool Willy_updateJumpingState() {
         willy.AIRBORNE = 6;
         return true;
     } else if (willy.JUMPING == 16) {
-        // NOOP
+        return true; // Willy is still jumping!
     } else if (willy.JUMPING != 13) {
         Willy_moveInDirectionFacing();
         return true;
@@ -95,22 +95,22 @@ bool Willy_updateJumpingState() {
 
 // Adjust Willy's attribute buffer location at LOCATION to
 // account for this new pixel y-coordinate.
-void Willy_adjustAttributes(uint8_t y_coord) {
+uint16_t Willy_adjustAttributes(uint8_t y_coord) {
     uint8_t msb, lsb;
 
     // L=16*Y, where Y is Willy's screen y-coordinate (0-14).
     lsb = (uint8_t) (y_coord & 240);
 
+    // ...the Carry flag was reset here in the Z80 code.
+
     // Now L=32*(Y-8*INT(Y/8)), and the carry flag is set if Willy is in the lower half of the cavern (Y>=8).
     // If LSB bit 7 is set the `RL L` will set the Carry, which means we need to add one to the MSB.
     // H=92 or 93 (MSB of the address of Willy's location in the attribute buffer)
     msb = 92;
-    // Pickup bit-7 of lsb, the Carry flag, and check if it's set.
+    // Pickup bit-7 of lsb. If it's set we need to also set the Carry flag.
     if (((lsb >> 7) & 1) == 1) {
         msb = 93;
     }
-
-    // ...the Carry flag was reset here in the Z80 code.
     lsb = rotl(lsb, 1); // RL lsb
     lsb &= ~(1 << 0);   // set bit `0` to the Carry, which was set to `0`.
 
@@ -123,6 +123,8 @@ void Willy_adjustAttributes(uint8_t y_coord) {
 
     // Store Willy's updated attribute buffer location at LOCATION.
     willy.LOCATION = build_address(msb, x_lsb);
+
+    return willy.LOCATION;
 }
 
 // The top-left or top-right cell of Willy's sprite is overlapping a wall tile.
@@ -132,6 +134,7 @@ void Willy_hitsWall() {
     willy.PIXEL_Y = (uint8_t) ((willy.PIXEL_Y + 16) & 240);
 
     // Adjust Willy's attribute buffer location to account for this new pixel y-coordinate.
+    // NOTE: willy.LOCATION is set with the new value
     Willy_adjustAttributes(willy.PIXEL_Y);
 
     // Set the airborne status indicator to 2: Willy has started falling.
@@ -272,7 +275,7 @@ void Willy_moveWillyLeft() {
         return;
     }
 
-    // Does Willy's sprite currently occupy only two rows of cells?
+    // Does Willy's sprite currently occupy six cells (two rows) of cells?
     if (willy.PIXEL_Y & 15) {
         // Pick up the attribute byte of the wall tile for the current cavern.
         // Point to the cell at (x-1,y+2).
@@ -328,7 +331,7 @@ void Willy_moveRight() {
         return;
     }
 
-    // Does Willy's sprite currently occupy only two rows of cells?
+    // Does Willy's sprite currently occupy six cells (two rows) of cells?
     if ((willy.PIXEL_Y & 15)) {
         // Pick up the attribute byte of the wall tile for the current cavern from WALL.
         // Point HL at the cell at (x+2,y+2).

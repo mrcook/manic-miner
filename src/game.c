@@ -572,15 +572,17 @@ bool MOVEWILLY(int keyIntput) {
         return false; // but he's not dead, so return false.
     }
 
-    // If we get here, then Willy is standing on the floor, or he's falling,
-    // or his jumping animation counter is 13 (at which point Willy is on his
-    // way down and is exactly two cell-heights above where he started the jump)
-    // or 16 (at which point Willy is on his way down and is exactly one
-    // cell-height above where he started the jump).
+    // If we get here, then
+    //   * Willy is standing on the floor
+    //   * Willy is falling,
+    //   * JUMPING is 13: at which point Willy is on his way down and is
+    //     exactly two cell-heights above where he started the jump.
+    //   * JUMPING is 16: at which point Willy is on his way down and is
+    //     exactly one cell-height above where he started the jump.
 
     uint16_t addr;
 
-    // Does Willy's sprite occupy six cells at the moment?
+    // Does Willy's sprite occupy six cells (two rows) at the moment?
     if ((willy.PIXEL_Y & 15) == 0) {
         // Point HL at the left-hand cell below Willy's sprite.
         addr = (uint16_t) (willy.LOCATION + 64);
@@ -638,7 +640,7 @@ bool MOVEWILLY(int keyIntput) {
     Willy_setToUnmoving();
 
     // Is Willy already falling?
-    if (willy.AIRBORNE > 1) {
+    if (willy.AIRBORNE == 0) {
         // Willy has just started falling. Set the airborne status indicator at AIRBORNE to 2.
         willy.AIRBORNE = 2;
 
