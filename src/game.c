@@ -631,7 +631,7 @@ bool MOVEWILLY(int keyIntput) {
     }
 
     // Is Willy jumping?
-    if (willy.AIRBORNE == 0) {
+    if (willy.AIRBORNE == 1) {
         Willy_moveInDirectionFacing();
         return false;
     }
@@ -684,9 +684,9 @@ void CRUMBLE(uint16_t addr) {
     while (true) {
         // Collect the pixels from the row above.
         msb--;
+        uint8_t pixel = Speccy_read(build_address(msb, lsb));
 
         // Copy these pixels into the row below it. Point BC at the next row of pixels up.
-        uint8_t pixel = Speccy_read(build_address(msb, lsb));
         Speccy_write(build_address((uint8_t) (msb + 1), lsb), pixel);
 
         // Have we dealt with the bottom seven pixel rows of the crumbling floor tile yet?
@@ -709,11 +709,7 @@ void CRUMBLE(uint16_t addr) {
 
     // The bottom row of pixels in the crumbling floor tile is clear.
     // Time to put a background tile in its place.
-
-    // Set HL to the address of the crumbling floor tile's location in the attribute buffer at 24064.
-    // Set the attribute at this location to that of the background tile.
-    // Set HL back to the address of the crumbling floor tile's location in the attribute buffer at 23552.
-    Speccy_write(build_address((uint8_t) (msb + 2), lsb), cavern.BACKGROUND.id);
+    Speccy_write(addr, cavern.BACKGROUND.id);
 }
 
 // Move and draw the light beam in Solar Power Generator.

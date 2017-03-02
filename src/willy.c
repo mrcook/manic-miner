@@ -131,7 +131,8 @@ uint16_t Willy_adjustAttributes(uint8_t y_coord) {
 void Willy_hitsWall() {
     // Adjust Willy's pixel y-coordinate at PIXEL_Y so that the top
     // row of cells of his sprite is just below the wall tile.
-    willy.PIXEL_Y = (uint8_t) ((willy.PIXEL_Y + 16) & 240);
+    willy.PIXEL_Y += 16;
+    willy.PIXEL_Y &= 240;
 
     // Adjust Willy's attribute buffer location to account for this new pixel y-coordinate.
     // NOTE: willy.LOCATION is set with the new value
@@ -141,7 +142,7 @@ void Willy_hitsWall() {
     willy.AIRBORNE = 2;
 
     // Reset bit 1 at DMFLAGS: Willy is not moving left or right
-    willy.DMFLAGS &= ~(1 << 1);
+    Willy_setToUnmoving();
 }
 
 // Move Willy (2)
