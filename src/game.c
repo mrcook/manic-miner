@@ -631,7 +631,7 @@ bool MOVEWILLY(int keyIntput) {
     }
 
     // Is Willy jumping?
-    if (willy.AIRBORNE == 1) {
+    if (willy.AIRBORNE == 0) {
         Willy_moveInDirectionFacing();
         return false;
     }
