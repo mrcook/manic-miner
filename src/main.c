@@ -26,9 +26,11 @@ int main(int argc, char *argv[]) {
     }
 
     Speccy_initialize(fps);
-    Game_initialize(lives, cheat, teleport);
+    Game_initialize(cheat, teleport);
 
     while (true) {
+        Willy_reset(lives);
+
         // Initialise demo mode
         game.DEMO = 64;
 

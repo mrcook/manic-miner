@@ -10,10 +10,10 @@
 
 static bool gameIsRunning = true;
 
-void Game_initialize(int lives, bool cheat, int teleport) {
+void Game_initialize(bool cheat, int teleport) {
     Terminal_init();
 
-    Willy_initialize(lives);
+    Willy_loadSprites();
 
     game.CHEAT = cheat;
 
@@ -31,7 +31,7 @@ void Game_initialize(int lives, bool cheat, int teleport) {
     strcpy(game.MESSO, "Over");
 }
 
-// PLay the game already!
+// Play the game already!
 // Returning `true` quits the application.
 bool Game_play() {
     // We should reset the current cavern data. This is used in place of those `goto NEWSHT`.

@@ -56,16 +56,13 @@ typedef struct Game_ {
 
     // Game UI texts
     char airLabel[3]; // was MESSAIR
-    char HGHSCOR[6];
-    char SCORE[4];
-    char SCORBUF[6];
     char MESSHSSC[32];
     char MESSG[4];
     char MESSO[4];
 } Game;
 
 // Initialize game "boot up" variables
-void Game_initialize(int lives, bool cheat, int teleport);
+void Game_initialize(bool cheat, int teleport);
 
 // Plays the intro music and text message
 void Game_play_intro(void);

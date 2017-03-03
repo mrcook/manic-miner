@@ -5,7 +5,13 @@
 #include "data.h"
 #include "globals.h"
 
-void Willy_initialize(int lives) {
+void Willy_loadSprites() {
+    for (int i = 0; i < 256; i++) {
+        willy.sprites[i] = WILLYDATA[i];
+    }
+}
+
+void Willy_reset(int lives) {
     willy.NOMEN = lives;
     willy.PIXEL_Y = 208;
     willy.FRAME = 0;
@@ -13,10 +19,6 @@ void Willy_initialize(int lives) {
     willy.AIRBORNE = 0;
     willy.LOCATION = 23970;
     willy.JUMPING = 0;
-
-    for (int i = 0; i < 256; i++) {
-        willy.sprites[i] = WILLYDATA[i];
-    }
 }
 
 // Reset bit 1 at DMFLAGS: Willy is not moving left or right.

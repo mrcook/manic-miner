@@ -61,7 +61,9 @@ typedef struct Willy_ {
     uint8_t sprites[256];
 } Willy;
 
-void Willy_initialize(int lives);
+void Willy_loadSprites();
+
+void Willy_reset(int lives);
 
 void Willy_setToUnmoving(void);
 
