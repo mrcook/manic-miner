@@ -64,6 +64,9 @@ typedef struct Game_ {
 // Initialize game "boot up" variables
 void Game_initialize(bool cheat, int teleport);
 
+// Clears all four game buffers: Display/Attributes and empty ones
+void Game_clearBuffers(void);
+
 // Plays the intro music and text message
 void Game_play_intro(void);
 

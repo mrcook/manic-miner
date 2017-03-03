@@ -61,13 +61,16 @@ void Speccy_write(int address, uint8_t byte);
 // so just use whatever was given in the assembly code.
 
 // Clear the entire Spectrum display file
-void Speccy_clearScreen();
+void Speccy_clearDisplayFile(void);
+
+// Clears the entire attributes file
+void Speccy_clearAttributesFile(void);
 
 // Clear the top two-thirds of the display file
-void Speccy_clearTopTwoThirdsOfDisplayFile();
+void Speccy_clearTopTwoThirdsOfDisplayFile(void);
 
 // Clear the bottom third of the display file.
-void Speccy_clearBottomThirdOfDisplayFile();
+void Speccy_clearBottomThirdOfDisplayFile(void);
 
 // Fill the top two thirds of the attribute file with the value given.
 void Speccy_fillTopTwoThirdsOfAttributeFileWith(uint8_t byte);

@@ -31,6 +31,24 @@ void Game_initialize(bool cheat, int teleport) {
     strcpy(game.MESSO, "Over");
 }
 
+void Game_clearBuffers() {
+    // Screen buffers
+    for (int i = 0; i < 4096; i++) {
+        // Screen Buffer
+        Speccy_writeAttribute(24576 + i, 0);
+        // Empty Screen Buffer
+        Speccy_writeAttribute(28672 + i, 0);
+    }
+
+    // Attributes Buffers
+    for (int i = 0; i < 512; i++) {
+        // Attributes Buffer
+        Speccy_writeAttribute(23552 + i, 0);
+        // Empty Attributes Buffer
+        Speccy_writeAttribute(24064 + i, 0);
+    }
+}
+
 // Play the game already!
 // Returning `true` quits the application.
 bool Game_play() {
@@ -59,7 +77,8 @@ bool Game_play() {
     EUGHGT = 0;
 
     // Prepare the screen; clear the entire Spectrum display file.
-    Speccy_clearScreen();
+    Speccy_clearDisplayFile();
+    Speccy_clearAttributesFile();
 
     // Store the keyboard input for use within the loop.
     int keyIntput;
@@ -189,6 +208,7 @@ bool Game_play() {
         // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
         if (Cavern_isAirDepleted() || willy.AIRBORNE == 255) {
             if (MANDEAD()) {
+                reinitialiseCavern = true;
                 gameIsRunning = false;
                 break;
                 // return false; // goto START, and don't quit!
@@ -208,6 +228,7 @@ bool Game_play() {
             // We're in demo mode; is it time to show the next cavern?
             if (game.DEMO == 1) {
                 if (MANDEAD()) {
+                    reinitialiseCavern = true;
                     return false; // goto START, and don't quit!
                 }
                 reinitialiseCavern = true;
@@ -218,6 +239,7 @@ bool Game_play() {
             game.DEMO--;
 
             if (keyIntput == MM_KEY_ENTER) {
+                reinitialiseCavern = true;
                 gameIsRunning = false;
                 break;
                 // return false; // goto START, and don't quit!
@@ -1421,7 +1443,7 @@ uint16_t PIANOKEY(uint8_t frequency) {
 
 void Game_play_intro() {
     // Clear the entire Spectrum display file.
-    Speccy_clearScreen();
+    Speccy_clearDisplayFile();
 
     // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file.
     for (int i = 0; i < 2048; i++) {

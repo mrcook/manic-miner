@@ -46,11 +46,17 @@ void Speccy_write(int address, uint8_t byte) {
     speccy.memory[address] = byte;
 }
 
-void Speccy_clearScreen() {
+void Speccy_clearDisplayFile() {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
     for (int i = 0; i < SCREEN_SIZE; i++) {
         speccy.memory[16384 + i] = 0;
+    }
+}
+
+void Speccy_clearAttributesFile() {
+    for (int i = 0; i < ATTR_SIZE; i++) {
+        speccy.memory[22528 + i] = 0;
     }
 }
 

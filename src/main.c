@@ -8,6 +8,7 @@
 #include "headers.h"
 #include "globals.h"
 #include "terminal.h"
+#include "data.h"
 
 // Current game version
 static const char *version = "0.0.1";
@@ -29,6 +30,10 @@ int main(int argc, char *argv[]) {
     Game_initialize(cheat, teleport);
 
     while (true) {
+        Speccy_clearDisplayFile();
+        Speccy_clearAttributesFile();
+        Game_clearBuffers();
+
         Willy_reset(lives);
 
         // Initialise demo mode
