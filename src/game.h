@@ -22,8 +22,8 @@ enum GameInput {
 };
 
 typedef struct Game_ {
-    int current_score;
-    int highscore;
+    int playerScore;
+    int highScore;
 
     // Attribute (ID?) of the last item drawn
     // Holds the attribute byte of the last item drawn,
@@ -73,6 +73,8 @@ void Game_play_intro(void);
 // Play the game, or DEMO.
 bool Game_play(void);
 
+// Increment the play er score by the given amount
+void Game_scoreAdd(int amount);
 
 //
 // We don't really want these public, store here temporarily.
@@ -104,7 +106,16 @@ void copyAttrBufToAttrFile(void);
 // Copies empty cavern data to the Screen/Attributes buffers
 void resetScreenAttrBuffers(void);
 
+// Resets the player score
+void resetCurrentScore();
+
+// INCSCORE_0
+// Award extra life if player reaches milestone
+void awardExtraLife();
+
 // Prints the Scores and Highscores to the screen
+void printCurrentScore(void);
+void printHighScore(void);
 void printScores(void);
 
 // Play the in-game music
@@ -135,8 +146,6 @@ bool CHKPORTAL(void);
 bool DRWFIX(void *sprite, uint16_t addr, uint8_t mode);
 
 bool NXSHEET(void);
-
-void INCSCORE_0(uint16_t addr);
 
 bool PLAYTUNE(void);
 

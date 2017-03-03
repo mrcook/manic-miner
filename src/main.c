@@ -42,8 +42,8 @@ int main(int argc, char *argv[]) {
     }
 
     Terminal_exit();
-    printf("You helped Miner Willy acquire treasure worth %d.\n", game.highscore);
-    if (game.highscore > 10000) {
+    printf("You helped Miner Willy acquire treasure worth %d.\n", game.highScore);
+    if (game.highScore > 10000) {
         printf("He's on his way to joining the Jet Set!\n");
     }
 

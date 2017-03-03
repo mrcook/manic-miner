@@ -24,13 +24,6 @@ void Game_initialize(int lives, bool cheat, int teleport) {
 
     strcpy(game.airLabel, "AIR");
 
-    // High score default
-    strcpy(game.HGHSCOR, "000000");
-
-    // Score defaults
-    strcpy(game.SCORE, "0000"); // Overflow digits (these may be updated, but are never printed)
-    strcpy(game.SCORBUF, "000000");
-
     // Scores text 'High Score 000000   Score 000000'
     strcpy(game.MESSHSSC, "High Score 000000   Score 000000");
 
@@ -60,7 +53,7 @@ bool Game_play() {
     game.playMusic = true;
 
     // Initialise the current game score.
-    game.current_score = 0;
+    resetCurrentScore();
 
     EUGDIR = 0;
     EUGHGT = 0;
@@ -238,6 +231,15 @@ bool Game_play() {
     return false;
 }
 
+void resetCurrentScore() {
+    game.playerScore = 0;
+}
+
+void Game_scoreAdd(int amount) {
+    game.playerScore += amount;
+    awardExtraLife();
+}
+
 // Load/Reload the cavern data for the current SHEET (was NEWSHT)
 // This function is called when:
 //   * teleporting into a cavern
@@ -371,9 +373,8 @@ bool MANDEAD() {
 // Display the game over sequence
 void ENDGAM() {
     // Check if we have a new high score.
-    if (game.current_score > game.highscore) {
-        game.highscore = game.current_score;
-        memcpy(game.HGHSCOR, game.SCORBUF, sizeof(&game.SCORBUF));
+    if (game.playerScore > game.highScore) {
+        game.highScore = game.playerScore;
     }
 
     // Now prepare the screen for the game over sequence.
@@ -1003,8 +1004,7 @@ void DRAWITEMS() {
             // Willy is touching this item, so add it to his collection.
 
             // Add 100 to the score.
-            game.current_score += 100;
-            INCSCORE_0(33836);
+            Game_scoreAdd(100);
 
             // Set the item's attribute byte to 0 so that it will be skipped the next time.
             cavern.ITEMS[i].attribute = 0;
@@ -1294,12 +1294,9 @@ bool NXSHEET() {
             return true;
         }
 
-        // Add 1 to the score.
-        game.current_score++;
-        INCSCORE_0(33838);
-
-        // Print the new score at (19,26).
-        Speccy_printMessage(&game.SCORBUF, 20602, 6);
+        // Add 1 to the score and print at (19,26).
+        Game_scoreAdd(1);
+        printCurrentScore();
 
         // C=4; this value determines the duration of the sound effect.
         uint8_t duration = 4;
@@ -1321,35 +1318,6 @@ bool NXSHEET() {
     }
 
     return false; // IMPORTANT: no `goto NEWSHT` required. -MRC-
-}
-
-// The entry point to this routine is here and is used by the routines at
-// DRAWITEMS, NXSHEET and KONGBEAST with HL pointing at the digit of the
-// score (see SCORBUF) to be incremented.
-void INCSCORE_0(uint16_t addr) {
-    uint8_t msb;
-    uint8_t lsb;
-
-    for (;;) {
-        // Pick up a digit of the score, is it '9'?
-        if (Speccy_read(addr) < 57) {
-            Speccy_write(addr, (uint8_t) Speccy_read(addr) + 1);
-            return;
-        }
-
-        // Roll the digit over from '9' to '0'.
-        Speccy_write(addr, 48);
-
-        // Point HL at the next digit to the left.
-        addr--;
-
-        // Is this the 10000s digit?
-        split_address(addr, &msb, &lsb);
-        if (lsb == 42) {
-            game.FLASH = 8;
-            willy.NOMEN++;
-        }
-    }
 }
 
 // Play the theme tune (The Blue Danube).
@@ -1544,12 +1512,39 @@ void drawRemainingLives() {
     }
 }
 
+// INCSCORE_0
+void awardExtraLife() {
+    static int extraLivesAwarded = 0;
+
+    // Has players' score reached a 10000s digit?
+    if (game.playerScore / 10000 > extraLivesAwarded) {
+        game.FLASH = 8;
+
+        willy.NOMEN++;
+
+        extraLivesAwarded++;
+    }
+}
+
 void printScores() {
+    printCurrentScore();
+    printHighScore();
+}
+
+void printCurrentScore() {
+    char score[7];
+    sprintf(score, "%06d", game.playerScore);
+
     // Print the score (see SCORBUF) at (19,26).
-    Speccy_printMessage(&game.SCORBUF, 20602, 6);
+    Speccy_printMessage(&score, 20602, 6);
+}
+
+void printHighScore() {
+    char score[7];
+    sprintf(score, "%06d", game.highScore);
 
     // Print the high score (see HGHSCOR) at (19,11).
-    Speccy_printMessage(&game.HGHSCOR, 20587, 6);
+    Speccy_printMessage(&score, 20587, 6);
 }
 
 void playGameMusic() {

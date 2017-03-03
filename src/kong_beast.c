@@ -163,8 +163,7 @@ bool KONGBEAST() {
         DRWFIX(&GGDATA[sprite_id], addr, 0);
 
         // Add 100 to the score.
-        game.current_score += 100;
-        INCSCORE_0(33836);
+        Game_scoreAdd(100);
 
         // Pick up the Kong Beast's pixel y-coordinate from EUGHGT.
         // Point HL at the address of the Kong Beast's location in the attribute buffer at 23552.
