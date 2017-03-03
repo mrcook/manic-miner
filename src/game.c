@@ -202,11 +202,11 @@ bool Game_play() {
         Terminal_redraw();
 
         // Decrease the air remaining in the current cavern.
-        Cavern_decreaseAir();
+        bool depletedAir = Cavern_decreaseAir();
 
         // Has willy ran our of air or had a fatal accident?
         // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
-        if (Cavern_isAirDepleted() || willy.AIRBORNE == 255) {
+        if (depletedAir || willy.AIRBORNE == 255) {
             if (MANDEAD()) {
                 reinitialiseCavern = true;
                 gameIsRunning = false;
@@ -1309,10 +1309,8 @@ bool NXSHEET() {
     // The following loop increases the score and decreases the air supply until it runs out.
     while (true) {
         // Decrease the air remaining in the current cavern.
-        Cavern_decreaseAir();
-
         // Move to the next cavern if the air supply is now gone.
-        if (Cavern_isAirDepleted()) {
+        if (Cavern_decreaseAir()) {
             return true;
         }
 
@@ -1331,11 +1329,12 @@ bool NXSHEET() {
         for (int i = duration; i > 0; i--) {
             // Produce a short note
             OUT(0);
-            millisleep(pitch);
+            // millisleep(pitch);
             OUT(24);
-            millisleep(1);
+            // millisleep(1);
         }
 
+        Terminal_redraw();
         // Jump back to decrease the air supply again.
     }
 

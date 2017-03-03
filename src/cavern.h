@@ -67,7 +67,7 @@ void Cavern_updateGameClock(void);
 
 bool Cavern_isAirDepleted(void);
 
-void Cavern_decreaseAir(void);
+bool Cavern_decreaseAir(void);
 
 void Cavern_drawAirBar(void);
 

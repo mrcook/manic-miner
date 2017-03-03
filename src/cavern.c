@@ -326,14 +326,14 @@ bool Cavern_isAirDepleted() {
 }
 
 // Decrease the air remaining in the current cavern, along with the game CLOCK.
-void Cavern_decreaseAir() {
+bool Cavern_decreaseAir() {
     Cavern_updateGameClock();
 
     // Was the game clock just decreased from zero?
     if (cavern.CLOCK == 252) {
         // Has the air supply run out?
         if (Cavern_isAirDepleted()) {
-            return;
+            return true;
         }
         cavern.AIR--;
     }
@@ -363,7 +363,8 @@ void Cavern_decreaseAir() {
         // Draw the four rows of pixels at the right end of the air bar.
         Speccy_writeScreen(build_address(msb, cavern.AIR), pixels);
     }
-    Terminal_redraw();
+
+    return false;
 }
 
 // Draws the AIR bar graphics to the screen
