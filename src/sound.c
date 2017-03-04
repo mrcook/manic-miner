@@ -96,12 +96,12 @@ uint16_t PIANOKEY(uint8_t frequency) {
     // Compute the piano key index (K) based on the frequency parameter (F),
     // and store it in bits 0-4 of A: K=31-INT((F-8)/8).
     frequency -= 8;
-    frequency = rotr(frequency, 3);
+    frequency = rotR(frequency, 3);
     frequency = (uint8_t) ~frequency;
 
     // A=224+K; this is the LSB.
     frequency |= 224;
 
     // Set HL to the attribute file address for the piano key.
-    return build_address(89, frequency);
+    return buildAddress(89, frequency);
 }

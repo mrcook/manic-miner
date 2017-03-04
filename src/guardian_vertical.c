@@ -44,19 +44,19 @@ bool GuardianVertical_updateDraw() {
         // Pick up the guardian's pixel y-coordinate.
         // Point DE at the entry in the screen buffer address lookup table at
         // SBUFADDRS that corresponds to the guardian's pixel y-coordinate.
-        y_coord = rotl((uint8_t) (VGUARDS[i].yCoord & 127), 1);
+        y_coord = rotL((uint8_t) (VGUARDS[i].yCoord & 127), 1);
         uint16_t addr = SBUFADDRS[y_coord / 2];
 
         // Point HL at the address of the guardian's location in the screen buffer at 24576.
-        split_address(addr, &msb, &lsb);
+        splitAddress(addr, &msb, &lsb);
         lsb_bak = lsb | VGUARDS[i].xCoord;
         y_coord++;
         addr = SBUFADDRS[y_coord / 2];
-        split_address(addr, &msb, &lsb);
-        addr = build_address(msb, lsb_bak);
+        splitAddress(addr, &msb, &lsb);
+        addr = buildAddress(msb, lsb_bak);
 
         // Pick up the guardian's animation frame (0-3). Multiply it by 32.
-        uint8_t anim_frame = rotr(VGUARDS[i].frame, 3);
+        uint8_t anim_frame = rotR(VGUARDS[i].frame, 3);
 
         // Draw the guardian to the screen buffer at 24576
         bool kill_willy = DRWFIX(&VGUARDS[i].GGDATA[anim_frame], addr, 1);
@@ -69,14 +69,14 @@ bool GuardianVertical_updateDraw() {
 
         // Pick up the guardian's pixel y-coordinate.
         // Point HL at the address of the guardian's location in the attribute buffer at 23552.
-        addr = (uint16_t) (rotl((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
-        split_address(addr, &msb, &lsb);
+        addr = (uint16_t) (rotL((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
+        splitAddress(addr, &msb, &lsb);
         msb_bak = msb;
 
-        addr = (uint16_t) (rotl(VGUARDS[i].yCoord, 2) & 224);
-        split_address(addr, &msb, &lsb);
+        addr = (uint16_t) (rotL(VGUARDS[i].yCoord, 2) & 224);
+        splitAddress(addr, &msb, &lsb);
         lsb |= VGUARDS[i].xCoord;
-        addr = build_address(msb_bak, lsb);
+        addr = buildAddress(msb_bak, lsb);
 
         // Set the attribute bytes for the guardian.
         EUGENE_3(addr, VGUARDS[i].attribute);

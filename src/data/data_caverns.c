@@ -34,19 +34,19 @@ char Data_cavernNames[20][32] = {
         "        The Final Barrier       ", // Cavern: 19
 };
 
-// Pixel y-coordinate * 2
+// Willy's Pixel y-coordinate * 2
 uint8_t Data_pixelY[20] = { 208, 208, 208, 208, 48, 48, 208, 208, 208, 64, 16, 208, 208, 208, 208, 208, 48, 208, 160, 208 };
 
-// Animation frame
+// Willy's Animation frame
 uint8_t Data_frames[20] = { 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0 };
 
-// Direction and movement flags: 0=facing right, 1=facing left
+// Willy's Direction and movement flags: 0=facing right, 1=facing left
 uint8_t Data_dmFlags[20] = { 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1 };
 
-// Airborne status indicator. Always `0`
+// Willy's Airborne status indicator. Always `0`
 uint8_t Data_airborneStatues[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-// Location in the attribute buffer at 23552
+// Willy's Location in the attribute buffer at 23552
 uint16_t Data_locations[20] = {
         23970, // (13, 2)
         23970, // (13, 2)
@@ -184,30 +184,34 @@ uint8_t Data_borderColours[20] = { 2, 2, 2, 2, 1, 2, 4, 2, 1, 2, 2, 2, 1, 6, 2, 
 // ITEMATTR for the cavern
 uint8_t Data_itemAttrs[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-// ITEMS inthe cavern
+// ITEMS inthe cavern. Colour info is given as INK/PAPER
+// Items use just 4 colours each for ink and paper:
+//    INK: Magenta, Green, Cyan, Yellow
+//  PAPER: Black, Blue, Red, Green
+// Ink colours will be rotated to create the "glistening" effect.
 uint16_t Data_itemsData[20][5][5] = {
         {
-                // Item 1 at (0, 9)
+                // Item 1 at (0, 9),   MAGENTA / BLACK
                 { 3, 23561, 96, 255 },
-                // Item 2 at (0, 29)
+                // Item 2 at (0, 29),  GREEN   / BLACK
                 { 4, 23581, 96, 255 },
-                // Item 3 at (1, 16)
+                // Item 3 at (1, 16),  CYAN    / BLACK
                 { 5, 23600, 96, 255 },
-                // Item 4 at (4, 24)
+                // Item 4 at (4, 24),  YELLOW  / BLACK
                 { 6, 23704, 96, 255 },
-                // Item 5 at (6, 30)
+                // Item 5 at (6, 30),  MAGENTA / BLACK
                 { 3, 23774, 96, 255 },
         },
         {
-                // Item 1 at (1, 7)
+                // Item 1 at (1, 7)    MAGENTA / BLUE
                 {11, 23591, 96, 255},
-                // Item 2 at (1, 24)
+                // Item 2 at (1, 24)   GREEN   / BLUE
                 {12, 23608, 96, 255},
-                // Item 3 at (7, 26)
+                // Item 3 at (7, 26)   CYAN    / BLUE
                 {13, 23802, 96, 255},
-                // Item 4 at (9, 3)
+                // Item 4 at (9, 3)    YELLOW  / BLUE
                 {14, 23843, 104, 255},
-                // Item 5 at (12, 19)
+                // Item 5 at (12, 19)  MAGENTA / BLUE
                 {11, 23955, 104, 255},
         },
         {
@@ -234,15 +238,15 @@ uint16_t Data_itemsData[20][5][5] = {
                 // Item 5 at (6, 30)
                 {3, 23774, 96, 255}
         }, {
-                // Item 1 at (1, 30)
+                // Item 1 at (1, 30)   MAGENTA / RED
                 {19, 23614, 96, 255},
-                // Item 2 at (6, 10)
+                // Item 2 at (6, 10)   GREEN   / RED
                 {20, 23754, 96, 255},
-                // Item 3 at (7, 29)
+                // Item 3 at (7, 29)   CYAN    / RED
                 {21, 23805, 96, 255},
-                // Item 4 at (12, 7)
+                // Item 4 at (12, 7)   YELLOW  / RED
                 {22, 23943, 104, 255},
-                // Item 5 at (12, 9)
+                // Item 5 at (12, 9)   MAGENTA / RED
                 {19, 23945, 104, 255}
         }, {
                 // Item 1 at (6, 15)
@@ -376,15 +380,15 @@ uint16_t Data_itemsData[20][5][5] = {
                 {255, 23738, 96, 255}
         },
         {
-                // Item 1 at (5, 24)
+                // Item 1 at (5, 24)   MAGENTA / GREEN
                 {35, 23736, 96, 255},
-                // Item 2 at (7, 15)
+                // Item 2 at (7, 15)   GREEN   / GREEN
                 {36, 23791, 96, 255},
-                // Item 3 at (9, 1)
+                // Item 3 at (9, 1)    CYAN    / GREEN
                 {37, 23841, 104, 255},
-                // Item 4 at (10, 19)
+                // Item 4 at (10, 19)  YELLOW  / GREEN
                 {38, 23891, 104, 255},
-                // Item 5 at (11, 26)
+                // Item 5 at (11, 26)  MAGENTA / GREEN
                 {35, 23930, 104, 255}
         },
         {

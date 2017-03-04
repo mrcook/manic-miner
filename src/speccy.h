@@ -5,6 +5,7 @@
 
 
 #include "headers.h"
+#include "colour.h"
 
 // Simple ZX Spectrum platform wrapper to aid developers porting Z80 software.
 
@@ -13,6 +14,23 @@
 //   ^     ^             ^             ^             ^             ^
 //   0   16384         22528         23296         23552         23734
 //             (6144)         (768)         (256)         (182)
+
+// Colours:
+//        FL BR P3 P2 P1 I3 I2 I1 (FLASH, BRIGHT, PAPER, INK)
+//  bits:  7  6  5  4  3  2  1  0
+//
+// INK and PAPER have values 0-7, corresponding to the table below.
+//
+// Colour number, name, binary value, with their RGB (hex) equivalent
+//   #  Name     Binary   RGB: NORMAL   BRIGHT
+//   0  BLACK    000           #000000  #000000c
+//   1  BLUE     001           #0000D7  #0000FFc
+//   2  RED      010           #D70000  #FF0000c
+//   3  MAGENTA  011           #D700D7  #FF00FFc  (purple)
+//   4  GREEN    100           #00D700  #00FF00c
+//   5  CYAN     101           #00D7D7  #00FFFFc  (pale blue)
+//   6  YELLOW   110           #D7D700  #FFFF00c
+//   7  WHITE    111           #D7D7D7  #FFFFFFc
 
 // 23672: Interrupt counter (stored in the system variables).
 // The interrupt service routine in the ROM updates the Spectrum’s 24-bit
@@ -52,13 +70,26 @@ void Speccy_initialize(int fps);
 // Call this whenever the display needs updating or FPS syncing.
 void Speccy_tick(void);
 
+// Converts the entire spectrum screen format to a regular (linear) screen buffer.
+void Speccy_convertScreenFormat();
+
+// Read a byte from the converted screen buffer
+uint8_t Speccy_readScreenBuffer(int address);
+
+
+//
+// General memory access
+//
+
 // General memory read/write. Use as needed.
 uint8_t Speccy_read(int address);
 
 void Speccy_write(int address, uint8_t byte);
 
-// Display specific memory. Addresses will be adjusted accordingly,
-// so just use whatever was given in the assembly code.
+
+//
+// Screen/Attribute access
+//
 
 // Clear the entire Spectrum display file
 void Speccy_clearDisplayFile(void);
@@ -84,21 +115,46 @@ uint8_t Speccy_readAttribute(int address);
 void Speccy_writeAttribute(int address, uint8_t byte);
 
 // Print a message string to the display file
-void Speccy_printMessage(void *msg, uint16_t addr, uint8_t len);
+void Speccy_printMessage(void *msg, uint16_t address, uint8_t len);
 
 // Draw a sprite item to the given screen address
-void Speccy_printSpriteAt(void *character, uint16_t addr, uint8_t len);
+void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len);
+
+//
+// Sound and border functions
+//
+
+void Speccy_setBorderColour(uint8_t colour);
+
+// The Spectrum uses OUT to make a sound, but here we use a custom function
+void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay);
+
+
+//
+// Utility functions
+//
 
 // Handy function to convert a byte to an array of bits,
 // so you can more easily create pixel based graphics.
-void Speccy_byteToBits(uint8_t byte, uint8_t *bits);
+void byteToBits(uint8_t byte, uint8_t *bits);
 
-// Converts the entire spectrum screen format
-// to a regular (linear) screen buffer.
-void Speccy_convertScreenFormat();
+// Split a uint16_t memory address into its MSB and LSB values
+void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb);
 
-// Read a byte from the converted screen buffer
-uint8_t Speccy_readScreenBuffer(int address);
+// Build a uint16_t memory address from the MSB and LSB values
+uint16_t buildAddress(uint8_t msb, uint8_t lsb);
+
+// Rotate left n places
+uint8_t rotL(uint8_t a, uint8_t n);
+
+// Rotate right n places
+uint8_t rotR(uint8_t a, uint8_t n);
+
+void splitColourAttribute(uint8_t attribute, Colour *colour);
+
+//
+// NOOP function, just to help get the port going quickly
+//
 
 // IN from Keyboard and Joystick
 // IN 65278 reads the half row CAPS SHIFT to V
@@ -115,23 +171,6 @@ uint8_t IN(uint16_t addr);
 
 // OUT(254) border/sound output.
 void OUT(uint8_t value);
-
-// The Spectrum uses OUT to make a sound, but here we use a custom function
-void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay);
-
-void Speccy_setBorderColour(uint8_t colour);
-
-// Split a uint16_t memory address into its MSB and LSB values
-void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb);
-
-// Build a uint16_t memory address from the MSB and LSB values
-uint16_t build_address(uint8_t msb, uint8_t lsb);
-
-// Rotate left n places
-uint8_t rotl(uint8_t a, uint8_t n);
-
-// Rotate right n places
-uint8_t rotr(uint8_t a, uint8_t n);
 
 
 #endif //MANIC_MINER_SPECCY_H

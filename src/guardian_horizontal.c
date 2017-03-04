@@ -20,7 +20,7 @@ void GuardianHorizontal_update() {
 
         uint8_t current_clock = cavern.CLOCK;
         current_clock &= 4;
-        current_clock = rotr(current_clock, 3);
+        current_clock = rotR(current_clock, 3);
 
         // Jump to consider the next guardian if this one is not due to be moved on this pass.
         if ((current_clock & HGUARDS[i].speedColour)) {
@@ -34,7 +34,7 @@ void GuardianHorizontal_update() {
         // If so move the guardian right across a cell boundary or turn it round.
         if (HGUARDS[i].frame == 3) {
             // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552.
-            split_address(HGUARDS[i].attributeAddress, &msb, &lsb);
+            splitAddress(HGUARDS[i].attributeAddress, &msb, &lsb);
 
             // Has the guardian reached the rightmost point in its path?
             if (lsb == HGUARDS[i].addressRightLSB) {
@@ -46,7 +46,7 @@ void GuardianHorizontal_update() {
                 HGUARDS[i].frame = 0;
                 // Increment the guardian's x-coordinate (moving it right across a cell boundary).
                 lsb++;
-                HGUARDS[i].attributeAddress = build_address(msb, lsb);
+                HGUARDS[i].attributeAddress = buildAddress(msb, lsb);
                 // Jump forward to consider the next guardian.
             }
 
@@ -54,7 +54,7 @@ void GuardianHorizontal_update() {
             // If so move the guardian left across a cell boundary or turn it round.
         } else if (HGUARDS[i].frame == 4) {
             // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552.
-            split_address(HGUARDS[i].attributeAddress, &msb, &lsb);
+            splitAddress(HGUARDS[i].attributeAddress, &msb, &lsb);
 
             // Has the guardian reached the leftmost point in its path?
             if (lsb == HGUARDS[i].addressLeftLSB) {
@@ -65,7 +65,7 @@ void GuardianHorizontal_update() {
                 HGUARDS[i].frame = 7;
                 // Decrement the guardian's x-coordinate (moving it left across a cell boundary).
                 lsb--;
-                HGUARDS[i].attributeAddress = build_address(msb, lsb);
+                HGUARDS[i].attributeAddress = buildAddress(msb, lsb);
             }
         } else if (HGUARDS[i].frame > 4) {
             // the animation frame is 5, 6 or 7.
@@ -117,7 +117,7 @@ bool GuardianHorizontal_draw() {
         // Pick up the animation frame (0-7),
         uint8_t anim_frame = (uint8_t) HGUARDS[i].frame;
         // Multiply it by 32,
-        anim_frame = rotr(anim_frame, 3);
+        anim_frame = rotR(anim_frame, 3);
 
         // If we are not in one of the first seven caverns, The Endorian Forest, or The Sixteenth Cavern...
         if (cavern.SHEET >= 7 && cavern.SHEET != 9 && cavern.SHEET != 15) {
@@ -127,8 +127,8 @@ bool GuardianHorizontal_draw() {
 
         // Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E),
         // Point HL at the address of the guardian's location in the screen buffer at 24576,
-        split_address(HGUARDS[i].attributeAddress, &msb, &lsb);
-        addr = build_address((uint8_t) HGUARDS[i].addressMSB, lsb);
+        splitAddress(HGUARDS[i].attributeAddress, &msb, &lsb);
+        addr = buildAddress((uint8_t) HGUARDS[i].addressMSB, lsb);
 
         // Draw the guardian to the screen buffer at 24576,
         bool kill_willy = DRWFIX(&HGUARDS[i].GGDATA[anim_frame], addr, 1);

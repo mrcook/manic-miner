@@ -1,6 +1,7 @@
 // Speccy library Copyright 2017 Michael R. Cook
 
 #include "headers.h"
+#include "colour.h"
 #include "helpers.h"
 #include "globals.h"
 
@@ -80,6 +81,21 @@ void Speccy_fillTopTwoThirdsOfAttributeFileWith(uint8_t byte) {
     }
 }
 
+// Extract the ink, paper, brightness values from the attribute
+void Speccy_splitColorAttribute(uint8_t attribute, Colour *colour) {
+    // Flashing uses bit value 128, save as boolean
+    colour->flash = (attribute & 128) != 0;
+
+    // Brightness uses bit value 64, save as boolean
+    colour->BRIGHT = (attribute & 64) != 0;
+
+    // Ink uses bit valuess 1,2,4 (0-7)
+    colour->INK = (uint8_t ) (attribute & 7);
+
+    // Paper uses bit values 8,16,32 (56-63), and shift right to be 0-7
+    colour->PAPER = (uint8_t) ((attribute & 63) >> 3);
+}
+
 void Speccy_setBorderColour(uint8_t colour) {
     OUT(colour);
 }
@@ -148,33 +164,33 @@ void printFontCharacterAt(char ch, uint16_t address) {
     uint8_t ch_index_id = (uint8_t) (ch - 32);
 
     // There are eight pixel rows in a character bitmap
-    Speccy_printSpriteAt(&Speccy_font[ch_index_id], address, 8);
+    Speccy_drawSpriteAt(&Speccy_font[ch_index_id], address, 8);
 }
 
-void Speccy_printMessage(void *msg, uint16_t addr, uint8_t len) {
+void Speccy_printMessage(void *msg, uint16_t address, uint8_t len) {
     uint8_t *ch = msg;
 
-    for (int i = 0; i < len; i++, addr++) {
-        printFontCharacterAt(ch[i], addr);
+    for (int i = 0; i < len; i++, address++) {
+        printFontCharacterAt(ch[i], address);
     }
 }
 
-void Speccy_printSpriteAt(void *character, uint16_t addr, uint8_t len) {
+void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len) {
     uint8_t *chr = character;
     uint8_t msb, lsb;
 
     // Copy character data to the screen
     for (int i = 0; i < len; i++) {
-        Speccy_write(addr, chr[i]);
+        Speccy_write(address, chr[i]);
 
         // increment address to next pixel row
-        split_address(addr, &msb, &lsb);
+        splitAddress(address, &msb, &lsb);
         msb++;
-        addr = build_address(msb, lsb);
+        address = buildAddress(msb, lsb);
     }
 }
 
-void Speccy_byteToBits(uint8_t byte, uint8_t *bits) {
+void byteToBits(uint8_t byte, uint8_t *bits) {
     for (int i = 0; i < 8; i++) {
         if (byte & (1 << i)) {
             bits[i] = 1;
@@ -223,21 +239,21 @@ uint8_t Speccy_readScreenBuffer(int address) {
     return speccy.convertedScreen[address];
 }
 
-void split_address(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
+void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
     *lsb = (uint8_t) (addr & 0xFF);
     *msb = (uint8_t) (addr >> 8);
 }
 
-uint16_t build_address(uint8_t msb, uint8_t lsb) {
+uint16_t buildAddress(uint8_t msb, uint8_t lsb) {
     return (msb << 8) | lsb;
 }
 
-uint8_t rotl(uint8_t a, uint8_t n) {
+uint8_t rotL(uint8_t a, uint8_t n) {
     assert (n > 0 && n < 8);
     return (a << n) | (a >> (8 - n));
 }
 
-uint8_t rotr(uint8_t a, uint8_t n) {
+uint8_t rotR(uint8_t a, uint8_t n) {
     assert (n > 0 && n < 8);
     return (a >> n) | (a << (8 - n));
 }

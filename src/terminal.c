@@ -20,7 +20,7 @@ void Terminal_init() {
         return;
     }
 
-    initscr(); // <curses.h> do initialization work 
+    initscr(); // <curses.h> do initialization work
 
     // cbreak();           // <curses.h> not needed when using raw()...does not disable Ctrl chars
     raw();                 // <curses.h> disable control characters. I.e. Ctrl-C does not work!
@@ -134,7 +134,7 @@ void Terminal_redraw() {
 
     for (int r = 0; r < 6144; r += 32) {
         for (int c = 0; c < 32; c++) {
-            Speccy_byteToBits(Speccy_readScreenBuffer(r + c), bits);
+            byteToBits(Speccy_readScreenBuffer(r + c), bits);
 
             for (int pixel = 7; pixel >= 0; pixel--) {
                 if (bits[pixel] == 0) {
