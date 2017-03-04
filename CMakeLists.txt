@@ -19,6 +19,8 @@ set(SOURCE_FILES
         src/speccy.c
         src/terminal.h
         src/terminal.c
+        src/sound.h
+        src/sound.c
         src/colour.h
         src/coord.h
         src/data.h

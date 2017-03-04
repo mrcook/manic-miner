@@ -3,7 +3,6 @@
 
 #include "globals.h"
 #include "data.h"
-#include "terminal.h"
 
 // Initialize arrays and copy the cavern definition into the game status buffer.
 // We must copy a total of 512 bytes into the buffer address from 32768.

@@ -106,19 +106,17 @@ void copyAttrBufToAttrFile(void);
 // Copies empty cavern data to the Screen/Attributes buffers
 void resetScreenAttrBuffers(void);
 
-// Resets the player score
 void resetCurrentScore();
 
-// INCSCORE_0
-// Award extra life if player reaches milestone
+// INCSCORE_0 - Award extra life if player reaches milestone
 void awardExtraLife();
 
-// Prints the Scores and Highscores to the screen
 void printCurrentScore(void);
+
 void printHighScore(void);
+
 void printScores(void);
 
-// Play the in-game music
 void playGameMusic(void);
 
 bool MANDEAD(void);
@@ -146,10 +144,6 @@ bool CHKPORTAL(void);
 bool DRWFIX(void *sprite, uint16_t addr, uint8_t mode);
 
 bool NXSHEET(void);
-
-bool PLAYTUNE(void);
-
-uint16_t PIANOKEY(uint8_t frequency);
 
 
 #endif //MANIC_MINER_GAME_H
