@@ -27,16 +27,16 @@ typedef struct Colour_ {
     uint8_t INK;
 } Colour;
 
+// ZX Spectrum colour values
 enum GameColours {
-  //              NCURSES       #
-  BLACK   = 0, // COLOR_BLACK   0
-  BLUE    = 1, // COLOR_BLUE    4
-  RED     = 2, // COLOR_RED     1
-  MAGENTA = 3, // COLOR_MAGENTA 5
-  GREEN   = 4, // COLOR_GREEN   2
-  CYAN    = 5, // COLOR_CYAN    6
-  YELLOW  = 6, // COLOR_YELLOW  3
-  WHITE   = 7, // COLOR_WHITE   7
+    BLACK,
+    BLUE,
+    RED,
+    MAGENTA,
+    GREEN,
+    CYAN,
+    YELLOW,
+    WHITE,
 };
 
 

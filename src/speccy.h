@@ -43,6 +43,7 @@
 
 static const int TOTAL_MEMORY = 1024 * 64;
 static const int SCREEN_SIZE = 6144;
+static const int SCREEN_PIXELS_SIZE = SCREEN_SIZE * 8;
 static const int ATTR_SIZE = 768;
 
 typedef struct Speccy_ {
@@ -61,6 +62,7 @@ typedef struct Speccy_ {
     // Display buffers in a standard (linear) format.
     // Useful for sending to ncurses/SDL/etc.
     uint8_t convertedScreen[SCREEN_SIZE];
+    uint8_t newScreen[SCREEN_SIZE * 8]; // contains data for each pixel not byte
 } Speccy;
 
 // Initialize the speccy framework (FPS, etc.)
@@ -70,12 +72,26 @@ void Speccy_initialize(int fps);
 // Call this whenever the display needs updating or FPS syncing.
 void Speccy_tick(void);
 
-// Converts the entire spectrum screen format to a regular (linear) screen buffer.
+/*
+ * NewScreen format functions
+ *
+ * Converts the original Spectrum screen layout to a more standard linear
+ * format; bytes are sequential reading from left-to-right, top-to-bottom.
+ */
+
+// Converts the entire spectrum screen format to the NewScreen standard format
 void Speccy_convertScreenFormat();
 
-// Read a byte from the converted screen buffer
-uint8_t Speccy_readScreenBuffer(int address);
+// Write a colour pixel to the new screen.
+// The colour is taken from the Attributes File, using the given address.
+void writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress);
 
+// Given an address from the new screen array (256*192 pixels),
+// calculate the Spectrum Attribute File address
+uint8_t getAttrFromAttributesFile(int address);
+
+// Read a byte from the NewScreen format
+uint8_t Speccy_readNewScreen(int address);
 
 //
 // General memory access
@@ -123,6 +139,9 @@ void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len);
 //
 // Sound and border functions
 //
+
+// Split a Spectrum attribute byte into it's colour parts
+void Speccy_splitColorAttribute(uint8_t attribute, Colour *colour);
 
 void Speccy_setBorderColour(uint8_t colour);
 

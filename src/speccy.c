@@ -89,8 +89,8 @@ void Speccy_splitColorAttribute(uint8_t attribute, Colour *colour) {
     // Brightness uses bit value 64, save as boolean
     colour->BRIGHT = (attribute & 64) != 0;
 
-    // Ink uses bit valuess 1,2,4 (0-7)
-    colour->INK = (uint8_t ) (attribute & 7);
+    // Ink uses bit values 1,2,4 (0-7)
+    colour->INK = (uint8_t) (attribute & 7);
 
     // Paper uses bit values 8,16,32 (56-63), and shift right to be 0-7
     colour->PAPER = (uint8_t) ((attribute & 63) >> 3);
@@ -200,10 +200,14 @@ void byteToBits(uint8_t byte, uint8_t *bits) {
     }
 }
 
+// ZX Spectrum to linear screen converter. FIXME: yucky goo!
 void Speccy_convertScreenFormat() {
     int block_addr_offset;
     int address, line, offset;
 
+    uint8_t pixels[8];
+
+    // Iterate over each Display File block (top, middle, bottom)
     for (int block = 0; block < 3; block++) {
         block_addr_offset = block * 2048;
         address = 0;
@@ -212,31 +216,75 @@ void Speccy_convertScreenFormat() {
 
         for (int byte_row = 0; byte_row < 2048; byte_row += 32) {
             for (int b = 0; b < 32; b++) {
-                // FIXME: until we use `speccy.screen` everywhere, we must use normal `speccy.memory`,
                 uint8_t bite = speccy.memory[16384 + block_addr_offset + byte_row + b];
-                speccy.convertedScreen[block_addr_offset + address] = bite;
-                address += 1;
+
+                // Convert the Speccy display bytes to pixels and add to the new screen array
+                byteToBits(bite, pixels);
+                // read pixel bits from left-to-right: bit-7 down to bit-0
+                for (int pixel = 7; pixel >= 0; pixel--) {
+                    // multiply offset by 8 pixels
+                    writeColourPixelToNewScreen(pixels[pixel], block_addr_offset * 8 + address);
+                    address++;
+                }
             }
 
-            address += 32 * 7;
+            // advance the address to the next "character": 8 pixel rows
+            address += 256 * 7;
+
+            // increment the pixel "row" we are currently working on
             line += 1;
 
+            // If we've process the last line of pixels, we start on the next byte
             if (line == 8) {
                 line = 0;
 
+                // The "offset" s for starting the next "character" worth of pixels
                 offset += 1;
-                address = offset * 32;
+                address = offset * 256;
             }
         }
     }
 }
 
-uint8_t Speccy_readScreenBuffer(int address) {
-    if (address < 0 && address >= sizeof(speccy.convertedScreen) / sizeof(uint8_t)) {
+void writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
+    Colour colour;
+
+    uint8_t attribute = getAttrFromAttributesFile(newScreenAddress);
+
+    Speccy_splitColorAttribute(attribute, &colour);
+
+    uint8_t brightness = (uint8_t) (colour.BRIGHT ? 64 : 0);
+
+    // NOTE: bit-7 is normally the FLASH value in the Spectrum attribute,
+    // but here we use it to indicate if a pixel is present.
+    if (pixel == 1) {
+        speccy.newScreen[newScreenAddress] = (uint8_t) (128 | brightness | colour.INK);
+    } else {
+        speccy.newScreen[newScreenAddress] = (uint8_t) (brightness | colour.PAPER);
+    }
+}
+
+uint8_t getAttrFromAttributesFile(int address) {
+    // each third of the screen is 16384 pixels.
+    // bottom third starts at: 32768
+
+
+    // Each 32 character row of 8x8 pixels contains 2048 pixels
+    // This will increment one AttributeFile row at a time
+    int row = (address / 2048) * 32;
+
+    // Will calculate the column value from 0-31 regardless of the address value
+    int column = ((address / 8) % 32);
+
+    return speccy.memory[22528 + row + column];
+}
+
+uint8_t Speccy_readNewScreen(int address) {
+    if (address < 0 && address >= sizeof(speccy.newScreen) / sizeof(uint8_t)) {
         exit(-1);
     }
 
-    return speccy.convertedScreen[address];
+    return speccy.newScreen[address];
 }
 
 void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb) {

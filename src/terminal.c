@@ -30,14 +30,15 @@ void Terminal_init() {
     keypad(stdscr, true);  // <curses.h> enable keypad for input
     curs_set(0);           // <curses.h> sets the appearance of the cursor based on the value of visibility
 
-    // start_color();   // <curses.h> use colors
-    // init_pair(RED, COLOR_RED, COLOR_BLACK);         // <curses.h> define color-pair
-    // init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);     // <curses.h> define color-pair
-    // init_pair(YELLOW, COLOR_YELLOW, COLOR_BLACK);   // <curses.h> define color-pair
-    // init_pair(BLUE, COLOR_BLUE, COLOR_BLACK);       // <curses.h> define color-pair
-    // init_pair(CYAN, COLOR_CYAN, COLOR_BLACK);       // <curses.h> define color-pair
-    // init_pair(MAGENTA, COLOR_MAGENTA, COLOR_BLACK); // <curses.h> define color-pair
-    // init_pair(WHITE, COLOR_WHITE, COLOR_BLACK);     // <curses.h> define color-pair
+    start_color();   // <curses.h> use colors
+    init_pair(BLACK, COLOR_BLACK, COLOR_BLACK);       // <curses.h> define color-pair
+    init_pair(BLUE, COLOR_BLUE, COLOR_BLUE);          // <curses.h> define color-pair
+    init_pair(RED, COLOR_RED, COLOR_RED);             // <curses.h> define color-pair
+    init_pair(MAGENTA, COLOR_MAGENTA, COLOR_MAGENTA); // <curses.h> define color-pair
+    init_pair(GREEN, COLOR_GREEN, COLOR_GREEN);       // <curses.h> define color-pair
+    init_pair(CYAN, COLOR_CYAN, COLOR_CYAN);          // <curses.h> define color-pair
+    init_pair(YELLOW, COLOR_YELLOW, COLOR_YELLOW);    // <curses.h> define color-pair
+    init_pair(WHITE, COLOR_WHITE, COLOR_WHITE);       // <curses.h> define color-pair
 
     Terminal_clear();
     cursesStarted = true;
@@ -66,7 +67,7 @@ void Terminal_refresh() {
 }
 
 char Terminal_readCharAt(Coord pos) {
-    return (char) mvinch(pos.Y, pos.X);
+    return (char) (mvinch(pos.Y, pos.X) & A_CHARTEXT);
 }
 
 void Terminal_printCharAt(char ch, Coord pos) {
@@ -124,42 +125,54 @@ int Terminal_getKey() {
 
 // Refresh redraws the screen data.
 void Terminal_redraw() {
-    int row = 0;
-    int col = 0;
-    char tile;
-    uint8_t bits[8] = {0};
-
-    // Dump spectrum speccy.memory to our buffer
+    // Update new screen format with latest display information
     Speccy_convertScreenFormat();
 
-    for (int r = 0; r < 6144; r += 32) {
-        for (int c = 0; c < 32; c++) {
-            byteToBits(Speccy_readScreenBuffer(r + c), bits);
+    uint8_t bufferAttribute;
+    char pixel;
+    bool bright;
+    uint8_t colour;
+    chtype character;
 
-            for (int pixel = 7; pixel >= 0; pixel--) {
-                if (bits[pixel] == 0) {
-                    tile = ' ';
+    // Iterate over the new screen pixels, apply the colour.
+    int row = 0;
+    for (int r = 0; r < SCREEN_PIXELS_SIZE; r += 256) {
+        for (int col = 0; col < 256; col++) {
+            bufferAttribute = Speccy_readNewScreen(r + col);
+
+            // pick up the brightness value
+            bright = (bool) (bufferAttribute & 64);
+
+            // ignore bit-7 (pixel) so we only get the colour values (0-7)
+            colour = (uint8_t) (bufferAttribute & 7);
+
+            // pickup bit-7 (value 128) for the pixel information
+            if (bufferAttribute & 128) {
+                pixel = '#';
+            } else {
+                pixel = ' ';
+            }
+
+            // Try to speed things up a little by first checking the current
+            // attributes, and only writing if they have changed.
+            character = mvinch(row, col);
+            if (PAIR_NUMBER(character & A_ATTRIBUTES) != colour || (character & A_CHARTEXT) != pixel) {
+                if (bright) {
+                    attron(A_BOLD | COLOR_PAIR(colour));
                 } else {
-                    tile = '#';
+                    attron(COLOR_PAIR(colour));
                 }
 
-                // double up the width to get a better aspect ratio in curses.
-                if (Terminal_readCharAt((Coord) {row, col}) != tile) {
-                    Terminal_printCharAt(tile, (Coord) {row, col});
-                    col++;
-                    Terminal_printCharAt(tile, (Coord) {row, col});
-                } else {
-                    col++;
-                }
+                Terminal_printCharAt(pixel, (Coord) {row, col});
 
-                if (col < 511) {
-                    col++;
+                if (bright) {
+                    attroff(A_BOLD | COLOR_PAIR(colour));
                 } else {
-                    row++;
-                    col = 0;
+                    attroff(COLOR_PAIR(colour));
                 }
             }
         }
+        row++;
     }
 
     refresh();
