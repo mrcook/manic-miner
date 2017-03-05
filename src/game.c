@@ -79,7 +79,6 @@ bool Game_play() {
 
     // Prepare the screen; clear the entire Spectrum display file.
     Speccy_clearDisplayFile();
-    Speccy_clearAttributesFile();
 
     // Store the keyboard input for use within the loop.
     int keyIntput;
