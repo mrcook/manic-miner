@@ -88,7 +88,7 @@ void writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress);
 
 // Given an address from the new screen array (256*192 pixels),
 // calculate the Spectrum Attribute File address
-uint8_t getAttrFromAttributesFile(int address);
+uint8_t getAttrFromAttributesFile(int pixelAddress);
 
 // Read a byte from the NewScreen format
 uint8_t Speccy_readNewScreen(int address);

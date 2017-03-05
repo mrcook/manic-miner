@@ -4,6 +4,7 @@
 #include "colour.h"
 #include "helpers.h"
 #include "globals.h"
+#include "terminal.h"
 
 static uint8_t Speccy_font[96][8];
 
@@ -176,6 +177,8 @@ void Speccy_printMessage(void *msg, uint16_t address, uint8_t len) {
 }
 
 void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len) {
+    assert(len >= 0 && len <= (sizeof(character) / sizeof(uint8_t)));
+
     uint8_t *chr = character;
     uint8_t msb, lsb;
 
@@ -247,6 +250,8 @@ void Speccy_convertScreenFormat() {
 }
 
 void writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
+    assert(newScreenAddress >= 0 && newScreenAddress < 256 * 192);
+
     Colour colour;
 
     uint8_t attribute = getAttrFromAttributesFile(newScreenAddress);
@@ -264,26 +269,22 @@ void writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
     }
 }
 
-uint8_t getAttrFromAttributesFile(int address) {
+uint8_t getAttrFromAttributesFile(int pixelAddress) {
     // each third of the screen is 16384 pixels.
     // bottom third starts at: 32768
 
+    // Each 32 character rowOffset of 8x8 pixels contains 2048 pixels
+    // This will increment one AttributeFile rowOffset at a time
+    int rowOffset = (pixelAddress / 2048) * 32;
 
-    // Each 32 character row of 8x8 pixels contains 2048 pixels
-    // This will increment one AttributeFile row at a time
-    int row = (address / 2048) * 32;
+    // Will calculate the column value from 0-31 regardless of the pixelAddress value
+    int column = ((pixelAddress / 8) % 32);
 
-    // Will calculate the column value from 0-31 regardless of the address value
-    int column = ((address / 8) % 32);
-
-    return speccy.memory[22528 + row + column];
+    return speccy.memory[22528 + rowOffset + column];
 }
 
 uint8_t Speccy_readNewScreen(int address) {
-    if (address < 0 && address >= sizeof(speccy.newScreen) / sizeof(uint8_t)) {
-        exit(-1);
-    }
-
+    assert(address >= 0 && address < sizeof(speccy.newScreen) / sizeof(uint8_t));
     return speccy.newScreen[address];
 }
 
