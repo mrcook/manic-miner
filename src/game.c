@@ -159,13 +159,20 @@ bool Game_play() {
                     goto LOOP_4; // Willy has died!
                 }
                 break;
-            case 8: case 10: case 12: case 14: case 16: case 17: case 19:
+            case 8:
+            case 10:
+            case 12:
+            case 14:
+            case 16:
+            case 17:
+            case 19:
                 // Wacky Amoebatrons, and other regular guardians.
                 if (GuardianVertical_updateDraw()) {
                     goto LOOP_4; // Willy has died!
                 }
                 break;
-            case 7: case 11:
+            case 7:
+            case 11:
                 // Miner Willy meets the Kong Beast and Return of the Alien Kong Beast.
                 if (KONGBEAST()) {
                     goto LOOP_4; // Willy has died!
@@ -175,8 +182,7 @@ bool Game_play() {
                 // Solar Power Generator.
                 // LIGHTBEAM(); // FIXME: LIGHTBEAM() is broken!
                 break;
-            default:
-                ; // NOOP
+            default:; // NOOP
         }
 
         // FIXME: this should be moved up, directly after moving Willy...?
@@ -186,8 +192,8 @@ bool Game_play() {
             continue;
         }
 
-    // Okay, ugly goto! We should try to remove this.
-    LOOP_4:
+        // Okay, ugly goto! We should try to remove this.
+        LOOP_4:
         copyScrBufToDisplayFile();
 
         Terminal_redraw();
@@ -358,7 +364,7 @@ bool MANDEAD() {
         // D=63-8*(E AND 7).
         // This value determines the pitch of the short note that will be played.
         pitch = ~attr;
-        pitch = (uint8_t)(pitch & 7);
+        pitch = (uint8_t) (pitch & 7);
         pitch = rotL(pitch, 3);
         pitch |= 7;
 
@@ -472,36 +478,36 @@ void ENDGAM() {
         millisleep(1);
 
         for (int a = 0; a < 8; a++) {
-            // LD A,C                  // Change the INK colour of the "G" in "Game" at
-            // AND 7                   // (6,10)
+            // LD A,C                  // Change the INK colour of the "G" in "Game" at (6,10)
+            // AND 7
             // OR 64
             // LD (22730),A
-            // INC A                   // Change the INK colour of the "a" in "Game" at
-            // AND 7                   // (6,11)
+            // INC A                   // Change the INK colour of the "a" in "Game" at (6,11)
+            // AND 7
             // OR 64
             // LD (22731),A
-            // INC A                   // Change the INK colour of the "m" in "Game" at
-            // AND 7                   // (6,12)
+            // INC A                   // Change the INK colour of the "m" in "Game" at (6,12)
+            // AND 7
             // OR 64
             // LD (22732),A
-            // INC A                   // Change the INK colour of the "e" in "Game" at
-            // AND 7                   // (6,13)
+            // INC A                   // Change the INK colour of the "e" in "Game" at (6,13)
+            // AND 7
             // OR 64
             // LD (22733),A
-            // INC A                   // Change the INK colour of the "O" in "Over" at
-            // AND 7                   // (6,18)
+            // INC A                   // Change the INK colour of the "O" in "Over" at (6,18)
+            // AND 7
             // OR 64
             // LD (22738),A
-            // INC A                   // Change the INK colour of the "v" in "Over" at
-            // AND 7                   // (6,19)
+            // INC A                   // Change the INK colour of the "v" in "Over" at (6,19)
+            // AND 7
             // OR 64
             // LD (22739),A
-            // INC A                   // Change the INK colour of the "e" in "Over" at
-            // AND 7                   // (6,20)
+            // INC A                   // Change the INK colour of the "e" in "Over" at (6,20)
+            // AND 7
             // OR 64
             // LD (22740),A
-            // INC A                   // Change the INK colour of the "r" in "Over" at
-            // AND 7                   // (6,21)
+            // INC A                   // Change the INK colour of the "r" in "Over" at (6,21)
+            // AND 7
             // OR 64
             // LD (22741),A
 
@@ -1324,7 +1330,7 @@ bool NXSHEET() {
         // Pick up the remaining air supply (S) from AIR.
         // D=2*(63-S); this value determines the pitch of the sound effect
         // (which decreases with the amount of air remaining).
-        uint8_t pitch = rotL((uint8_t) (~cavern.AIR & 63), 1);
+        uint8_t pitch = rotL((uint8_t) (~(cavern.AIR & 63)), 1);
 
         for (int i = duration; i > 0; i--) {
             // Produce a short note
@@ -1400,7 +1406,7 @@ void Game_play_intro() {
         Speccy_tick();
 
         // Is ENTER being pressed? If so, start the game.
-        if ( Terminal_getKey() == MM_KEY_ENTER) {
+        if (Terminal_getKey() == MM_KEY_ENTER) {
             game.DEMO = 0;
             return;
         }
@@ -1534,7 +1540,8 @@ int processInput() {
     int input;
 
     switch (Terminal_getKey()) {
-        case T_KEY_SPACE:  case T_KEY_UP:
+        case T_KEY_SPACE:
+        case T_KEY_UP:
             input = MM_KEY_JUMP;
             break;
         case T_KEY_LEFT:

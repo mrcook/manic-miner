@@ -94,7 +94,7 @@ void Speccy_splitColorAttribute(uint8_t attribute, Colour *colour) {
     colour->INK = (uint8_t) (attribute & 7);
 
     // Paper uses bit values 8,16,32 (56-63), and shift right to be 0-7
-    colour->PAPER = (uint8_t) ((attribute & 63) >> 3);
+    colour->PAPER = (uint8_t) ((attribute >> 3) & 7);
 }
 
 void Speccy_setBorderColour(uint8_t colour) {
