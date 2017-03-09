@@ -4,7 +4,7 @@
 #include "globals.h"
 #include "helpers.h"
 #include "data.h"
-#include "terminal.h"
+#include "window.h"
 #include "sound.h"
 
 // Play the theme tune (The Blue Danube).
@@ -67,7 +67,7 @@ bool PLAYTUNE() {
         }
 
         // Check whether ENTER or the fire button is being pressed.
-        if (Terminal_getKey() == MM_KEY_ENTER) {
+        if (Window_getKey() == MM_KEY_ENTER) {
             return true;
         }
 

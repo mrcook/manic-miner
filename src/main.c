@@ -7,8 +7,7 @@
 
 #include "headers.h"
 #include "globals.h"
-#include "terminal.h"
-#include "data.h"
+#include "window.h"
 
 // Current game version
 static const char *version = "0.0.1";
@@ -27,6 +26,7 @@ int main(int argc, char *argv[]) {
     }
 
     Speccy_initialize(fps);
+    Window_init();
     Game_initialize(cheat, teleport);
 
     while (true) {
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    Terminal_exit();
+    Window_exit();
     printf("You helped Miner Willy acquire treasure worth %d.\n", game.highScore);
     if (game.highScore > 10000) {
         printf("He's on his way to joining the Jet Set!\n");

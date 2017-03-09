@@ -17,8 +17,8 @@ set(SOURCE_FILES
         src/globals.c
         src/speccy.h
         src/speccy.c
-        src/terminal.h
-        src/terminal.c
+        src/window.h
+        src/window.c
         src/sound.h
         src/sound.c
         src/colour.h

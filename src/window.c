@@ -2,7 +2,7 @@
 
 #include "headers.h"
 #include "globals.h"
-#include "terminal.h"
+#include "window.h"
 
 // keep ncurses functions private to this file
 #include <ncurses.h>
@@ -12,11 +12,11 @@
 #undef KEY_EVENT
 #endif
 
-void Terminal_init() {
+void Window_init() {
     static bool cursesStarted = false;
 
     if (cursesStarted) {
-        Terminal_refresh();
+        Window_refresh();
         return;
     }
 
@@ -40,80 +40,38 @@ void Terminal_init() {
     init_pair(YELLOW, COLOR_YELLOW, COLOR_YELLOW);    // <curses.h> define color-pair
     init_pair(WHITE, COLOR_WHITE, COLOR_WHITE);       // <curses.h> define color-pair
 
-    Terminal_clear();
+    Window_clear();
     cursesStarted = true;
 }
 
-// Puts the terminal in the original mode
-void Terminal_exit() {
-    // move curses to bottom right corner
-    int y = 0;
-    int x = 0;
-    getyx(stdscr, y, x);
-    mvcur(y, x, LINES - 1, 0);
-
-    // exit curses
-    endwin();
-    fflush(stdout);
-}
-
-void Terminal_clear() {
-    clear();
-    Terminal_refresh();
-}
-
-void Terminal_refresh() {
-    refresh();
-}
-
-char Terminal_readCharAt(Coord pos) {
-    return (char) (mvinch(pos.Y, pos.X) & A_CHARTEXT);
-}
-
-void Terminal_printCharAt(char ch, Coord pos) {
-    mvaddch(pos.Y, pos.X, ch);
-}
-
-void Terminal_printString(char *str) {
-    addstr(str);
-}
-
-void Terminal_printStringAt(char *str, Coord pos) {
-    mvaddstr(pos.Y, pos.X, str);
-}
-
-void Terminal_getString(char *str, int bufferSize) {
-    getnstr(str, bufferSize);
-}
-
-int Terminal_getKey() {
+int Window_getKey() {
     int input;
     int key = getch();
 
     switch (key) {
         case ERR:
             // No key is currently being pressed
-            input = T_KEY_NONE;
+            input = W_KEY_NONE;
             break;
         case ' ':
-            input = T_KEY_SPACE;
+            input = W_KEY_SPACE;
             break;
         case KEY_LEFT:
-            input = T_KEY_LEFT;
+            input = W_KEY_LEFT;
             break;
         case KEY_RIGHT:
-            input = T_KEY_RIGHT;
+            input = W_KEY_RIGHT;
             break;
         case KEY_UP:
-            input = T_KEY_UP;
+            input = W_KEY_UP;
             break;
         case KEY_DOWN:
-            input = T_KEY_DOWN;
+            input = W_KEY_DOWN;
             break;
         case '\n':
         case '\r':
         case KEY_ENTER:
-            input = T_KEY_ENTER;
+            input = W_KEY_ENTER;
             break;
         default:
             // forward all other key inputs to caller
@@ -123,8 +81,20 @@ int Terminal_getKey() {
     return input;
 }
 
-// Refresh redraws the screen data.
-void Terminal_redraw() {
+void Window_drawPixelAt(int y, int x, int16_t pixel) {
+    mvaddch(y, x, pixel);
+}
+
+void Window_clear() {
+    clear();
+}
+
+void Window_refresh() {
+    refresh();
+}
+
+// Redraws the screen data.
+void Window_redraw() {
     // Update new screen format with latest display information
     Speccy_convertScreenFormat();
 
@@ -132,7 +102,6 @@ void Terminal_redraw() {
     char pixel;
     bool bright;
     uint8_t colour;
-    chtype character;
 
     // Iterate over the new screen pixels, apply the colour.
     int row = 0;
@@ -155,25 +124,25 @@ void Terminal_redraw() {
 
             // Try to speed things up a little by first checking the current
             // attributes, and only writing if they have changed.
-            character = mvinch(row, col);
-            if (PAIR_NUMBER(character & A_ATTRIBUTES) != colour || (character & A_CHARTEXT) != pixel) {
-                if (bright) {
-                    attron(A_BOLD | COLOR_PAIR(colour));
-                } else {
-                    attron(COLOR_PAIR(colour));
-                }
-
-                Terminal_printCharAt(pixel, (Coord) {row, col});
-
-                if (bright) {
-                    attroff(A_BOLD | COLOR_PAIR(colour));
-                } else {
-                    attroff(COLOR_PAIR(colour));
-                }
+            if ((mvinch(row, col) & A_CHARTEXT) != pixel) {
+                Window_drawPixelAt(row, col, pixel);
             }
         }
         row++;
     }
 
     refresh();
+}
+
+// Puts the terminal in the original mode
+void Window_exit() {
+    // move curses to bottom right corner
+    int y = 0;
+    int x = 0;
+    getyx(stdscr, y, x);
+    mvcur(y, x, LINES - 1, 0);
+
+    // exit curses
+    endwin();
+    fflush(stdout);
 }

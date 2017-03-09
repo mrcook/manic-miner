@@ -4,7 +4,7 @@
 #include "colour.h"
 #include "helpers.h"
 #include "globals.h"
-#include "terminal.h"
+#include "window.h"
 
 static uint8_t Speccy_font[96][8];
 
