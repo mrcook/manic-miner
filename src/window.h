@@ -4,6 +4,8 @@
 #define MANIC_MINER_WINDOW_H
 
 
+extern bool doColour;
+
 enum KeyboardInput {
     W_KEY_NONE,
     W_KEY_SPACE,

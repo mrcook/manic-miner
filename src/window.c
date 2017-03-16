@@ -12,6 +12,8 @@
 #undef KEY_EVENT
 #endif
 
+bool doColour = false;
+
 void Window_init() {
     static bool cursesStarted = false;
 
@@ -102,6 +104,7 @@ void Window_redraw() {
     char pixel;
     bool bright;
     uint8_t colour;
+    chtype character;
 
     // Iterate over the new screen pixels, apply the colour.
     int row = 0;
@@ -124,8 +127,28 @@ void Window_redraw() {
 
             // Try to speed things up a little by first checking the current
             // attributes, and only writing if they have changed.
-            if ((mvinch(row, col) & A_CHARTEXT) != pixel) {
-                Window_drawPixelAt(row, col, pixel);
+            character = mvinch(row, col);
+
+            if (doColour) {
+                if (PAIR_NUMBER(character & A_ATTRIBUTES) != colour || (character & A_CHARTEXT) != pixel) {
+                    if (bright) {
+                        attron(A_BOLD | COLOR_PAIR(colour));
+                    } else {
+                        attron(COLOR_PAIR(colour));
+                    }
+
+                    Window_drawPixelAt(row, col, pixel);
+
+                    if (bright) {
+                        attroff(A_BOLD | COLOR_PAIR(colour));
+                    } else {
+                        attroff(COLOR_PAIR(colour));
+                    }
+                }
+            } else {
+                if ((character & A_CHARTEXT) != pixel) {
+                    Window_drawPixelAt(row, col, pixel);
+                }
             }
         }
         row++;

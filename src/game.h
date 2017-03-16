@@ -19,6 +19,7 @@ enum GameInput {
     MM_KEY_PAUSE,
     MM_KEY_QUIT,
     MM_KEY_MUTE,
+    MM_KEY_COLOUR_MODE,
 };
 
 typedef struct Game_ {

@@ -8,6 +8,7 @@
 #include "window.h"
 #include "sound.h"
 #include "kong_beast.h"
+#include "window.h"
 
 static bool gameIsRunning = true;
 
@@ -103,8 +104,11 @@ bool Game_play() {
 
         // Check to see if the user muted the in-game music, or paused, or wants to quit.
         switch (keyIntput) {
+            case MM_KEY_COLOUR_MODE:
+                doColour = !doColour;
+                break;
             case MM_KEY_MUTE:
-                game.playMusic = ~game.playMusic;
+                 game.playMusic = !game.playMusic;
                 break;
             case MM_KEY_QUIT:
                 return true; // return true so we quit the game!
@@ -1561,6 +1565,10 @@ int processInput() {
         case 'm':
         case 'M':
             input = MM_KEY_MUTE;
+            break;
+        case 'c':
+        case 'C':
+            input = MM_KEY_COLOUR_MODE;
             break;
         default:
             input = MM_KEY_NONE;
