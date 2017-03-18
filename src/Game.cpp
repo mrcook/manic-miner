@@ -104,17 +104,17 @@ bool Game_play() {
 
         // Check to see if the user muted the in-game music, or paused, or wants to quit.
         switch (keyIntput) {
-            case MM_KEY_COLOUR_MODE:
+            case Keyboard::MM_KEY_COLOUR_MODE:
                 window.instance().toggleColour();
                 break;
-            case MM_KEY_MUTE:
-                 game.playMusic = !game.playMusic;
+            case Keyboard::MM_KEY_MUTE:
+                game.playMusic = !game.playMusic;
                 break;
-            case MM_KEY_QUIT:
+            case Keyboard::MM_KEY_QUIT:
                 return true; // return true so we quit the game!
-            case MM_KEY_PAUSE:
-                keyIntput = MM_KEY_NONE;
-                while (window.instance().getKey() != MM_KEY_PAUSE) {
+            case Keyboard::MM_KEY_PAUSE:
+                keyIntput = Keyboard::MM_KEY_NONE;
+                while (window.instance().getKey() != Keyboard::MM_KEY_PAUSE) {
                     millisleep(25); // keep the FPS under control.
                 }
                 break;
@@ -246,7 +246,7 @@ bool Game_play() {
             // Update the game mode indicator at DEMO.
             game.DEMO--;
 
-            if (keyIntput == MM_KEY_ENTER) {
+            if (keyIntput == Keyboard::MM_KEY_ENTER) {
                 reinitialiseCavern = true;
                 gameIsRunning = false;
                 break;
@@ -1542,36 +1542,36 @@ int processInput() {
     int input;
 
     switch (window.instance().getKey()) {
-        case W_KEY_SPACE:
-        case W_KEY_UP:
-            input = MM_KEY_JUMP;
+        case Input::W_KEY_SPACE:
+        case Input::W_KEY_UP:
+            input = Keyboard::MM_KEY_JUMP;
             break;
-        case W_KEY_LEFT:
-            input = MM_KEY_LEFT;
+        case Input::W_KEY_LEFT:
+            input = Keyboard::MM_KEY_LEFT;
             break;
-        case W_KEY_RIGHT:
-            input = MM_KEY_RIGHT;
+        case Input::W_KEY_RIGHT:
+            input = Keyboard::MM_KEY_RIGHT;
             break;
-        case W_KEY_ENTER:
-            input = MM_KEY_ENTER;
+        case Input::W_KEY_ENTER:
+            input = Keyboard::MM_KEY_ENTER;
             break;
         case 'p':
         case 'P':
-            input = MM_KEY_PAUSE;
+            input = Keyboard::MM_KEY_PAUSE;
             break;
         case 'Q':
-            input = MM_KEY_QUIT;
+            input = Keyboard::MM_KEY_QUIT;
             break;
         case 'm':
         case 'M':
-            input = MM_KEY_MUTE;
+            input = Keyboard::MM_KEY_MUTE;
             break;
         case 'c':
         case 'C':
-            input = MM_KEY_COLOUR_MODE;
+            input = Keyboard::MM_KEY_COLOUR_MODE;
             break;
         default:
-            input = MM_KEY_NONE;
+            input = Keyboard::MM_KEY_NONE;
     }
 
     return input;
@@ -1585,14 +1585,14 @@ int processMoveJumpInput(int firstInput) {
         input = processInput();
 
         // Ignore keft/right key presses, we want JUMP keys!
-        if (input == MM_KEY_LEFT || input == MM_KEY_RIGHT) { continue; }
+        if (input == Keyboard::MM_KEY_LEFT || input == Keyboard::MM_KEY_RIGHT) { continue; }
 
-        if (firstInput == MM_KEY_LEFT && input == MM_KEY_JUMP) {
-            return MM_KEY_LEFT_JUMP;
-        } else if (firstInput == MM_KEY_RIGHT && input == MM_KEY_JUMP) {
-            return MM_KEY_RIGHT_JUMP;
+        if (firstInput == Keyboard::MM_KEY_LEFT && input == Keyboard::MM_KEY_JUMP) {
+            return Keyboard::MM_KEY_LEFT_JUMP;
+        } else if (firstInput == Keyboard::MM_KEY_RIGHT && input == Keyboard::MM_KEY_JUMP) {
+            return Keyboard::MM_KEY_RIGHT_JUMP;
         }
-    } while (input != MM_KEY_NONE);
+    } while (input != Keyboard::MM_KEY_NONE);
 
     return firstInput;
 }

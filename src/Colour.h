@@ -28,7 +28,7 @@ typedef struct Colour_ {
 } Colour;
 
 // ZX Spectrum colour values
-enum GameColours {
+enum Colours {
     BLACK,
     BLUE,
     RED,

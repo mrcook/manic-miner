@@ -17,7 +17,7 @@
 #endif
 
 
-enum KeyboardInput {
+enum Input {
     W_KEY_NONE,
     W_KEY_SPACE,
     W_KEY_LEFT,
@@ -51,14 +51,14 @@ public:
         curs_set(0);           // <curses.h> sets the appearance of the cursor based on the value of visibility
 
         start_color();   // <curses.h> use colors
-        init_pair(BLACK, COLOR_BLACK, COLOR_BLACK);       // <curses.h> define color-pair
-        init_pair(BLUE, COLOR_BLUE, COLOR_BLUE);          // <curses.h> define color-pair
-        init_pair(RED, COLOR_RED, COLOR_RED);             // <curses.h> define color-pair
-        init_pair(MAGENTA, COLOR_MAGENTA, COLOR_MAGENTA); // <curses.h> define color-pair
-        init_pair(GREEN, COLOR_GREEN, COLOR_GREEN);       // <curses.h> define color-pair
-        init_pair(CYAN, COLOR_CYAN, COLOR_CYAN);          // <curses.h> define color-pair
-        init_pair(YELLOW, COLOR_YELLOW, COLOR_YELLOW);    // <curses.h> define color-pair
-        init_pair(WHITE, COLOR_WHITE, COLOR_WHITE);       // <curses.h> define color-pair
+        init_pair(Colours::BLACK, COLOR_BLACK, COLOR_BLACK);       // <curses.h> define color-pair
+        init_pair(Colours::BLUE, COLOR_BLUE, COLOR_BLUE);          // <curses.h> define color-pair
+        init_pair(Colours::RED, COLOR_RED, COLOR_RED);             // <curses.h> define color-pair
+        init_pair(Colours::MAGENTA, COLOR_MAGENTA, COLOR_MAGENTA); // <curses.h> define color-pair
+        init_pair(Colours::GREEN, COLOR_GREEN, COLOR_GREEN);       // <curses.h> define color-pair
+        init_pair(Colours::CYAN, COLOR_CYAN, COLOR_CYAN);          // <curses.h> define color-pair
+        init_pair(Colours::YELLOW, COLOR_YELLOW, COLOR_YELLOW);    // <curses.h> define color-pair
+        init_pair(Colours::WHITE, COLOR_WHITE, COLOR_WHITE);       // <curses.h> define color-pair
 
         clearWindow();
         cursesStarted_ = true;
@@ -71,27 +71,27 @@ public:
         switch (key) {
             case ERR:
                 // No key is currently being pressed
-                input = W_KEY_NONE;
+                input = Input::W_KEY_NONE;
                 break;
             case ' ':
-                input = W_KEY_SPACE;
+                input = Input::W_KEY_SPACE;
                 break;
             case KEY_LEFT:
-                input = W_KEY_LEFT;
+                input = Input::W_KEY_LEFT;
                 break;
             case KEY_RIGHT:
-                input = W_KEY_RIGHT;
+                input = Input::W_KEY_RIGHT;
                 break;
             case KEY_UP:
-                input = W_KEY_UP;
+                input = Input::W_KEY_UP;
                 break;
             case KEY_DOWN:
-                input = W_KEY_DOWN;
+                input = Input::W_KEY_DOWN;
                 break;
             case '\n':
             case '\r':
             case KEY_ENTER:
-                input = W_KEY_ENTER;
+                input = Input::W_KEY_ENTER;
                 break;
             default:
                 // forward all other key inputs to caller
@@ -194,6 +194,7 @@ public:
 
 private:
     bool doColour_, cursesStarted_;
+
     Window() : doColour_(false), cursesStarted_(false) {}
 };
 

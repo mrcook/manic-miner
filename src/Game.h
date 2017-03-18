@@ -7,7 +7,7 @@
 
 #include "Headers.h"
 
-enum GameInput {
+enum Keyboard {
     MM_KEY_NONE,
     MM_KEY_LEFT,
     MM_KEY_RIGHT,
