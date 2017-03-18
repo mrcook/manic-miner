@@ -17,7 +17,7 @@ typedef struct Cavern_ {
     uint8_t SHEET;
 
     // Specify the cavern name
-    char CAVERNNAME[32];
+    char CAVERNNAME[33];
 
     // Game clock
     //

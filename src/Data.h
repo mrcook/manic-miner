@@ -10,7 +10,7 @@
 #include "Headers.h"
 
 // data_cavern.c
-extern char Data_cavernNames[20][32];
+extern char Data_cavernNames[20][33];
 extern uint8_t Data_pixelY[20];
 extern uint8_t Data_frames[20];
 extern uint8_t Data_dmFlags[20];
