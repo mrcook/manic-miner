@@ -6,92 +6,92 @@
 
 // Initialize arrays and copy the cavern definition into the game status buffer.
 // We must copy a total of 512 bytes into the buffer address from 32768.
-bool Cavern_loadData(uint8_t id) {
+bool Cavern::loadData(uint8_t id) {
     uint8_t msb, lsb;
     uint16_t addr = 32768;
 
     // Load the Cavern Name
-    strcpy(cavern.CAVERNNAME, Data_cavernNames[id]);
+    strcpy(CAVERNNAME, Data_cavernNames[id]);
     for (int i = 0; i < 32; i++) {
-        speccy.memory[addr++] = (uint8_t) cavern.CAVERNNAME[i];
+        speccy.memory[addr++] = (uint8_t) CAVERNNAME[i];
     }
 
     // Load the cavern tile map layout
     for (int i = 0; i < 512; i++) {
-        cavern.layout[i] = Data_cavernLayouts[id][i];
+        layout[i] = Data_cavernLayouts[id][i];
     }
 
     //
     // Load the cavern tile GFX
     //
-    cavern.BACKGROUND.id = Data_tileBackgrounds[id][0]; // First entry is the cavern map ID
+    BACKGROUND.id = Data_tileBackgrounds[id][0]; // First entry is the cavern map ID
     for (int i = 0; i < 9; i++) {
         // Skip the first entry, which is the cavern mapping ID
         if (i > 0) {
-            cavern.BACKGROUND.sprite[i - 1] = Data_tileBackgrounds[id][i];
+            BACKGROUND.sprite[i - 1] = Data_tileBackgrounds[id][i];
         }
         speccy.memory[addr++] = Data_tileBackgrounds[id][i];
     }
-    cavern.FLOOR.id = Data_tileFloors[id][0]; // First entry is the cavern map ID
+    FLOOR.id = Data_tileFloors[id][0]; // First entry is the cavern map ID
     for (int i = 0; i < 9; i++) {
         // Skip the first entry, which is the cavern mapping ID
         if (i > 0) {
-            cavern.FLOOR.sprite[i - 1] = Data_tileFloors[id][i];
+            FLOOR.sprite[i - 1] = Data_tileFloors[id][i];
         }
         speccy.memory[addr++] = Data_tileFloors[id][i];
     }
-    cavern.CRUMBLING.id = Data_tileCrumblingFloors[id][0]; // First entry is the cavern map ID
+    CRUMBLING.id = Data_tileCrumblingFloors[id][0]; // First entry is the cavern map ID
     for (int i = 0; i < 9; i++) {
         // Skip the first entry, which is the cavern mapping ID
         if (i > 0) {
-            cavern.CRUMBLING.sprite[i - 1] = Data_tileCrumblingFloors[id][i];
+            CRUMBLING.sprite[i - 1] = Data_tileCrumblingFloors[id][i];
         }
         speccy.memory[addr++] = Data_tileCrumblingFloors[id][i];
     }
-    cavern.WALL.id = Data_tileWalls[id][0]; // First entry is the cavern map ID
+    WALL.id = Data_tileWalls[id][0]; // First entry is the cavern map ID
     for (int i = 0; i < 9; i++) {
         // Skip the first entry, which is the cavern mapping ID
         if (i > 0) {
-            cavern.WALL.sprite[i - 1] = Data_tileWalls[id][i];
+            WALL.sprite[i - 1] = Data_tileWalls[id][i];
         }
         speccy.memory[addr++] = Data_tileWalls[id][i];
     }
-    cavern.CONVEYOR.id = Data_tileConveyorBelts[id][0]; // First entry is the cavern map ID
+    CONVEYOR.id = Data_tileConveyorBelts[id][0]; // First entry is the cavern map ID
     for (int i = 0; i < 9; i++) {
         // Skip the first entry, which is the cavern mapping ID
         if (i > 0) {
-            cavern.CONVEYOR.sprite[i - 1] = Data_tileConveyorBelts[id][i];
+            CONVEYOR.sprite[i - 1] = Data_tileConveyorBelts[id][i];
         }
         speccy.memory[addr++] = Data_tileConveyorBelts[id][i];
     }
-    cavern.NASTY1.id = Data_tileNasties1[id][0]; // First entry is the cavern map ID
+    NASTY1.id = Data_tileNasties1[id][0]; // First entry is the cavern map ID
     for (int i = 0; i < 9; i++) {
         // Skip the first entry, which is the cavern mapping ID
         if (i > 0) {
-            cavern.NASTY1.sprite[i - 1] = Data_tileNasties1[id][i];
+            NASTY1.sprite[i - 1] = Data_tileNasties1[id][i];
         }
         speccy.memory[addr++] = Data_tileNasties1[id][i];
     }
-    cavern.NASTY2.id = Data_tileNasties2[id][0]; // First entry is the cavern map ID
+    NASTY2.id = Data_tileNasties2[id][0]; // First entry is the cavern map ID
     for (int i = 0; i < 9; i++) {
         // Skip the first entry, which is the cavern mapping ID
         if (i > 0) {
-            cavern.NASTY2.sprite[i - 1] = Data_tileNasties2[id][i];
+            NASTY2.sprite[i - 1] = Data_tileNasties2[id][i];
         }
         speccy.memory[addr++] = Data_tileNasties2[id][i];
     }
-    cavern.EXTRA.id = Data_tileExtras[id][0]; // First entry is the cavern map ID
+    EXTRA.id = Data_tileExtras[id][0]; // First entry is the cavern map ID
     for (int i = 0; i < 9; i++) {
         // Skip the first entry, which is the cavern mapping ID
         if (i > 0) {
-            cavern.EXTRA.sprite[i - 1] = Data_tileExtras[id][i];
+            EXTRA.sprite[i - 1] = Data_tileExtras[id][i];
         }
         speccy.memory[addr++] = Data_tileExtras[id][i];
     }
 
     //
     // The next seven bytes are copied to 32872-32878 and specify
-    // Miner Willy's initial location and appearance in the cavern.
+    // Miner Willy's initial location and appearance in the 
     //
 
     // Pixel y-coordinate * 2 (see PIXEL_Y)
@@ -126,23 +126,23 @@ bool Cavern_loadData(uint8_t id) {
     //
 
     // Direction in which the conveyor belt is travelling
-    cavern.CONVEYOR.CONVDIR = (uint8_t) Data_conveyorBeltsParams[id][0];
-    speccy.memory[addr++] = cavern.CONVEYOR.CONVDIR;
+    CONVEYOR.CONVDIR = (uint8_t) Data_conveyorBeltsParams[id][0];
+    speccy.memory[addr++] = CONVEYOR.CONVDIR;
 
     // Location in the screen buffer at 28672
-    cavern.CONVEYOR.CONVLOC = Data_conveyorBeltsParams[id][1];
-    splitAddress(cavern.CONVEYOR.CONVLOC, &msb, &lsb);
+    CONVEYOR.CONVLOC = Data_conveyorBeltsParams[id][1];
+    splitAddress(CONVEYOR.CONVLOC, &msb, &lsb);
     speccy.memory[addr++] = msb;
     speccy.memory[addr++] = lsb;
 
     // Length of the conveyor belt
-    cavern.CONVEYOR.CONVLEN = (uint8_t) Data_conveyorBeltsParams[id][2];
-    speccy.memory[addr++] = cavern.CONVEYOR.CONVLEN;
+    CONVEYOR.CONVLEN = (uint8_t) Data_conveyorBeltsParams[id][2];
+    speccy.memory[addr++] = CONVEYOR.CONVLEN;
 
 
     // Specifies the BORDER colour
-    cavern.BORDER = Data_borderColours[id];
-    speccy.memory[addr++] = cavern.BORDER;
+    BORDER = Data_borderColours[id];
+    speccy.memory[addr++] = BORDER;
 
     // The next byte is copied to ITEMATTR, but is not used. // FIXME: why is it here then?
     game.ITEMATTR = Data_itemAttrs[id];
@@ -150,15 +150,15 @@ bool Cavern_loadData(uint8_t id) {
 
     //
     // The next 25 bytes are copied to ITEMS and specify the
-    // location and initial colour of the items in the cavern.
+    // location and initial colour of the items in the 
     //
     for (int i = 0; i < 5; i++) {
         // load the item
-        cavern.ITEMS[i].attribute = (uint8_t) Data_itemsData[id][i][0];
-        cavern.ITEMS[i].address = Data_itemsData[id][i][1];
-        cavern.ITEMS[i].addressMSB = (uint8_t) Data_itemsData[id][i][2];
+        ITEMS[i].attribute = (uint8_t) Data_itemsData[id][i][0];
+        ITEMS[i].address = Data_itemsData[id][i][1];
+        ITEMS[i].addressMSB = (uint8_t) Data_itemsData[id][i][2];
         for (int j = 0; j < 8; j++) {
-            cavern.ITEMS[i].tile[j] = Data_itemGraphics[id][j];
+            ITEMS[i].tile[j] = Data_itemGraphics[id][j];
         }
 
         // Add items to the buffer memory
@@ -177,23 +177,23 @@ bool Cavern_loadData(uint8_t id) {
     //
     // The next 37 bytes are copied to PORTAL and define the portal graphic and its location.
     //
-    cavern.portal.PORTAL = Data_portalAttributes[id];
-    speccy.memory[addr++] = cavern.portal.PORTAL;
+    portal.PORTAL = Data_portalAttributes[id];
+    speccy.memory[addr++] = portal.PORTAL;
 
     for (int i = 0; i < 32; i++) {
-        cavern.portal.PORTALG[i] = Data_portalGraphics[id][i];
+        portal.PORTALG[i] = Data_portalGraphics[id][i];
         speccy.memory[addr++] = Data_portalGraphics[id][i];
     }
 
     // Location in the attribute buffer at 23552
-    cavern.portal.PORTALLOC1 = Data_portalAttributeLocations[id];
+    portal.PORTALLOC1 = Data_portalAttributeLocations[id];
     // Location in the screen buffer at 24576
-    cavern.portal.PORTALLOC2 = Data_portalScreenLocations[id];
+    portal.PORTALLOC2 = Data_portalScreenLocations[id];
 
-    splitAddress(cavern.portal.PORTALLOC1, &msb, &lsb);
+    splitAddress(portal.PORTALLOC1, &msb, &lsb);
     speccy.memory[addr++] = msb;
     speccy.memory[addr++] = lsb;
-    splitAddress(cavern.portal.PORTALLOC2, &msb, &lsb);
+    splitAddress(portal.PORTALLOC2, &msb, &lsb);
     speccy.memory[addr++] = msb;
     speccy.memory[addr++] = lsb;
 
@@ -203,13 +203,13 @@ bool Cavern_loadData(uint8_t id) {
         speccy.memory[addr++] = Data_itemGraphics[id][i];
     }
 
-    // The next byte is copied to AIR and specifies the initial air supply in the cavern.
-    cavern.AIR = Data_airSupplies[id];
-    speccy.memory[addr++] = cavern.AIR;
+    // The next byte is copied to AIR and specifies the initial air supply in the 
+    AIR = Data_airSupplies[id];
+    speccy.memory[addr++] = AIR;
 
     // The next byte is copied to CLOCK and initialises the game clock.
-    cavern.CLOCK = Data_clockValues[id];
-    speccy.memory[addr++] = cavern.CLOCK;
+    CLOCK = Data_clockValues[id];
+    speccy.memory[addr++] = CLOCK;
 
     //
     // The next bytes are copied to HGUARDS and define the horizontal guardians.
@@ -315,31 +315,31 @@ bool Cavern_loadData(uint8_t id) {
     return true;
 }
 
-void Cavern_updateGameClock() {
-    cavern.CLOCK -= 4;
+void Cavern::updateGameClock() {
+    CLOCK -= 4;
 }
 
-bool Cavern_isAirDepleted() {
+bool Cavern::isAirDepleted() {
     // For some reason 36 means no air left
-    return cavern.AIR == 36;
+    return AIR == 36;
 }
 
 // Decrease the air remaining in the current cavern, along with the game CLOCK.
-bool Cavern_decreaseAir() {
-    Cavern_updateGameClock();
+bool Cavern::decreaseAir() {
+    updateGameClock();
 
     // Was the game clock just decreased from zero?
-    if (cavern.CLOCK == 252) {
+    if (CLOCK == 252) {
         // Has the air supply run out?
-        if (Cavern_isAirDepleted()) {
+        if (isAirDepleted()) {
             return true;
         }
-        cavern.AIR--;
+        AIR--;
     }
 
     // A=INT(A/32); this value specifies how many pixels to draw from left to
     // right in the cell at the right end of the air bar.
-    uint8_t count = (uint8_t) (cavern.CLOCK & 224);
+    uint8_t count = (uint8_t) (CLOCK & 224);
     count = rotL(count, 3);
 
     // Initialise E to 0 (all bits reset).
@@ -360,39 +360,39 @@ bool Cavern_decreaseAir() {
     // There are four rows of pixels to draw.
     for (uint8_t msb = 82; msb < 86; msb++) {
         // Draw the four rows of pixels at the right end of the air bar.
-        Speccy_writeScreen(buildAddress(msb, cavern.AIR), pixels);
+        Speccy_writeScreen(buildAddress(msb, AIR), pixels);
     }
 
     return false;
 }
 
 // Draws the AIR bar graphics to the screen
-void Cavern_drawAirBar() {
+void Cavern::drawAirBar() {
     // Initialise A to 82 (is 20992); this is the MSB of the display file address
     // at which to start drawing the bar that represents the air supply.
     for (uint8_t a = 82; a < 86; a++) {
         uint16_t addr = buildAddress(a, 36);
 
         // Draw a single row of pixels across C cells.
-        for (uint16_t i = 0; i < cavern.AIR - 36; i++) {
+        for (uint16_t i = 0; i < AIR - 36; i++) {
             Speccy_writeScreen(addr + i, 255);
         }
     }
 }
 
-// Move the conveyor in the current cavern.
-void Cavern_moveConveyorBelts() {
+// Move the conveyor in the current 
+void Cavern::moveConveyorBelts() {
     uint8_t h, l, d, e; // MSB/LSB for the address.
     uint8_t pixels_a, pixels_c;
 
     // Pick up the address of the conveyor's location in the screen buffer at 28672 from CONVLOC.
-    uint16_t row_hl = cavern.CONVEYOR.CONVLOC;
+    uint16_t row_hl = CONVEYOR.CONVLOC;
 
     // Copy this address to DE.
-    uint16_t row_de = cavern.CONVEYOR.CONVLOC;
+    uint16_t row_de = CONVEYOR.CONVLOC;
 
     // Is the conveyor moving left?
-    if (cavern.CONVEYOR.CONVDIR == 0) {
+    if (CONVEYOR.CONVDIR == 0) {
         // Copy the first pixel row of the conveyor tile to A.
         // Rotate it left twice
         pixels_a = rotL(Speccy_read(row_hl), 2);
@@ -419,7 +419,7 @@ void Cavern_moveConveyorBelts() {
         pixels_c = rotL(Speccy_read(row_hl), 2);
     }
 
-    for (int b = cavern.CONVEYOR.CONVLEN; b > 0; b--) {
+    for (int b = CONVEYOR.CONVLEN; b > 0; b--) {
         // Update the first and third pixel rows of every conveyor tile in the screen buffer at 28672.
         Speccy_write(row_de, pixels_a);
         Speccy_write(row_hl, pixels_c);

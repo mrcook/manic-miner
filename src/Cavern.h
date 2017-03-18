@@ -12,7 +12,8 @@
 #include "Portal.h"
 #include "Tile.h"
 
-typedef struct Cavern_ {
+class Cavern {
+public:
     // Current cavern number
     uint8_t SHEET;
 
@@ -22,10 +23,10 @@ typedef struct Cavern_ {
     // Game clock
     //
     // Initialised by the routine at STARTGAME, updated on every pass through
-    // the main loop by the routine at Cavern_decreaseAir, and used for timing purposes
+    // the main loop by the routine at Cavern::decreaseAir, and used for timing purposes
     // by the routines at GuardianHorizontal::update, EUGENE and KONGBEAST.
     // Its value (which is always a multiple of 4) is also used by the routine
-    // at Cavern_decreaseAir to compute the amount of air to draw in the cell at the right
+    // at Cavern::decreaseAir to compute the amount of air to draw in the cell at the right
     // end of the air bar.
     uint8_t CLOCK;
 
@@ -59,19 +60,19 @@ typedef struct Cavern_ {
 
     // Attributes that define the layout of the cavern. aka CAVERN0.
     uint8_t layout[512];
-} Cavern;
 
-bool Cavern_loadData(uint8_t id);
+    bool loadData(uint8_t id);
 
-void Cavern_updateGameClock(void);
+    void updateGameClock(void);
 
-bool Cavern_isAirDepleted(void);
+    bool isAirDepleted(void);
 
-bool Cavern_decreaseAir(void);
+    bool decreaseAir(void);
 
-void Cavern_drawAirBar(void);
+    void drawAirBar(void);
 
-void Cavern_moveConveyorBelts(void);
+    void moveConveyorBelts(void);
+};
 
 
 #endif //MANIC_MINER_CAVERN_H

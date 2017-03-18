@@ -6,7 +6,7 @@
 
 // Setup all game objects
 Speccy speccy;
-Cavern cavern;
+Cavern cavern = Cavern{};
 Game game;
 GuardianHorizontal HGUARDS[4];
 GuardianVertical VGUARDS[4];

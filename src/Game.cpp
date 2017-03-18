@@ -152,7 +152,7 @@ bool Game_play() {
         }
 
         // Move the conveyor in the current cavern.
-        Cavern_moveConveyorBelts();
+        cavern.moveConveyorBelts();
 
         // Draw the items in the current cavern and collect any that Willy is touching.
         DRAWITEMS();
@@ -224,7 +224,7 @@ bool Game_play() {
         window.instance().redraw();
 
         // Decrease the air remaining in the current cavern.
-        bool depletedAir = Cavern_decreaseAir();
+        bool depletedAir = cavern.decreaseAir();
 
         // Has willy ran our of air or had a fatal accident?
         // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
@@ -291,7 +291,7 @@ void Game_scoreAdd(int amount) {
 //   * after NXSHEET.
 void loadCurrentCavern() {
     // Copy the cavern definition into the game status buffer at 32768.
-    if (!Cavern_loadData(cavern.SHEET)) {
+    if (!cavern.loadData(cavern.SHEET)) {
         // Oops! We've not loaded the right amount of cavern data into memory.
         window.instance().exit();
         exit(-1);
@@ -318,7 +318,7 @@ void loadCurrentCavern() {
     // Print 'AIR' label at 20512 (17,0).
     Speccy_printMessage(&game.airLabel, 20512, 3);
 
-    Cavern_drawAirBar();
+    cavern.drawAirBar();
 
     // Print scores text at 20576 (19,0).
     Speccy_printMessage(&game.MESSHSSC, 20576, 32);
@@ -778,10 +778,10 @@ void LIGHTBEAM() {
         // Jump if not (the light beam is not touching Willy).
         if (Speccy_read(addr) == 39) {
             // Decrease the air supply by four units
-            Cavern_decreaseAir();
-            Cavern_decreaseAir();
-            Cavern_decreaseAir();
-            Cavern_decreaseAir();
+            cavern.decreaseAir();
+            cavern.decreaseAir();
+            cavern.decreaseAir();
+            cavern.decreaseAir();
             // Jump forward to draw the light beam over Willy.
         } else {
             // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point).
@@ -1332,7 +1332,7 @@ bool NXSHEET() {
     while (true) {
         // Decrease the air remaining in the current cavern.
         // Move to the next cavern if the air supply is now gone.
-        if (Cavern_decreaseAir()) {
+        if (cavern.decreaseAir()) {
             return true;
         }
 
