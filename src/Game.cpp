@@ -105,7 +105,7 @@ bool Game_play() {
         // Check to see if the user muted the in-game music, or paused, or wants to quit.
         switch (keyIntput) {
             case MM_KEY_COLOUR_MODE:
-                doColour = !doColour;
+                window.instance().toggleColour();
                 break;
             case MM_KEY_MUTE:
                  game.playMusic = !game.playMusic;
@@ -114,7 +114,7 @@ bool Game_play() {
                 return true; // return true so we quit the game!
             case MM_KEY_PAUSE:
                 keyIntput = MM_KEY_NONE;
-                while (Window_getKey() != MM_KEY_PAUSE) {
+                while (window.instance().getKey() != MM_KEY_PAUSE) {
                     millisleep(25); // keep the FPS under control.
                 }
                 break;
@@ -198,7 +198,7 @@ bool Game_play() {
         LOOP_4:
         copyScrBufToDisplayFile();
 
-        Window_redraw();
+        window.instance().redraw();
 
         // this also redraws the screen.
         flashScreen();
@@ -207,7 +207,7 @@ bool Game_play() {
 
         printScores();
 
-        Window_redraw();
+        window.instance().redraw();
 
         // Decrease the air remaining in the current cavern.
         bool depletedAir = Cavern_decreaseAir();
@@ -279,7 +279,7 @@ void loadCurrentCavern() {
     // Copy the cavern definition into the game status buffer at 32768.
     if (!Cavern_loadData(cavern.SHEET)) {
         // Oops! We've not loaded the right amount of cavern data into memory.
-        Window_exit();
+        window.instance().exit();
         exit(-1);
     }
 
@@ -312,7 +312,7 @@ void loadCurrentCavern() {
     // Set the border colour.
     OUT(cavern.BORDER);
 
-    Window_redraw();
+    window.instance().redraw();
 
     // Are we in demo mode?
     if (game.DEMO > 0) {
@@ -334,7 +334,7 @@ void flashScreen() {
             Speccy_write(23552 + i, new_flash_value);
         }
 
-        Window_redraw();
+        window.instance().redraw();
     }
 }
 
@@ -410,7 +410,7 @@ void ENDGAM() {
     // Now prepare the screen for the game over sequence.
 
     Speccy_clearTopTwoThirdsOfDisplayFile();
-    Window_redraw();
+    window.instance().redraw();
 
     // determines the distance of the boot from the top of the screen.
     uint8_t bootDistanceFromTop = 0;
@@ -421,7 +421,7 @@ void ENDGAM() {
     // Draw the plinth (see PLINTH) underneath Willy at 18639 (14,15).
     DRWFIX(&PLINTH, 18639, 0);
 
-    Window_redraw();
+    window.instance().redraw();
 
     uint8_t msb, lsb;
     uint16_t addr;
@@ -464,7 +464,7 @@ void ENDGAM() {
         distance |= 71;
 
         Speccy_fillTopTwoThirdsOfAttributeFileWith(distance);
-        Window_redraw();
+        window.instance().redraw();
 
         Speccy_tick();
     }
@@ -515,7 +515,7 @@ void ENDGAM() {
 
             // IMPORTANT: haha, and you think this is correct? -MRC-
             Speccy_writeAttribute(22730 + a, (uint8_t) (((d + a) & 7) | 64));
-            Window_redraw();
+            window.instance().redraw();
         }
     }
 
@@ -1302,7 +1302,7 @@ bool NXSHEET() {
     // Iterate through all attribute values from 63 down to 1.
     for (uint8_t ink = colours; ink > 0; ink--) {
         Speccy_fillTopTwoThirdsOfAttributeFileWith(ink);
-        Window_redraw();
+        window.instance().redraw();
 
         // Pause for about 0.004s
         millisleep(4);
@@ -1342,7 +1342,7 @@ bool NXSHEET() {
             // millisleep(1);
         }
 
-        Window_redraw();
+        window.instance().redraw();
         // Jump back to decrease the air supply again.
     }
 
@@ -1361,7 +1361,7 @@ void Game_play_intro() {
         Speccy_writeScreen(16384 + 2048 + i, TITLESCR2[i]);
     }
 
-    Window_redraw();
+    window.instance().redraw();
 
     // Draw Willy at 18493 (9,29).
     DRWFIX(&willy.sprites[64], 18493, 0);
@@ -1378,7 +1378,7 @@ void Game_play_intro() {
         Speccy_writeAttribute(addr + i, LOWERATTRS[i]);
     }
 
-    Window_redraw();
+    window.instance().redraw();
 
     // And finally, play the theme tune and check for key presses.
 
@@ -1401,14 +1401,14 @@ void Game_play_intro() {
         // Draw Willy at 18493 (9,29).
         DRWFIX(&willy.sprites[sprite_id], 18493, 0);
 
-        Window_redraw();
+        window.instance().redraw();
 
         // Pause for about 0.1s
         millisleep(30);
         Speccy_tick();
 
         // Is ENTER being pressed? If so, start the game.
-        if (Window_getKey() == MM_KEY_ENTER) {
+        if (window.instance().getKey() == MM_KEY_ENTER) {
             game.DEMO = 0;
             return;
         }
@@ -1541,7 +1541,7 @@ void resetScreenAttrBuffers() {
 int processInput() {
     int input;
 
-    switch (Window_getKey()) {
+    switch (window.instance().getKey()) {
         case W_KEY_SPACE:
         case W_KEY_UP:
             input = MM_KEY_JUMP;

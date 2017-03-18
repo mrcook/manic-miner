@@ -19,7 +19,6 @@ set(SOURCE_FILES
         src/speccy/Font.cpp
         src/Speccy.cpp
         src/Window.h
-        src/Window.cpp
         src/Sound.h
         src/Sound.cpp
         src/Colour.h

@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     }
 
     Speccy_initialize(fps);
-    Window_init();
+    window.instance().initialize();
     Game_initialize(cheat, teleport);
 
     while (true) {
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    Window_exit();
+    window.instance().exit();
     printf("You helped Miner Willy acquire treasure worth %d.\n", game.highScore);
     if (game.highScore > 10000) {
         printf("He's on his way to joining the Jet Set!\n");

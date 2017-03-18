@@ -5,6 +5,7 @@
 #define MANIC_MINER_GLOBALS_H
 
 
+#include "Window.h"
 #include "Speccy.h"
 #include "Cavern.h"
 #include "Game.h"
@@ -13,6 +14,7 @@
 #include "Willy.h"
 
 // Setup all game objects
+extern Window window;
 extern Speccy speccy;
 extern Game game;
 extern Cavern cavern;

@@ -67,7 +67,7 @@ bool PLAYTUNE() {
         }
 
         // Check whether ENTER or the fire button is being pressed.
-        if (Window_getKey() == MM_KEY_ENTER) {
+        if (window.instance().getKey() == MM_KEY_ENTER) {
             return true;
         }
 
