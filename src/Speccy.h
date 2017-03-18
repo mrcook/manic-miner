@@ -194,4 +194,7 @@ uint8_t IN(uint16_t addr);
 void OUT(uint8_t value);
 
 
+void printFontCharacterAt(char ch, uint16_t address);
+
+
 #endif //MANIC_MINER_SPECCY_H
