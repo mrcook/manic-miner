@@ -122,7 +122,12 @@ bool Game_play() {
         }
 
         // Move the horizontal guardians in the current cavern.
-        GuardianHorizontal_update();
+        // The guardian-moving loop begins here.
+        for (GuardianHorizontal &guardian : HGUARDS) {
+            if (guardian.update()) {
+                break;
+            }
+        }
 
         // Are we in demo mode?
         // If not, check and set the attribute bytes for Willy's sprite in the
@@ -139,7 +144,12 @@ bool Game_play() {
         }
 
         // Draw the horizontal guardians in the current cavern.
-        GuardianHorizontal_draw();
+        // The guardian-drawing loop begins here.
+        for (GuardianHorizontal &guardian : HGUARDS) {
+            if (guardian.draw()) {
+                goto LOOP_4; // Willy has died!
+            }
+        }
 
         // Move the conveyor in the current cavern.
         Cavern_moveConveyorBelts();
@@ -169,8 +179,12 @@ bool Game_play() {
             case 17:
             case 19:
                 // Wacky Amoebatrons, and other regular guardians.
-                if (GuardianVertical_updateDraw()) {
-                    goto LOOP_4; // Willy has died!
+
+                // The guardian-moving loop begins here.
+                for (GuardianVertical &guardian : VGUARDS) {
+                    if (guardian.updateAndDraw()) {
+                        goto LOOP_4; // Willy has died!
+                    }
                 }
                 break;
             case 7:
@@ -882,7 +896,7 @@ bool EUGENE() {
 
 // Sets the colour attributes for a 16x16 pixel sprite.
 // SKYLABS:    to set the attributes for a Skylab.
-// GuardianVertical_updateDraw: to set the attributes for a vertical guardian.
+// GuardianVertical::updateAndDraw: to set the attributes for a vertical guardian.
 // KONGBEAST:  to set the attributes for the Kong Beast.
 void EUGENE_3(uint16_t addr, uint8_t ink_colour) {
     // Save the INK colour in the attribute buffer temporarily.
@@ -1146,10 +1160,10 @@ bool CHKPORTAL() {
 //   START:      draw Willy on the title screen
 //   LOOP:       draw the remaining lives
 //   ENDGAM:     draw Willy, the boot and the plinth during the game over sequence
-//   GuardianHorizontal_draw:     draw horizontal guardians
+//   GuardianHorizontal::draw:     draw horizontal guardians
 //   EUGENE:     draw Eugene in Eugene's Lair
 //   SKYLABS:    draw the Skylabs in Skylab Landing Bay
-//   GuardianVertical_updateDraw: draw vertical guardians
+//   GuardianVertical::updateAndDraw: draw vertical guardians
 //   CHKPORTAL:  draw the portal in the current cavern
 //   NXSHEET:    draw Willy above ground and the swordfish graphic over the portal in The Final Barrier
 //   KONGBEAST:  draw the Kong Beast in Miner Willy meets the Kong Beast and Return of the Alien Kong Beast

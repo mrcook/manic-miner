@@ -27,7 +27,8 @@
     +------+------------------------------+
 */
 
-typedef struct GuardianVertical_ {
+class GuardianVertical {
+public:
     uint8_t attribute;
     uint8_t frame;
     uint8_t yCoord;
@@ -38,10 +39,10 @@ typedef struct GuardianVertical_ {
 
     // Guardian graphic data
     uint8_t GGDATA[256];
-} GuardianVertical;
 
-// VGUARDIANS
-bool GuardianVertical_updateDraw(void);
+    // VGUARDIANS
+    bool updateAndDraw(void);
+};
 
 
 #endif //MANIC_MINER_GUARDIAN_VERTICAL_H

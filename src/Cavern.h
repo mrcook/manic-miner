@@ -23,7 +23,7 @@ typedef struct Cavern_ {
     //
     // Initialised by the routine at STARTGAME, updated on every pass through
     // the main loop by the routine at Cavern_decreaseAir, and used for timing purposes
-    // by the routines at GuardianHorizontal_update, EUGENE and KONGBEAST.
+    // by the routines at GuardianHorizontal::update, EUGENE and KONGBEAST.
     // Its value (which is always a multiple of 4) is also used by the routine
     // at Cavern_decreaseAir to compute the amount of air to draw in the cell at the right
     // end of the air bar.

@@ -1027,7 +1027,7 @@ uint8_t Data_cavernLayouts[20][512] = {
 
 // Screen buffer address lookup table
 //
-// Used by the routines at ENDGAM, EUGENE, SKYLABS, GuardianVertical_updateDraw, KONGBEAST and
+// Used by the routines at ENDGAM, EUGENE, SKYLABS, GuardianVertical::updateAndDraw, KONGBEAST and
 // Willy_draw. The value of the Nth entry (0<=N<=127) in this lookup table is the
 // screen buffer address for the point with pixel coordinates (x, y)=(0, N), with
 // the origin (0, 0) at the top-left corner.

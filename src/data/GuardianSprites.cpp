@@ -153,14 +153,21 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
         },
         // Cavern #13 - Skylab Landing Bay
         {
-                // Horizontal guardian 1: y=7, initial x=9, 9<=x<=14, speed=slow (unused)
-                {255, 23785, 96, 0, 233, 238},
-                // Horizontal guardian 2: y=10, initial x=12, 8<=x<=14, speed=slow (unused)
-                {194, 23884, 104, 0, 72, 78},
-                // Horizontal guardian 3: y=13, initial x=8, 4<=x<=26, speed=normal (unused)
-                {67, 23976, 104, 0, 164, 186},
-                // Horizontal guardian 4 (unused)
+                // NOTE: no HGUARDS are used in this cavern.
+                // Commenting out to make update/draw methods easier.
                 {0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0},
+
+                // // Horizontal guardian 1: y=7, initial x=9, 9<=x<=14, speed=slow (unused)
+                // {255, 23785, 96, 0, 233, 238},
+                // // Horizontal guardian 2: y=10, initial x=12, 8<=x<=14, speed=slow (unused)
+                // {194, 23884, 104, 0, 72, 78},
+                // // Horizontal guardian 3: y=13, initial x=8, 4<=x<=26, speed=normal (unused)
+                // {67, 23976, 104, 0, 164, 186},
+                // // Horizontal guardian 4 (unused)
+                // {0, 0, 0, 0, 0, 0},
         },
         // Cavern #14 - The Bank
         {

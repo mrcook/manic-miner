@@ -31,7 +31,10 @@
     +------+--------------------------------------------------------------------+
 */
 
-typedef struct GuardianHorizontal_ {
+class GuardianHorizontal {
+public:
+    GuardianHorizontal() {}
+
     // animation speed (0=normal, 1=slow)
     // Colour attribute (BRIGHT, PAPER and INK)
     uint8_t speedColour;
@@ -50,13 +53,15 @@ typedef struct GuardianHorizontal_ {
 
     // Guardian graphic data (yes, it uses more memory, but gives greater flexibility)
     uint8_t GGDATA[256];
-} GuardianHorizontal;
 
-// MOVEHG
-void GuardianHorizontal_update(void);
+    // MOVEHG
+    // returning a true value stops iterating on any further guardians
+    bool update(void);
 
-// DRAWHG
-bool GuardianHorizontal_draw(void);
+    // DRAWHG
+    // returning a true value indicated Willy has been killed
+    bool draw(void);
+};
 
 
 #endif //MANIC_MINER_GUARDIAN_HORIZONTAL_H
