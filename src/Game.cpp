@@ -61,6 +61,9 @@ bool Game_play() {
         cavern.SHEET = 0;
     }
 
+    // FIXME: default level for testing
+    cavern.SHEET = 18;
+
     // Initialise the in-game music note index.
     game.NOTEINDEX = 0;
 
