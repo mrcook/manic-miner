@@ -16,7 +16,7 @@ set(SOURCE_FILES
         src/Helpers.cpp
         src/Globals.cpp
         src/Speccy.h
-        src/SpeccyFont.h
+        src/SpeccyFont.cpp
         src/Speccy.cpp
         src/Window.h
         src/Sound.h

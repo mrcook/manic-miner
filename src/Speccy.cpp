@@ -4,7 +4,6 @@
 #include "Colour.h"
 #include "Helpers.h"
 #include "Globals.h"
-#include "SpeccyFont.h"
 
 // Initialize the speccy framework (FPS, etc.)
 void Speccy_initialize(int fps) {
@@ -279,7 +278,7 @@ void printFontCharacterAt(char ch, uint16_t address) {
     uint8_t ch_index_id = (uint8_t) (ch - 32);
 
     // There are eight pixel rows in a character bitmap
-    Speccy_drawSpriteAt(&Font[ch_index_id], address, 8);
+    Speccy_drawSpriteAt(&Speccy::Font[ch_index_id], address, 8);
 }
 
 // Write a colour pixel to the new screen.

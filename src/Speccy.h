@@ -121,6 +121,8 @@ public:
         assert (n > 0 && n < 8);
         return (a >> n) | (a << (8 - n));
     }
+
+    static uint8_t Font[96][8];
 };
 
 // Initialize the speccy framework (FPS, etc.)
