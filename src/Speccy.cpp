@@ -88,7 +88,7 @@ void Speccy::printCharacter(char ch, uint16_t address) {
     uint8_t ch_index_id = (uint8_t) (ch - 32);
 
     // There are eight pixel rows in a character bitmap
-    speccy.drawSprite(&Speccy::Font[ch_index_id], address, 8);
+    drawSprite(&Speccy::Font[ch_index_id], address, 8);
 }
 
 // Print a message string to the display file
@@ -96,7 +96,7 @@ void Speccy::printString(void *msg, uint16_t address, uint8_t len) {
     uint8_t *ch = (uint8_t *) msg;
 
     for (int i = 0; i < len; i++, address++) {
-        speccy.printCharacter(ch[i], address);
+        printCharacter(ch[i], address);
     }
 }
 
@@ -109,7 +109,7 @@ void Speccy::drawSprite(void *character, uint16_t address, uint8_t len) {
 
     // Copy character data to the screen
     for (int i = 0; i < len; i++) {
-        speccy.writeMemory(address, chr[i]);
+        writeMemory(address, chr[i]);
 
         // increment address to next pixel row
         Speccy::splitAddress(address, &msb, &lsb);
@@ -128,14 +128,14 @@ void Speccy::clearDisplayFile() {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
     for (int i = 0; i < SCREEN_SIZE; i++) {
-        speccy.memory[16384 + i] = 0;
+        memory[16384 + i] = 0;
     }
 }
 
 // Clears the entire attributes file
 void Speccy::clearAttributesFile() {
     for (int i = 0; i < ATTR_SIZE; i++) {
-        speccy.memory[22528 + i] = 0;
+        memory[22528 + i] = 0;
     }
 }
 
@@ -144,7 +144,7 @@ void Speccy::clearTopTwoThirdsOfDisplayFile() {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
     for (int i = 0; i < 4096; i++) {
-        speccy.memory[16384 + i] = 0;
+        memory[16384 + i] = 0;
     }
 }
 
