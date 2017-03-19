@@ -253,7 +253,7 @@ void Speccy_splitColorAttribute(uint8_t attribute, Colour *colour) {
 }
 
 void Speccy_setBorderColour(uint8_t colour) {
-    OUT(colour);
+    speccy.OUT(colour);
 }
 
 // The Spectrum uses OUT to make a sound, but here we use a custom function
@@ -262,7 +262,7 @@ void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
 
     // Real speccy does something like this
     for (int d = duration; d > 0; d--) {
-        OUT(pitch);
+        speccy.OUT(pitch);
         pitch ^= 24;
 //        millisleep(delay);
     }
@@ -307,39 +307,6 @@ uint8_t rotR(uint8_t a, uint8_t n) {
     assert (n > 0 && n < 8);
     return (a >> n) | (a << (8 - n));
 }
-
-//
-// NOOP function, just to help get the port going quickly
-//
-
-// IN from Keyboard and Joystick
-// IN 65278 reads the half row CAPS SHIFT to V
-// IN 65022 reads the half row A to G
-// IN 64510 reads the half row Q to T
-// IN 63486 reads the half row 1 to 5
-// IN 61438 reads the half row O to 6
-// IN 57342 reads the half row P to 7
-// IN 49150 reads the half row ENTER to H
-// IN 32766 reads the half row SPACE to B
-//
-// IN 254   reads every row of keys
-uint8_t IN(uint16_t addr) {
-    addr = 0; // prevents compiler error
-
-    // get keyboard input values
-    return 0;
-}
-
-// OUT(254) border/sound output.
-void OUT(uint8_t value) {
-    value = 0; // prevents compiler error
-
-    // output the sound, border colour!
-}
-
-
-
-
 
 
 // Print a ZX Spectrum font characters to the display file

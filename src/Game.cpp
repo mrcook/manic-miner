@@ -324,7 +324,7 @@ void loadCurrentCavern() {
     Speccy_printMessage(&game.MESSHSSC, 20576, 32);
 
     // Set the border colour.
-    OUT(cavern.BORDER);
+    speccy.OUT(cavern.BORDER);
 
     window.instance().redraw();
 
@@ -1290,7 +1290,7 @@ bool NXSHEET() {
 
             for (int i = 0; i < 50; i++) {
                 // Produce the celebratory sound effect: Willy has escaped from the mine.
-                OUT(border);
+                speccy.OUT(border);
                 border ^= 24;
 
                 millisleep(1);
@@ -1350,9 +1350,9 @@ bool NXSHEET() {
 
         for (int i = duration; i > 0; i--) {
             // Produce a short note
-            OUT(0);
+            speccy.OUT(0);
             // millisleep(pitch);
-            OUT(24);
+            speccy.OUT(24);
             // millisleep(1);
         }
 
@@ -1507,7 +1507,7 @@ void playGameMusic() {
     // Initialise the duration delay counters in B (0) and C (3).
     for (int i = 0; i < 3; i++) {
         // Produce a note of the in-game music.
-        OUT(note);
+        speccy.OUT(note);
 
         pitch_delay_counter--;
 

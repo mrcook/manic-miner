@@ -49,7 +49,7 @@ bool PLAYTUNE() {
         for (uint8_t d = note[0]; d > 0; d--) {
             // Produce a sound based on the frequency parameters in the second
             // and third bytes of data for this note (copied into D and E).
-            OUT(pitch);
+            speccy.OUT(pitch);
 
             freq1--;
             if (freq1 == 0) {

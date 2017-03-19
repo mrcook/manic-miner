@@ -143,7 +143,7 @@ bool KONGBEAST() {
 
         for (int i = 0; i < 16; i++) {
             // Make a falling sound effect.
-            OUT(border);
+            speccy.OUT(border);
             border ^= 24;
             millisleep(4);
         }
