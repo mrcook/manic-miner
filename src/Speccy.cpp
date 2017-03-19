@@ -119,73 +119,12 @@ void Speccy::drawSprite(void *character, uint16_t address, uint8_t len) {
 }
 
 
-
-/*
- * NewScreen format functions
- *
- * Converts the original Spectrum screen layout to a more standard linear
- * format; bytes are sequential reading from left-to-right, top-to-bottom.
- */
-
-// Converts the entire spectrum screen format to the NewScreen standard format
-// ZX Spectrum to linear screen converter. FIXME: yucky goo!
-void Speccy_convertScreenFormat() {
-    int block_addr_offset;
-    int address, line, offset;
-
-    uint8_t pixels[8];
-
-    // Iterate over each Display File block (top, middle, bottom)
-    for (int block = 0; block < 3; block++) {
-        block_addr_offset = block * 2048;
-        address = 0;
-        line = 0;
-        offset = 0;
-
-        for (int byte_row = 0; byte_row < 2048; byte_row += 32) {
-            for (int b = 0; b < 32; b++) {
-                uint8_t bite = speccy.memory[16384 + block_addr_offset + byte_row + b];
-
-                // Convert the Speccy display bytes to pixels and add to the new screen array
-                Speccy::byteToBits(bite, pixels);
-                // read pixel bits from left-to-right: bit-7 down to bit-0
-                for (int pixel = 7; pixel >= 0; pixel--) {
-                    // multiply offset by 8 pixels
-                    writeColourPixelToNewScreen(pixels[pixel], block_addr_offset * 8 + address);
-                    address++;
-                }
-            }
-
-            // advance the address to the next "character": 8 pixel rows
-            address += 256 * 7;
-
-            // increment the pixel "row" we are currently working on
-            line += 1;
-
-            // If we've process the last line of pixels, we start on the next byte
-            if (line == 8) {
-                line = 0;
-
-                // The "offset" s for starting the next "character" worth of pixels
-                offset += 1;
-                address = offset * 256;
-            }
-        }
-    }
-}
-
-uint8_t Speccy_readNewScreen(int address) {
-    assert(address >= 0 && address < (int) (sizeof(speccy.newScreen) / sizeof(uint8_t)));
-    return speccy.newScreen[address];
-}
-
-
 //
-// Screen/Attribute access
+// Display/Attribute file manipulation
 //
 
 // Clear the entire Spectrum display file
-void Speccy_clearDisplayFile() {
+void Speccy::clearDisplayFile() {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
     for (int i = 0; i < SCREEN_SIZE; i++) {
@@ -194,14 +133,14 @@ void Speccy_clearDisplayFile() {
 }
 
 // Clears the entire attributes file
-void Speccy_clearAttributesFile() {
+void Speccy::clearAttributesFile() {
     for (int i = 0; i < ATTR_SIZE; i++) {
         speccy.memory[22528 + i] = 0;
     }
 }
 
 // Clear the top two-thirds of the display file
-void Speccy_clearTopTwoThirdsOfDisplayFile() {
+void Speccy::clearTopTwoThirdsOfDisplayFile() {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
     for (int i = 0; i < 4096; i++) {
@@ -210,18 +149,19 @@ void Speccy_clearTopTwoThirdsOfDisplayFile() {
 }
 
 // Clear the bottom third of the display file.
-void Speccy_clearBottomThirdOfDisplayFile() {
+void Speccy::clearBottomThirdOfDisplayFile() {
     for (int i = 0; i < 2048; i++) {
         Speccy_writeScreen(20480 + i, 0);
     }
 }
 
 // Fill the top two thirds of the attribute file with the value given.
-void Speccy_fillTopTwoThirdsOfAttributeFileWith(uint8_t byte) {
+void Speccy::fillTopTwoThirdsOfAttributeFileWith(uint8_t byte) {
     for (int i = 0; i < 512; i++) {
         Speccy_writeAttribute(22528 + i, byte);
     }
 }
+
 
 uint8_t Speccy_readScreen(int address) {
     return speccy.readMemory(address);
@@ -331,4 +271,73 @@ void Speccy::splitColourAttribute(uint8_t attribute, Colour *colour) {
 
     // Paper uses bit values 8,16,32 (56-63), and shift right to be 0-7
     colour->PAPER = (uint8_t) ((attribute >> 3) & 7);
+}
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * NewScreen format functions
+ *
+ * Converts the original Spectrum screen layout to a more standard linear
+ * format; bytes are sequential reading from left-to-right, top-to-bottom.
+ */
+
+// Converts the entire spectrum screen format to the NewScreen standard format
+// ZX Spectrum to linear screen converter. FIXME: yucky goo!
+void Speccy_convertScreenFormat() {
+    int block_addr_offset;
+    int address, line, offset;
+
+    uint8_t pixels[8];
+
+    // Iterate over each Display File block (top, middle, bottom)
+    for (int block = 0; block < 3; block++) {
+        block_addr_offset = block * 2048;
+        address = 0;
+        line = 0;
+        offset = 0;
+
+        for (int byte_row = 0; byte_row < 2048; byte_row += 32) {
+            for (int b = 0; b < 32; b++) {
+                uint8_t bite = speccy.memory[16384 + block_addr_offset + byte_row + b];
+
+                // Convert the Speccy display bytes to pixels and add to the new screen array
+                Speccy::byteToBits(bite, pixels);
+                // read pixel bits from left-to-right: bit-7 down to bit-0
+                for (int pixel = 7; pixel >= 0; pixel--) {
+                    // multiply offset by 8 pixels
+                    writeColourPixelToNewScreen(pixels[pixel], block_addr_offset * 8 + address);
+                    address++;
+                }
+            }
+
+            // advance the address to the next "character": 8 pixel rows
+            address += 256 * 7;
+
+            // increment the pixel "row" we are currently working on
+            line += 1;
+
+            // If we've process the last line of pixels, we start on the next byte
+            if (line == 8) {
+                line = 0;
+
+                // The "offset" s for starting the next "character" worth of pixels
+                offset += 1;
+                address = offset * 256;
+            }
+        }
+    }
+}
+
+uint8_t Speccy_readNewScreen(int address) {
+    assert(address >= 0 && address < (int) (sizeof(speccy.newScreen) / sizeof(uint8_t)));
+    return speccy.newScreen[address];
 }

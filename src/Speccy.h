@@ -108,6 +108,25 @@ public:
     // Draw a sprite item to the given screen address
     void drawSprite(void *character, uint16_t address, uint8_t len);
 
+    //
+    // Display/Attribute file manipulation
+    //
+
+    // Clear the entire Spectrum display file
+    void clearDisplayFile(void);
+
+    // Clears the entire attributes file
+    void clearAttributesFile(void);
+
+    // Clear the top two-thirds of the display file
+    void clearTopTwoThirdsOfDisplayFile(void);
+
+    // Clear the bottom third of the display file.
+    void clearBottomThirdOfDisplayFile(void);
+
+    // Fill the top two thirds of the attribute file with the value given.
+    void fillTopTwoThirdsOfAttributeFileWith(uint8_t byte);
+
 
     /*
      * Utility functions to help porting from Z80 to C
@@ -165,21 +184,6 @@ uint8_t Speccy_readNewScreen(int address);
 //
 // Screen/Attribute access
 //
-
-// Clear the entire Spectrum display file
-void Speccy_clearDisplayFile(void);
-
-// Clears the entire attributes file
-void Speccy_clearAttributesFile(void);
-
-// Clear the top two-thirds of the display file
-void Speccy_clearTopTwoThirdsOfDisplayFile(void);
-
-// Clear the bottom third of the display file.
-void Speccy_clearBottomThirdOfDisplayFile(void);
-
-// Fill the top two thirds of the attribute file with the value given.
-void Speccy_fillTopTwoThirdsOfAttributeFileWith(uint8_t byte);
 
 uint8_t Speccy_readScreen(int address);
 

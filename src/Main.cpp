@@ -30,8 +30,8 @@ int main(int argc, char *argv[]) {
     Game_initialize(cheat, teleport);
 
     while (true) {
-        Speccy_clearDisplayFile();
-        Speccy_clearAttributesFile();
+        speccy.clearDisplayFile();
+        speccy.clearAttributesFile();
         Game_clearBuffers();
 
         Willy_reset(lives);

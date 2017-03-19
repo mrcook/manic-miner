@@ -80,7 +80,7 @@ bool Game_play() {
     EUGHGT = 0;
 
     // Prepare the screen; clear the entire Spectrum display file.
-    Speccy_clearDisplayFile();
+    speccy.clearDisplayFile();
 
     // Store the keyboard input for use within the loop.
     int keyIntput;
@@ -313,7 +313,7 @@ void loadCurrentCavern() {
     // Draw the current cavern to the screen buffer at 28672.
     DRAWSHEET();
 
-    Speccy_clearBottomThirdOfDisplayFile();
+    speccy.clearBottomThirdOfDisplayFile();
 
     // Print the cavern name at 20480 (16,0).
     speccy.printString(cavern.CAVERNNAME, 20480, 32);
@@ -378,7 +378,7 @@ bool MANDEAD() {
     // Have we used attribute value 64 (INK 0) yet?
     // Update the INK colour in the top two thirds of the screen and make another sound effect.
     for (uint8_t attr = 71; attr > 64; attr--) {
-        Speccy_fillTopTwoThirdsOfAttributeFileWith(attr);
+        speccy.fillTopTwoThirdsOfAttributeFileWith(attr);
 
         // D=63-8*(E AND 7).
         // This value determines the pitch of the short note that will be played.
@@ -426,7 +426,7 @@ void ENDGAM() {
 
     // Now prepare the screen for the game over sequence.
 
-    Speccy_clearTopTwoThirdsOfDisplayFile();
+    speccy.clearTopTwoThirdsOfDisplayFile();
     window.instance().redraw();
 
     // determines the distance of the boot from the top of the screen.
@@ -480,7 +480,7 @@ void ENDGAM() {
         // Set bits 0-2 (INK 7) and 6 (BRIGHT 1).
         distance |= 71;
 
-        Speccy_fillTopTwoThirdsOfAttributeFileWith(distance);
+        speccy.fillTopTwoThirdsOfAttributeFileWith(distance);
         window.instance().redraw();
 
         speccy.tick();
@@ -1318,7 +1318,7 @@ bool NXSHEET() {
 
     // Iterate through all attribute values from 63 down to 1.
     for (uint8_t ink = colours; ink > 0; ink--) {
-        Speccy_fillTopTwoThirdsOfAttributeFileWith(ink);
+        speccy.fillTopTwoThirdsOfAttributeFileWith(ink);
         window.instance().redraw();
 
         // Pause for about 0.004s
@@ -1368,7 +1368,7 @@ bool NXSHEET() {
 
 void Game_play_intro() {
     // Clear the entire Spectrum display file.
-    Speccy_clearDisplayFile();
+    speccy.clearDisplayFile();
 
     // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file.
     for (int i = 0; i < 2048; i++) {
