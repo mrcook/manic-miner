@@ -100,6 +100,15 @@ public:
 
     static uint8_t Font[96][8];
 
+    void printCharacter(char ch, uint16_t address);
+
+    // Print a message string to the display file
+    void printString(void *msg, uint16_t address, uint8_t len);
+
+    // Draw a sprite item to the given screen address
+    void drawSprite(void *character, uint16_t address, uint8_t len);
+
+
     /*
      * Utility functions to help porting from Z80 to C
      *
@@ -179,14 +188,6 @@ void Speccy_writeScreen(int address, uint8_t byte);
 uint8_t Speccy_readAttribute(int address);
 
 void Speccy_writeAttribute(int address, uint8_t byte);
-
-// Print a message string to the display file
-void Speccy_printMessage(void *msg, uint16_t address, uint8_t len);
-
-// Draw a sprite item to the given screen address
-void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len);
-
-void printFontCharacterAt(char ch, uint16_t address);
 
 
 #endif //MANIC_MINER_SPECCY_H

@@ -316,15 +316,15 @@ void loadCurrentCavern() {
     Speccy_clearBottomThirdOfDisplayFile();
 
     // Print the cavern name at 20480 (16,0).
-    Speccy_printMessage(cavern.CAVERNNAME, 20480, 32);
+    speccy.printString(cavern.CAVERNNAME, 20480, 32);
 
     // Print 'AIR' label at 20512 (17,0).
-    Speccy_printMessage(&game.airLabel, 20512, 3);
+    speccy.printString(&game.airLabel, 20512, 3);
 
     cavern.drawAirBar();
 
     // Print scores text at 20576 (19,0).
-    Speccy_printMessage(&game.MESSHSSC, 20576, 32);
+    speccy.printString(&game.MESSHSSC, 20576, 32);
 
     // Set the border colour.
     Speccy::OUT(cavern.BORDER);
@@ -487,8 +487,8 @@ void ENDGAM() {
     }
 
     // Now print the "Game Over" message, just to drive the point home.
-    Speccy_printMessage(&game.MESSG, 16586, 4);
-    Speccy_printMessage(&game.MESSO, 16594, 4);
+    speccy.printString(&game.MESSG, 16586, 4);
+    speccy.printString(&game.MESSO, 16594, 4);
 
     // The following loop makes the "Game Over" message glisten for about 1.57s.
     // The counter will also determine the INK colours to use for the "Game Over" message.
@@ -1087,7 +1087,7 @@ void DRAWITEMS() {
             // Point HL at the item graphic for the current cavern (at ITEM).
             // There are eight pixel rows to copy.
             // Draw the item to the screen buffer at 24576.
-            Speccy_drawSpriteAt(cavern.ITEMS[i].tile, addr, 8);
+            speccy.drawSprite(cavern.ITEMS[i].tile, addr, 8);
         }
 
         // The current item definition has been dealt with. Time for the next one.
@@ -1408,7 +1408,7 @@ void Game_play_intro() {
     // Scroll intro message across the screen.
     for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
         // Print 32 characters of the message at 20576 (19,0).
-        Speccy_printMessage((void *) &MESSINTRO[pos], 20576, 32);
+        speccy.printString((void *) &MESSINTRO[pos], 20576, 32);
 
         // Keep only bits 1 and 2, and move them into bits 6 and 7,
         // so that A holds 0, 64, 128 or 192;
@@ -1483,7 +1483,7 @@ void printCurrentScore() {
     sprintf(score, "%06d", game.playerScore);
 
     // Print the score (see SCORBUF) at (19,26).
-    Speccy_printMessage(&score, 20602, 6);
+    speccy.printString(&score, 20602, 6);
 }
 
 void printHighScore() {
@@ -1491,7 +1491,7 @@ void printHighScore() {
     sprintf(score, "%06d", game.highScore);
 
     // Print the high score (see HGHSCOR) at (19,11).
-    Speccy_printMessage(&score, 20587, 6);
+    speccy.printString(&score, 20587, 6);
 }
 
 void playGameMusic() {

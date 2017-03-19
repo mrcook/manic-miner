@@ -82,6 +82,42 @@ void Speccy::makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
     }
 }
 
+// Print a ZX Spectrum font characters to the display file
+void Speccy::printCharacter(char ch, uint16_t address) {
+    // Get the character bitmap ID (in the ROM)
+    uint8_t ch_index_id = (uint8_t) (ch - 32);
+
+    // There are eight pixel rows in a character bitmap
+    speccy.drawSprite(&Speccy::Font[ch_index_id], address, 8);
+}
+
+// Print a message string to the display file
+void Speccy::printString(void *msg, uint16_t address, uint8_t len) {
+    uint8_t *ch = (uint8_t *) msg;
+
+    for (int i = 0; i < len; i++, address++) {
+        speccy.printCharacter(ch[i], address);
+    }
+}
+
+// Draw a sprite item to the given screen address
+void Speccy::drawSprite(void *character, uint16_t address, uint8_t len) {
+    assert(len >= 0 && len <= (sizeof(character) / sizeof(uint8_t)));
+
+    uint8_t *chr = (uint8_t *) character;
+    uint8_t msb, lsb;
+
+    // Copy character data to the screen
+    for (int i = 0; i < len; i++) {
+        speccy.writeMemory(address, chr[i]);
+
+        // increment address to next pixel row
+        Speccy::splitAddress(address, &msb, &lsb);
+        msb++;
+        address = Speccy::buildAddress(msb, lsb);
+    }
+}
+
 
 
 /*
@@ -201,43 +237,6 @@ uint8_t Speccy_readAttribute(int address) {
 
 void Speccy_writeAttribute(int address, uint8_t byte) {
     speccy.writeMemory(address, byte);
-}
-
-
-// Print a message string to the display file
-void Speccy_printMessage(void *msg, uint16_t address, uint8_t len) {
-    uint8_t *ch = (uint8_t *) msg;
-
-    for (int i = 0; i < len; i++, address++) {
-        printFontCharacterAt(ch[i], address);
-    }
-}
-
-// Draw a sprite item to the given screen address
-void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len) {
-    assert(len >= 0 && len <= (sizeof(character) / sizeof(uint8_t)));
-
-    uint8_t *chr = (uint8_t *) character;
-    uint8_t msb, lsb;
-
-    // Copy character data to the screen
-    for (int i = 0; i < len; i++) {
-        speccy.writeMemory(address, chr[i]);
-
-        // increment address to next pixel row
-        Speccy::splitAddress(address, &msb, &lsb);
-        msb++;
-        address = Speccy::buildAddress(msb, lsb);
-    }
-}
-
-// Print a ZX Spectrum font characters to the display file
-void printFontCharacterAt(char ch, uint16_t address) {
-    // Get the character bitmap ID (in the ROM)
-    uint8_t ch_index_id = (uint8_t) (ch - 32);
-
-    // There are eight pixel rows in a character bitmap
-    Speccy_drawSpriteAt(&Speccy::Font[ch_index_id], address, 8);
 }
 
 // Write a colour pixel to the new screen.
