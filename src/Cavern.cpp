@@ -112,7 +112,7 @@ bool Cavern::loadData(uint8_t id) {
 
     // Location in the attribute buffer at 23552: (13,2) (see LOCATION)
     willy.LOCATION = Data_locations[id];
-    splitAddress(willy.LOCATION, &msb, &lsb);
+    Speccy::splitAddress(willy.LOCATION, &msb, &lsb);
     speccy.memory[addr++] = msb;
     speccy.memory[addr++] = lsb;
 
@@ -131,7 +131,7 @@ bool Cavern::loadData(uint8_t id) {
 
     // Location in the screen buffer at 28672
     CONVEYOR.CONVLOC = Data_conveyorBeltsParams[id][1];
-    splitAddress(CONVEYOR.CONVLOC, &msb, &lsb);
+    Speccy::splitAddress(CONVEYOR.CONVLOC, &msb, &lsb);
     speccy.memory[addr++] = msb;
     speccy.memory[addr++] = lsb;
 
@@ -164,7 +164,7 @@ bool Cavern::loadData(uint8_t id) {
         // Add items to the buffer memory
         speccy.memory[addr++] = (uint8_t) Data_itemsData[id][i][0];
 
-        splitAddress(Data_itemsData[id][i][1], &msb, &lsb);
+        Speccy::splitAddress(Data_itemsData[id][i][1], &msb, &lsb);
         speccy.memory[addr++] = msb;
         speccy.memory[addr++] = lsb;
 
@@ -190,10 +190,10 @@ bool Cavern::loadData(uint8_t id) {
     // Location in the screen buffer at 24576
     portal.PORTALLOC2 = Data_portalScreenLocations[id];
 
-    splitAddress(portal.PORTALLOC1, &msb, &lsb);
+    Speccy::splitAddress(portal.PORTALLOC1, &msb, &lsb);
     speccy.memory[addr++] = msb;
     speccy.memory[addr++] = lsb;
-    splitAddress(portal.PORTALLOC2, &msb, &lsb);
+    Speccy::splitAddress(portal.PORTALLOC2, &msb, &lsb);
     speccy.memory[addr++] = msb;
     speccy.memory[addr++] = lsb;
 
@@ -231,7 +231,7 @@ bool Cavern::loadData(uint8_t id) {
 
         // Load guardian data into memory
         speccy.memory[addr++] = (uint8_t) Data_horizontalGuardianLocations[id][i][0];
-        splitAddress(Data_horizontalGuardianLocations[id][i][1], &msb, &lsb);
+        Speccy::splitAddress(Data_horizontalGuardianLocations[id][i][1], &msb, &lsb);
         speccy.memory[addr++] = msb;
         speccy.memory[addr++] = lsb;
         speccy.memory[addr++] = (uint8_t) Data_horizontalGuardianLocations[id][i][2];
@@ -274,7 +274,7 @@ bool Cavern::loadData(uint8_t id) {
 
         // Load guardian data into memory
         speccy.memory[addr++] = (uint8_t) Data_verticalGuardianLocations[id][i][0];
-        splitAddress(Data_verticalGuardianLocations[id][i][1], &msb, &lsb);
+        Speccy::splitAddress(Data_verticalGuardianLocations[id][i][1], &msb, &lsb);
         speccy.memory[addr++] = msb;
         speccy.memory[addr++] = lsb;
         speccy.memory[addr++] = (uint8_t) Data_verticalGuardianLocations[id][i][2];
@@ -340,7 +340,7 @@ bool Cavern::decreaseAir() {
     // A=INT(A/32); this value specifies how many pixels to draw from left to
     // right in the cell at the right end of the air bar.
     uint8_t count = (uint8_t) (CLOCK & 224);
-    count = rotL(count, 3);
+    count = Speccy::rotL(count, 3);
 
     // Initialise E to 0 (all bits reset).
     uint8_t pixels = 0;
@@ -350,7 +350,7 @@ bool Cavern::decreaseAir() {
         // Copy the number of pixels to draw (1-7) to B.
         for (int i = count; i > 0; i--) {
             // Set this many bits in E (from bit 7 towards bit 0).
-            pixels = rotR(pixels, 1);
+            pixels = Speccy::rotR(pixels, 1);
             pixels |= 1 << 7;
         }
     }
@@ -360,7 +360,7 @@ bool Cavern::decreaseAir() {
     // There are four rows of pixels to draw.
     for (uint8_t msb = 82; msb < 86; msb++) {
         // Draw the four rows of pixels at the right end of the air bar.
-        Speccy_writeScreen(buildAddress(msb, AIR), pixels);
+        Speccy_writeScreen(Speccy::buildAddress(msb, AIR), pixels);
     }
 
     return false;
@@ -371,7 +371,7 @@ void Cavern::drawAirBar() {
     // Initialise A to 82 (is 20992); this is the MSB of the display file address
     // at which to start drawing the bar that represents the air supply.
     for (uint8_t a = 82; a < 86; a++) {
-        uint16_t addr = buildAddress(a, 36);
+        uint16_t addr = Speccy::buildAddress(a, 36);
 
         // Draw a single row of pixels across C cells.
         for (uint16_t i = 0; i < AIR - 36; i++) {
@@ -395,28 +395,28 @@ void Cavern::moveConveyorBelts() {
     if (CONVEYOR.CONVDIR == 0) {
         // Copy the first pixel row of the conveyor tile to A.
         // Rotate it left twice
-        pixels_a = rotL(Speccy_read(row_hl), 2);
+        pixels_a = Speccy::rotL(Speccy_read(row_hl), 2);
 
         // Point HL at the third pixel row of the conveyor tile.
-        splitAddress(row_hl, &h, &l);
+        Speccy::splitAddress(row_hl, &h, &l);
         h += 2;
-        row_hl = buildAddress(h, l);
+        row_hl = Speccy::buildAddress(h, l);
 
         // Copy this pixel row to C
-        pixels_c = rotR(Speccy_read(row_hl), 2);
+        pixels_c = Speccy::rotR(Speccy_read(row_hl), 2);
     } else {
         // The conveyor is moving right.
 
         // Copy the first pixel row of the conveyor tile to A.
-        pixels_a = rotR(Speccy_read(row_hl), 2);
+        pixels_a = Speccy::rotR(Speccy_read(row_hl), 2);
 
         // Point HL at the third pixel row of the conveyor tile.
-        splitAddress(row_hl, &h, &l);
+        Speccy::splitAddress(row_hl, &h, &l);
         h += 2;
-        row_hl = buildAddress(h, l);
+        row_hl = Speccy::buildAddress(h, l);
 
         // Copy this pixel row to C.
-        pixels_c = rotL(Speccy_read(row_hl), 2);
+        pixels_c = Speccy::rotL(Speccy_read(row_hl), 2);
     }
 
     for (int b = CONVEYOR.CONVLEN; b > 0; b--) {
@@ -424,12 +424,12 @@ void Cavern::moveConveyorBelts() {
         Speccy_write(row_de, pixels_a);
         Speccy_write(row_hl, pixels_c);
 
-        splitAddress(row_hl, &h, &l);
+        Speccy::splitAddress(row_hl, &h, &l);
         l++;
-        row_hl = buildAddress(h, l);
+        row_hl = Speccy::buildAddress(h, l);
 
-        splitAddress(row_de, &d, &e);
+        Speccy::splitAddress(row_de, &d, &e);
         e++;
-        row_de = buildAddress(d, e);
+        row_de = Speccy::buildAddress(d, e);
     }
 }

@@ -4,7 +4,7 @@
 #include "Colour.h"
 #include "Helpers.h"
 #include "Globals.h"
-#include "Speccy_Font.h"
+#include "SpeccyFont.h"
 
 // Initialize the speccy framework (FPS, etc.)
 void Speccy_initialize(int fps) {
@@ -58,7 +58,7 @@ void Speccy_convertScreenFormat() {
                 uint8_t bite = speccy.memory[16384 + block_addr_offset + byte_row + b];
 
                 // Convert the Speccy display bytes to pixels and add to the new screen array
-                byteToBits(bite, pixels);
+                Speccy::byteToBits(bite, pixels);
                 // read pixel bits from left-to-right: bit-7 down to bit-0
                 for (int pixel = 7; pixel >= 0; pixel--) {
                     // multiply offset by 8 pixels
@@ -225,9 +225,9 @@ void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len) {
         Speccy_write(address, chr[i]);
 
         // increment address to next pixel row
-        splitAddress(address, &msb, &lsb);
+        Speccy::splitAddress(address, &msb, &lsb);
         msb++;
-        address = buildAddress(msb, lsb);
+        address = Speccy::buildAddress(msb, lsb);
     }
 }
 
@@ -253,7 +253,7 @@ void Speccy_splitColorAttribute(uint8_t attribute, Colour *colour) {
 }
 
 void Speccy_setBorderColour(uint8_t colour) {
-    speccy.OUT(colour);
+    Speccy::OUT(colour);
 }
 
 // The Spectrum uses OUT to make a sound, but here we use a custom function
@@ -262,7 +262,7 @@ void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
 
     // Real speccy does something like this
     for (int d = duration; d > 0; d--) {
-        speccy.OUT(pitch);
+        Speccy::OUT(pitch);
         pitch ^= 24;
 //        millisleep(delay);
     }
@@ -272,42 +272,6 @@ void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
 //
 // Utility functions
 //
-
-// Handy function to convert a byte to an array of bits,
-// so you can more easily create pixel based graphics.
-void byteToBits(uint8_t byte, uint8_t *bits) {
-    for (int i = 0; i < 8; i++) {
-        if (byte & (1 << i)) {
-            bits[i] = 1;
-        } else {
-            bits[i] = 0;
-        }
-    }
-}
-
-// Split a uint16_t memory address into its MSB and LSB values
-void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
-    *lsb = (uint8_t) (addr & 0xFF);
-    *msb = (uint8_t) (addr >> 8);
-}
-
-// Build a uint16_t memory address from the MSB and LSB values
-uint16_t buildAddress(uint8_t msb, uint8_t lsb) {
-    return (msb << 8) | lsb;
-}
-
-// Rotate left n places
-uint8_t rotL(uint8_t a, uint8_t n) {
-    assert (n > 0 && n < 8);
-    return (a << n) | (a >> (8 - n));
-}
-
-// Rotate right n places
-uint8_t rotR(uint8_t a, uint8_t n) {
-    assert (n > 0 && n < 8);
-    return (a >> n) | (a << (8 - n));
-}
-
 
 // Print a ZX Spectrum font characters to the display file
 void printFontCharacterAt(char ch, uint16_t address) {

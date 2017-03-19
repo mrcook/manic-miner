@@ -39,22 +39,22 @@ bool GuardianVertical::updateAndDraw() {
     // Pick up the guardian's pixel y-coordinate.
     // Point DE at the entry in the screen buffer address lookup table at
     // SBUFADDRS that corresponds to the guardian's pixel y-coordinate.
-    y_coord = rotL((uint8_t) (yCoord & 127), 1);
+    y_coord = Speccy::rotL((uint8_t) (yCoord & 127), 1);
     uint16_t addr = SBUFADDRS[y_coord / 2];
 
     uint8_t msb, lsb;
     uint8_t msb_bak, lsb_bak;
 
     // Point HL at the address of the guardian's location in the screen buffer at 24576.
-    splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, &msb, &lsb);
     lsb_bak = lsb | xCoord;
     y_coord++;
     addr = SBUFADDRS[y_coord / 2];
-    splitAddress(addr, &msb, &lsb);
-    addr = buildAddress(msb, lsb_bak);
+    Speccy::splitAddress(addr, &msb, &lsb);
+    addr = Speccy::buildAddress(msb, lsb_bak);
 
     // Pick up the guardian's animation frame (0-3). Multiply it by 32.
-    uint8_t anim_frame = rotR(frame, 3);
+    uint8_t anim_frame = Speccy::rotR(frame, 3);
 
     // Draw the guardian to the screen buffer at 24576
     bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);
@@ -67,14 +67,14 @@ bool GuardianVertical::updateAndDraw() {
 
     // Pick up the guardian's pixel y-coordinate.
     // Point HL at the address of the guardian's location in the attribute buffer at 23552.
-    addr = (uint16_t) (rotL((uint8_t) (yCoord & 64), 2) + 92);
-    splitAddress(addr, &msb, &lsb);
+    addr = (uint16_t) (Speccy::rotL((uint8_t) (yCoord & 64), 2) + 92);
+    Speccy::splitAddress(addr, &msb, &lsb);
     msb_bak = msb;
 
-    addr = (uint16_t) (rotL(yCoord, 2) & 224);
-    splitAddress(addr, &msb, &lsb);
+    addr = (uint16_t) (Speccy::rotL(yCoord, 2) & 224);
+    Speccy::splitAddress(addr, &msb, &lsb);
     lsb |= xCoord;
-    addr = buildAddress(msb_bak, lsb);
+    addr = Speccy::buildAddress(msb_bak, lsb);
 
     // Set the attribute bytes for the guardian.
     EUGENE_3(addr, attribute);

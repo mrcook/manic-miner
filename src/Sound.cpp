@@ -49,7 +49,7 @@ bool PLAYTUNE() {
         for (uint8_t d = note[0]; d > 0; d--) {
             // Produce a sound based on the frequency parameters in the second
             // and third bytes of data for this note (copied into D and E).
-            speccy.OUT(pitch);
+            Speccy::OUT(pitch);
 
             freq1--;
             if (freq1 == 0) {
@@ -96,12 +96,12 @@ uint16_t PIANOKEY(uint8_t frequency) {
     // Compute the piano key index (K) based on the frequency parameter (F),
     // and store it in bits 0-4 of A: K=31-INT((F-8)/8).
     frequency -= 8;
-    frequency = rotR(frequency, 3);
+    frequency = Speccy::rotR(frequency, 3);
     frequency = (uint8_t) ~frequency;
 
     // A=224+K; this is the LSB.
     frequency |= 224;
 
     // Set HL to the attribute file address for the piano key.
-    return buildAddress(89, frequency);
+    return Speccy::buildAddress(89, frequency);
 }

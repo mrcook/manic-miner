@@ -66,7 +66,7 @@ bool Willy_updateJumpingState() {
 
     // D=8*(1+ABS(J-8)); this value determines the pitch of the jumping
     // sound effect (rising as Willy rises, falling as Willy falls).
-    anim_counter = rotL(anim_counter, 3);
+    anim_counter = Speccy::rotL(anim_counter, 3);
 
     uint8_t delay = anim_counter;
 
@@ -113,18 +113,18 @@ uint16_t Willy_adjustAttributes(uint8_t y_coord) {
     if (((lsb >> 7) & 1) == 1) {
         msb = 93;
     }
-    lsb = rotL(lsb, 1); // RL lsb
+    lsb = Speccy::rotL(lsb, 1); // RL lsb
     lsb &= ~(1 << 0);   // set bit `0` to the Carry, which was set to `0`.
 
     // Pick up Willy's screen x-coordinate (1-29) from bits 0-4 at LOCATION.
     uint8_t msb_dummy, x_lsb;
-    splitAddress((uint16_t) (willy.LOCATION & 31), &msb_dummy, &x_lsb);
+    Speccy::splitAddress((uint16_t) (willy.LOCATION & 31), &msb_dummy, &x_lsb);
 
     // Now L holds the LSB of Willy's attribute buffer address.
     x_lsb |= lsb;
 
     // Store Willy's updated attribute buffer location at LOCATION.
-    willy.LOCATION = buildAddress(msb, x_lsb);
+    willy.LOCATION = Speccy::buildAddress(msb, x_lsb);
 
     return willy.LOCATION;
 }
@@ -485,22 +485,22 @@ void Willy_draw() {
 
     // Pick up Willy's direction and movement flags from DMFLAGS.
     // Now 0 if Willy is facing right, or 128 if he's facing left.
-    uint8_t frame = rotR((uint8_t) (willy.DMFLAGS & 1), 1);
+    uint8_t frame = Speccy::rotR((uint8_t) (willy.DMFLAGS & 1), 1);
 
     // Pick up Willy's current animation frame (0-3) (see MANDAT).
-    frame = rotR((uint8_t) (willy.FRAME & 3), 3) | frame;
+    frame = Speccy::rotR((uint8_t) (willy.FRAME & 3), 3) | frame;
 
     // Pick up Willy's screen x-coordinate (0-31) from LOCATION.
     uint8_t msb_dummy, pix_x;
-    splitAddress((uint16_t) (willy.LOCATION & 31), &msb_dummy, &pix_x);
+    Speccy::splitAddress((uint16_t) (willy.LOCATION & 31), &msb_dummy, &pix_x);
 
     // There are 16 rows of pixels in a sprite.
     uint8_t h, l;
     for (int i = 0; i < 16; i++) {
         // Set to the address in the screen buffer at 24576 that corresponds
         // to where we are going to draw the next pixel row of the sprite graphic.
-        splitAddress(SBUFADDRS[pix_y], &h, &l);
-        uint16_t addr = buildAddress(h, l | pix_x);
+        Speccy::splitAddress(SBUFADDRS[pix_y], &h, &l);
+        uint16_t addr = Speccy::buildAddress(h, l | pix_x);
 
         // Merge the sprite byte with the background.
         Speccy_write(addr, willy.sprites[frame] | Speccy_read(addr));

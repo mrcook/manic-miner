@@ -72,7 +72,7 @@ public:
     // IN 32766 reads the half row SPACE to B
     //
     // IN 254   reads every row of keys
-    uint8_t IN(uint16_t addr) {
+    static uint8_t IN(uint16_t addr) {
         addr = 0; // prevents compiler error
 
         // get keyboard input values
@@ -80,12 +80,47 @@ public:
     }
 
     // OUT(254) border/sound output.
-    void OUT(uint8_t value) {
+    static void OUT(uint8_t value) {
         value = 0; // prevents compiler error
 
         // output the sound, border colour!
     }
 
+
+    // Handy function to convert a byte to an array of bits,
+    // so you can more easily create pixel based graphics.
+    static void byteToBits(uint8_t byte, uint8_t *bits) {
+        for (int i = 0; i < 8; i++) {
+            if (byte & (1 << i)) {
+                bits[i] = 1;
+            } else {
+                bits[i] = 0;
+            }
+        }
+    }
+
+    // Split a uint16_t memory address into its MSB and LSB values
+    static void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
+        *lsb = (uint8_t) (addr & 0xFF);
+        *msb = (uint8_t) (addr >> 8);
+    }
+
+    // Build a uint16_t memory address from the MSB and LSB values
+    static uint16_t buildAddress(uint8_t msb, uint8_t lsb) {
+        return (msb << 8) | lsb;
+    }
+
+    // Rotate left n places
+    static uint8_t rotL(uint8_t a, uint8_t n) {
+        assert (n > 0 && n < 8);
+        return (a << n) | (a >> (8 - n));
+    }
+
+    // Rotate right n places
+    static uint8_t rotR(uint8_t a, uint8_t n) {
+        assert (n > 0 && n < 8);
+        return (a >> n) | (a << (8 - n));
+    }
 };
 
 // Initialize the speccy framework (FPS, etc.)
@@ -175,22 +210,6 @@ void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay);
 //
 // Utility functions
 //
-
-// Handy function to convert a byte to an array of bits,
-// so you can more easily create pixel based graphics.
-void byteToBits(uint8_t byte, uint8_t *bits);
-
-// Split a uint16_t memory address into its MSB and LSB values
-void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb);
-
-// Build a uint16_t memory address from the MSB and LSB values
-uint16_t buildAddress(uint8_t msb, uint8_t lsb);
-
-// Rotate left n places
-uint8_t rotL(uint8_t a, uint8_t n);
-
-// Rotate right n places
-uint8_t rotR(uint8_t a, uint8_t n);
 
 void splitColourAttribute(uint8_t attribute, Colour *colour);
 

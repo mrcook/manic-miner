@@ -324,7 +324,7 @@ void loadCurrentCavern() {
     Speccy_printMessage(&game.MESSHSSC, 20576, 32);
 
     // Set the border colour.
-    speccy.OUT(cavern.BORDER);
+    Speccy::OUT(cavern.BORDER);
 
     window.instance().redraw();
 
@@ -340,7 +340,7 @@ void flashScreen() {
         game.FLASH--;
 
         // Move bits 0-2 into bits 3-5 and clear all the other bits.
-        uint8_t new_flash_value = (uint8_t) (rotL(game.FLASH, 3) & 56);
+        uint8_t new_flash_value = (uint8_t) (Speccy::rotL(game.FLASH, 3) & 56);
 
         // Set every attribute byte in the buffer at 23552 to this value.
         // FIXME: Uses Attr Buffer: Attr File= 22528
@@ -381,13 +381,13 @@ bool MANDEAD() {
         // This value determines the pitch of the short note that will be played.
         pitch = ~attr;
         pitch = (uint8_t) (pitch & 7);
-        pitch = rotL(pitch, 3);
+        pitch = Speccy::rotL(pitch, 3);
         pitch |= 7;
 
         // C=8+32*(E AND 7).
         // This value determines the duration of the short note that will be played.
         duration = attr;
-        duration = rotR(duration, 3);
+        duration = Speccy::rotR(duration, 3);
         // Set bit 4 of A (for no apparent reason).
         duration |= 16;
 
@@ -442,10 +442,10 @@ void ENDGAM() {
 
     // The following loop draws the boot's descent onto the plinth that supports Willy.
     for (bootDistanceFromTop = 0; bootDistanceFromTop < 98; bootDistanceFromTop += 4) {
-        splitAddress(SBUFADDRS[bootDistanceFromTop], &msb, &lsb);
+        Speccy::splitAddress(SBUFADDRS[bootDistanceFromTop], &msb, &lsb);
 
         // center of screen
-        addr = buildAddress((uint8_t) (msb - 32), (uint8_t) (lsb | 15));
+        addr = Speccy::buildAddress((uint8_t) (msb - 32), (uint8_t) (lsb | 15));
 
         // Draw the boot (see BOOT) at this location, without erasing the boot
         // at the previous location; this leaves the portion of the boot sprite
@@ -473,7 +473,7 @@ void ENDGAM() {
         // Keep only bits 2 and 3.
         distance = (uint8_t) (bootDistanceFromTop & 12);
         // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3.
-        distance = rotL(distance, 1);
+        distance = Speccy::rotL(distance, 1);
         // Set bits 0-2 (INK 7) and 6 (BRIGHT 1).
         distance |= 71;
 
@@ -580,19 +580,19 @@ void DRAWSHEET() {
             if (sprite != NULL) {
                 Speccy_write(row_addr + offset, sprite[b]);
             }
-            splitAddress(row_addr, &msb, &lsb);
+            Speccy::splitAddress(row_addr, &msb, &lsb);
             msb++;
-            row_addr = buildAddress(msb, lsb);
+            row_addr = Speccy::buildAddress(msb, lsb);
         }
         col++;
 
-        splitAddress(addr, &msb, &lsb);
+        Speccy::splitAddress(addr, &msb, &lsb);
         if (col == 31) {
             col = 0;
             msb++;
         }
         lsb++;
-        addr = buildAddress(msb, lsb);
+        addr = Speccy::buildAddress(msb, lsb);
     }
 
     // The empty cavern has been drawn to the screen buffer at 28672.
@@ -697,7 +697,7 @@ bool MOVEWILLY(int keyIntput) {
     willy.AIRBORNE++;
 
     // D=16*A; this value determines the pitch of the falling sound effect.
-    uint8_t pitch = rotL(willy.AIRBORNE, 4);
+    uint8_t pitch = Speccy::rotL(willy.AIRBORNE, 4);
 
     // Pick up the border colour for the current cavern.
     uint8_t border = cavern.BORDER;
@@ -721,7 +721,7 @@ void CRUMBLE(uint16_t addr) {
 
     // Point to the bottom row of pixels of the crumbling
     // floor tile in the screen buffer at 28672.
-    splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, &msb, &lsb);
 
     msb += 27;
     msb |= 7;
@@ -729,10 +729,10 @@ void CRUMBLE(uint16_t addr) {
     while (true) {
         // Collect the pixels from the row above.
         msb--;
-        uint8_t pixel = Speccy_read(buildAddress(msb, lsb));
+        uint8_t pixel = Speccy_read(Speccy::buildAddress(msb, lsb));
 
         // Copy these pixels into the row below it. Point BC at the next row of pixels up.
-        Speccy_write(buildAddress((uint8_t) (msb + 1), lsb), pixel);
+        Speccy_write(Speccy::buildAddress((uint8_t) (msb + 1), lsb), pixel);
 
         // Have we dealt with the bottom seven pixel rows of the crumbling floor tile yet?
         // If not, jump back to deal with the next one up.
@@ -742,13 +742,13 @@ void CRUMBLE(uint16_t addr) {
     }
 
     // Clear the top row of pixels in the crumbling floor tile.
-    Speccy_write(buildAddress(msb, lsb), 0);
+    Speccy_write(Speccy::buildAddress(msb, lsb), 0);
 
     // Point to the bottom row of pixels in the crumbling floor tile.
     msb += 7;
 
     // Pick up the bottom row of pixels. Is the bottom row clear? Return if not.
-    if (Speccy_read(buildAddress(msb, lsb)) != 0) {
+    if (Speccy_read(Speccy::buildAddress(msb, lsb)) != 0) {
         return;
     }
 
@@ -840,14 +840,14 @@ bool EUGENE() {
     // SBUFADDRS that corresponds to Eugene's y-coordinate.
     // Point HL at the address of Eugene's location in the screen buffer at 24576.
     uint8_t y_coord = (uint8_t) (EUGHGT & 127);
-    y_coord = rotL(y_coord, 1);
+    y_coord = Speccy::rotL(y_coord, 1);
     addr = SBUFADDRS[y_coord / 2];
     addr |= 15;
-    splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, &msb, &lsb);
     y_coord++;
     addr = SBUFADDRS[y_coord / 2];
-    splitAddress(addr, &x_msb, &x_lsb);
-    addr = buildAddress(x_msb, lsb);
+    Speccy::splitAddress(addr, &x_msb, &x_lsb);
+    addr = Speccy::buildAddress(x_msb, lsb);
 
     // Draw Eugene to the screen buffer at 24576.
     bool kill_willy = DRWFIX(&EUGENEG, addr, 1);
@@ -862,7 +862,7 @@ bool EUGENE() {
     // Pick up Eugene's pixel y-coordinate from EUGHGT.
     // Point HL at the address of Eugene's location in the attribute buffer at 23552.
     y_coord = (uint8_t) (EUGHGT & 120);
-    y_coord = rotL(y_coord, 1);
+    y_coord = Speccy::rotL(y_coord, 1);
     y_coord |= 7;
 
     // IMPORTANT: SCF should set the carry flag, and the following RL loads that into bit 0 -MRC-
@@ -870,10 +870,10 @@ bool EUGENE() {
     if ((y_coord >> 7) & 1) {
         msb = 1;
     }
-    y_coord = rotL(y_coord, 1);
+    y_coord = Speccy::rotL(y_coord, 1);
     y_coord |= 1 << 0;
     msb += 92;
-    addr = buildAddress(msb, y_coord);
+    addr = Speccy::buildAddress(msb, y_coord);
 
     // Assume we will draw Eugene with white INK.
     uint8_t ink_colour = 7;
@@ -886,7 +886,7 @@ bool EUGENE() {
         // Move bits 2-4 into bits 0-2 and clear the other bits; this value
         // (which decreases by one on each pass through the main loop) will
         // be Eugene's INK colour.
-        ink_colour = (uint8_t) (rotR(cavern.CLOCK, 2) & 7);
+        ink_colour = (uint8_t) (Speccy::rotR(cavern.CLOCK, 2) & 7);
     }
 
     EUGENE_3(addr, ink_colour); // IMPORTANT: implicit jump -MRC-
@@ -971,24 +971,24 @@ bool SKYLABS() {
 
         // Pickup the entry in the screen buffer address lookup table at SBUFADDRS
         // that corresponds to the Skylab's pixel y-coordinate.
-        uint8_t y_coord = rotL(VGUARDS[i].yCoord, 1);
+        uint8_t y_coord = Speccy::rotL(VGUARDS[i].yCoord, 1);
 
         // Point HL at the address of the Skylab's location in the screen buffer at 24576.
         addr = SBUFADDRS[y_coord / 2];
         addr += VGUARDS[i].xCoord;
 
-        splitAddress(addr, &msb, &lsb);
+        Speccy::splitAddress(addr, &msb, &lsb);
         y_coord++;
 
         addr = SBUFADDRS[y_coord / 2];
 
         uint8_t y_msb, y_lsb;
-        splitAddress(addr, &y_msb, &y_lsb);
-        addr = buildAddress(y_msb, lsb);
+        Speccy::splitAddress(addr, &y_msb, &y_lsb);
+        addr = Speccy::buildAddress(y_msb, lsb);
 
         // Pick up the animation frame (0-7). Multiply it by 32.
         // Skylab sprite (at GGDATA+A).
-        uint8_t sprite_offset = rotR(VGUARDS[i].frame, 3);
+        uint8_t sprite_offset = Speccy::rotR(VGUARDS[i].frame, 3);
 
         // Draw the Skylab to the screen buffer at 24576.
         bool kill_willy = DRWFIX(&VGUARDS[i].GGDATA[sprite_offset], addr, 1);
@@ -1000,13 +1000,13 @@ bool SKYLABS() {
         }
 
         // Point HL at the address of the Skylab's location in the attribute buffer at 23552.
-        addr = (uint16_t) (rotL((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
-        splitAddress(addr, &msb, &lsb);
+        addr = (uint16_t) (Speccy::rotL((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
+        Speccy::splitAddress(addr, &msb, &lsb);
         uint8_t msb_bak = msb;
-        addr = (uint8_t) (rotL(VGUARDS[i].yCoord, 2) & 224);
+        addr = (uint8_t) (Speccy::rotL(VGUARDS[i].yCoord, 2) & 224);
         addr |= VGUARDS[i].xCoord;
-        splitAddress(addr, &msb, &lsb);
-        addr = buildAddress(msb_bak, lsb);
+        Speccy::splitAddress(addr, &msb, &lsb);
+        addr = Speccy::buildAddress(msb_bak, lsb);
 
         // Set the attribute bytes for the Skylab.
         EUGENE_3(addr, VGUARDS[i].attribute);
@@ -1077,9 +1077,9 @@ void DRAWITEMS() {
             game.ITEMATTR = attribute;
 
             // Point DE at the address of the item's location in the screen buffer at 24576.
-            splitAddress(addr, &msb, &lsb);
+            Speccy::splitAddress(addr, &msb, &lsb);
             msb = (uint8_t) cavern.ITEMS[i].addressMSB;
-            addr = buildAddress(msb, lsb);
+            addr = Speccy::buildAddress(msb, lsb);
 
             // Point HL at the item graphic for the current cavern (at ITEM).
             // There are eight pixel rows to copy.
@@ -1111,11 +1111,11 @@ bool CHKPORTAL() {
 
     // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1.
     uint16_t addr = cavern.portal.PORTALLOC1;
-    splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, &msb, &lsb);
 
     // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION.
     uint16_t w_addr = willy.LOCATION;
-    splitAddress(w_addr, &w_msb, &w_lsb);
+    Speccy::splitAddress(w_addr, &w_msb, &w_lsb);
 
     // Does it match that of the portal?
     if (lsb == w_lsb) {
@@ -1197,12 +1197,12 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
         Speccy_writeScreen(addr + 1, sprite[i + 1]);
 
         // Move down to the next pixel row
-        splitAddress(addr, &msb, &lsb);
+        Speccy::splitAddress(addr, &msb, &lsb);
         msb++;
 
         // Have we drawn the bottom pixel row in this pair of cells yet?
         if (msb & 7) {
-            addr = buildAddress(msb, lsb);
+            addr = Speccy::buildAddress(msb, lsb);
             continue;
         }
 
@@ -1217,7 +1217,7 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
             msb += 8;
         }
 
-        addr = buildAddress(msb, lsb);
+        addr = Speccy::buildAddress(msb, lsb);
     }
 
     // no collision detected.
@@ -1290,7 +1290,7 @@ bool NXSHEET() {
 
             for (int i = 0; i < 50; i++) {
                 // Produce the celebratory sound effect: Willy has escaped from the mine.
-                speccy.OUT(border);
+                Speccy::OUT(border);
                 border ^= 24;
 
                 millisleep(1);
@@ -1346,13 +1346,13 @@ bool NXSHEET() {
         // Pick up the remaining air supply (S) from AIR.
         // D=2*(63-S); this value determines the pitch of the sound effect
         // (which decreases with the amount of air remaining).
-        // uint8_t pitch = rotL((uint8_t) (~(cavern.AIR & 63)), 1);
+        // uint8_t pitch = Speccy::rotL((uint8_t) (~(cavern.AIR & 63)), 1);
 
         for (int i = duration; i > 0; i--) {
             // Produce a short note
-            speccy.OUT(0);
+            Speccy::OUT(0);
             // millisleep(pitch);
-            speccy.OUT(24);
+            Speccy::OUT(24);
             // millisleep(1);
         }
 
@@ -1410,7 +1410,7 @@ void Game_play_intro() {
         // Keep only bits 1 and 2, and move them into bits 6 and 7,
         // so that A holds 0, 64, 128 or 192;
         // this value determines the animation frame to use for Willy.
-        uint8_t sprite_id = rotR((uint8_t) (pos & 6), 3);
+        uint8_t sprite_id = Speccy::rotR((uint8_t) (pos & 6), 3);
 
         // Draw Willy at 18493 (9,29).
         DRWFIX(&willy.sprites[sprite_id], 18493, 0);
@@ -1438,7 +1438,7 @@ void drawRemainingLives() {
         // Pick up the in-game music note index from NOTEINDEX;
         // this will determine the animation frame for the Willy sprites.
         // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96 (frame 3).
-        uint8_t anim_frame = (uint8_t) (rotL(game.NOTEINDEX, 3) & 96);
+        uint8_t anim_frame = (uint8_t) (Speccy::rotL(game.NOTEINDEX, 3) & 96);
 
         uint8_t *sprite = &willy.sprites[anim_frame];
 
@@ -1496,7 +1496,7 @@ void playGameMusic() {
     game.NOTEINDEX++;
 
     // Point HL at the appropriate entry in the tune data table at GAMETUNE.
-    uint8_t index = rotR((uint8_t) (game.NOTEINDEX & 126), 1);
+    uint8_t index = Speccy::rotR((uint8_t) (game.NOTEINDEX & 126), 1);
 
     // Pick up the border colour for the current cavern from BORDER.
     uint8_t note = cavern.BORDER;
@@ -1507,7 +1507,7 @@ void playGameMusic() {
     // Initialise the duration delay counters in B (0) and C (3).
     for (int i = 0; i < 3; i++) {
         // Produce a note of the in-game music.
-        speccy.OUT(note);
+        Speccy::OUT(note);
 
         pitch_delay_counter--;
 

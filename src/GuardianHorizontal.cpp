@@ -14,7 +14,7 @@ bool GuardianHorizontal::update() {
 
     uint8_t current_clock = cavern.CLOCK;
     current_clock &= 4;
-    current_clock = rotR(current_clock, 3);
+    current_clock = Speccy::rotR(current_clock, 3);
 
     // Jump to consider the next guardian if this one is not due to be moved on this pass.
     if ((current_clock & speedColour)) {
@@ -29,7 +29,7 @@ bool GuardianHorizontal::update() {
     uint8_t msb, lsb;
     if (frame == 3) {
         // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552.
-        splitAddress(attributeAddress, &msb, &lsb);
+        Speccy::splitAddress(attributeAddress, &msb, &lsb);
 
         // Has the guardian reached the rightmost point in its path?
         if (lsb == addressRightLSB) {
@@ -41,7 +41,7 @@ bool GuardianHorizontal::update() {
             frame = 0;
             // Increment the guardian's x-coordinate (moving it right across a cell boundary).
             lsb++;
-            attributeAddress = buildAddress(msb, lsb);
+            attributeAddress = Speccy::buildAddress(msb, lsb);
             // Jump forward to consider the next guardian.
         }
 
@@ -49,7 +49,7 @@ bool GuardianHorizontal::update() {
         // If so move the guardian left across a cell boundary or turn it round.
     } else if (frame == 4) {
         // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552.
-        splitAddress(attributeAddress, &msb, &lsb);
+        Speccy::splitAddress(attributeAddress, &msb, &lsb);
 
         // Has the guardian reached the leftmost point in its path?
         if (lsb == addressLeftLSB) {
@@ -60,7 +60,7 @@ bool GuardianHorizontal::update() {
             frame = 7;
             // Decrement the guardian's x-coordinate (moving it left across a cell boundary).
             lsb--;
-            attributeAddress = buildAddress(msb, lsb);
+            attributeAddress = Speccy::buildAddress(msb, lsb);
         }
     } else if (frame > 4) {
         // the animation frame is 5, 6 or 7.
@@ -106,7 +106,7 @@ bool GuardianHorizontal::draw() {
     // Pick up the animation frame (0-7),
     uint8_t anim_frame = (uint8_t) frame;
     // Multiply it by 32,
-    anim_frame = rotR(anim_frame, 3);
+    anim_frame = Speccy::rotR(anim_frame, 3);
 
     // If we are not in one of the first seven caverns, The Endorian Forest, or The Sixteenth Cavern...
     if (cavern.SHEET >= 7 && cavern.SHEET != 9 && cavern.SHEET != 15) {
@@ -117,8 +117,8 @@ bool GuardianHorizontal::draw() {
     // Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E),
     // Point HL at the address of the guardian's location in the screen buffer at 24576,
     uint8_t msb, lsb;
-    splitAddress(attributeAddress, &msb, &lsb);
-    addr = buildAddress((uint8_t) addressMSB, lsb);
+    Speccy::splitAddress(attributeAddress, &msb, &lsb);
+    addr = Speccy::buildAddress((uint8_t) addressMSB, lsb);
 
     // Draw the guardian to the screen buffer at 24576,
     bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);

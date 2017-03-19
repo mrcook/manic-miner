@@ -42,7 +42,7 @@ bool KONGBEAST() {
         addr = 32625;
 
         while (true) {
-            splitAddress(addr, &msb, &lsb);
+            Speccy::splitAddress(addr, &msb, &lsb);
 
             // Pick up a pixel row. Is it blank yet?
             if (Speccy_read(addr) != 0) {
@@ -52,7 +52,7 @@ bool KONGBEAST() {
                 // Point HL at the opposite pixel row of the wall tile one cell down at (12,17).
                 lsb = 145;
                 msb ^= 7;
-                addr = buildAddress(msb, lsb);
+                addr = Speccy::buildAddress(msb, lsb);
 
                 // Clear that pixel row as well.
                 Speccy_write(addr, 0);
@@ -69,7 +69,7 @@ bool KONGBEAST() {
                 break;
             }
 
-            addr = buildAddress(msb, lsb);
+            addr = Speccy::buildAddress(msb, lsb);
         }
 
         // Change the attributes at (11,17) and (12,17) in the buffer at 24064.
@@ -110,14 +110,14 @@ bool KONGBEAST() {
 
         // Clear the cells at (2,15) and (2,16), removing the floor beneath the Kong Beast.
         for (int i = 8; i > 0; i--) {
-            splitAddress(addr, &msb, &lsb);
+            Speccy::splitAddress(addr, &msb, &lsb);
             Speccy_write(addr, 0);
             lsb++;
-            addr = buildAddress(msb, lsb);
+            addr = Speccy::buildAddress(msb, lsb);
             Speccy_write(addr, 0);
             lsb--;
             msb++;
-            addr = buildAddress(msb, lsb);
+            addr = Speccy::buildAddress(msb, lsb);
         }
     }
 
@@ -143,7 +143,7 @@ bool KONGBEAST() {
 
         for (int i = 0; i < 16; i++) {
             // Make a falling sound effect.
-            speccy.OUT(border);
+            Speccy::OUT(border);
             border ^= 24;
             millisleep(4);
         }
@@ -152,7 +152,7 @@ bool KONGBEAST() {
         // Point DE at the entry in the screen buffer address lookup table at
         // SBUFADDRS that corresponds to the Kong Beast's pixel y-coordinate.
         // Point HL at the address of the Kong Beast's location in the screen buffer at 24576.
-        addr = (uint16_t) (SBUFADDRS[rotL(EUGHGT, 1)] | 15);
+        addr = (uint16_t) (SBUFADDRS[Speccy::rotL(EUGHGT, 1)] | 15);
 
         // Use bit 5 of the value of the game clock at CLOCK (which is toggled
         // once every eight passes through the main loop) to point DE at the
@@ -169,15 +169,15 @@ bool KONGBEAST() {
         // Point HL at the address of the Kong Beast's location in the attribute buffer at 23552.
         lsb = (uint8_t) (EUGHGT & 120);
         msb = 23;
-        addr = buildAddress(msb, lsb);
+        addr = Speccy::buildAddress(msb, lsb);
 
         // FIXME: HL + HL ? what is this actually doing?
         addr += addr;
         addr += addr;
 
-        splitAddress(addr, &msb, &lsb);
+        Speccy::splitAddress(addr, &msb, &lsb);
         lsb |= 15;
-        addr = buildAddress(msb, lsb);
+        addr = Speccy::buildAddress(msb, lsb);
 
         // The Kong Beast is drawn with yellow INK.
         // Set the attribute bytes for the Kong Beast.
@@ -230,7 +230,7 @@ bool CHKSWITCH(uint16_t addr) {
     uint16_t w_addr;
 
     uint8_t sw_msb, sw_lsb;
-    splitAddress(addr, &sw_msb, &sw_lsb);
+    Speccy::splitAddress(addr, &sw_msb, &sw_lsb);
 
     // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION.
     // Is it equal to or one less than the LSB of the address of the switch's location?
@@ -239,7 +239,7 @@ bool CHKSWITCH(uint16_t addr) {
     // Does it match the MSB of the address of the switch's location?
     // Return (with the zero flag reset) if not.
     w_addr = willy.LOCATION;
-    splitAddress(w_addr, &msb, &lsb);
+    Speccy::splitAddress(w_addr, &msb, &lsb);
     lsb++;
     lsb &= 254;
     if (msb == sw_msb || lsb == sw_lsb) {
@@ -251,7 +251,7 @@ bool CHKSWITCH(uint16_t addr) {
     // Pick up the sixth byte of the graphic data for the switch tile from 32869.
     // Point HL at the sixth row of pixels of the switch tile in the screen buffer at 28672.
     sw_msb = 117;
-    addr = buildAddress(sw_msb, sw_lsb);
+    addr = Speccy::buildAddress(sw_msb, sw_lsb);
 
     // Has the switch already been flipped?
     // Return (with the zero flag reset) if so.
@@ -265,10 +265,10 @@ bool CHKSWITCH(uint16_t addr) {
     // in the screen buffer at 28672 to make it appear flipped.
     Speccy_write(addr, 8);
     sw_msb++;
-    addr = buildAddress(sw_msb, sw_lsb);
+    addr = Speccy::buildAddress(sw_msb, sw_lsb);
     Speccy_write(addr, 6);
     sw_msb++;
-    addr = buildAddress(sw_msb, sw_lsb);
+    addr = Speccy::buildAddress(sw_msb, sw_lsb);
     Speccy_write(addr, 6);
 
     // Return true: Willy has flipped the switch.
