@@ -162,18 +162,20 @@ void Speccy::fillTopTwoThirdsOfAttributeFileWith(uint8_t byte) {
     }
 }
 
-
-uint8_t Speccy_readScreen(int address) {
-    return speccy.readMemory(address);
+uint8_t Speccy::Speccy_readScreen(int address) {
+    return readMemory(address);
 }
 
-void Speccy_writeScreen(int address, uint8_t byte) {
-    speccy.writeMemory(address, byte);
+void Speccy::Speccy_writeScreen(int address, uint8_t byte) {
+    writeMemory(address, byte);
 }
 
-uint8_t Speccy_readAttribute(int address) {
-    return speccy.readMemory(address);
+uint8_t Speccy::Speccy_readAttribute(int address) {
+    return readMemory(address);
 }
+
+
+
 
 void Speccy_writeAttribute(int address, uint8_t byte) {
     speccy.writeMemory(address, byte);

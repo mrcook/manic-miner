@@ -1187,17 +1187,17 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
     for (int i = 0; i < 32; i += 2) {
         // Are we in blend mode?
         if (mode == 1) {
-            if (sprite[i] & Speccy_readScreen(addr) || sprite[i + 1] & Speccy_readScreen(addr + 1)) {
+            if (sprite[i] & speccy.Speccy_readScreen(addr) || sprite[i + 1] & speccy.Speccy_readScreen(addr + 1)) {
                 // collision detected.
                 return true;
             }
-            sprite[i] |= Speccy_readScreen(addr);
-            sprite[i + 1] |= Speccy_readScreen(addr + 1);
+            sprite[i] |= speccy.Speccy_readScreen(addr);
+            sprite[i + 1] |= speccy.Speccy_readScreen(addr + 1);
         }
 
         // Copy the graphic bytes to their destination cells.
-        Speccy_writeScreen(addr, sprite[i]);
-        Speccy_writeScreen(addr + 1, sprite[i + 1]);
+        speccy.Speccy_writeScreen(addr, sprite[i]);
+        speccy.Speccy_writeScreen(addr + 1, sprite[i + 1]);
 
         // Move down to the next pixel row
         Speccy::splitAddress(addr, &msb, &lsb);
@@ -1372,10 +1372,10 @@ void Game_play_intro() {
 
     // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file.
     for (int i = 0; i < 2048; i++) {
-        Speccy_writeScreen(16384 + i, TITLESCR1[i]);
+        speccy.Speccy_writeScreen(16384 + i, TITLESCR1[i]);
     }
     for (int i = 0; i < 2048; i++) {
-        Speccy_writeScreen(16384 + 2048 + i, TITLESCR2[i]);
+        speccy.Speccy_writeScreen(16384 + 2048 + i, TITLESCR2[i]);
     }
 
     window.instance().redraw();
@@ -1527,7 +1527,7 @@ void copyScrBufToDisplayFile() {
     // Copy the contents of the screen buffer at 24576 to the display file.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-        Speccy_writeScreen(16384 + i, speccy.readMemory(24576 + i));
+        speccy.Speccy_writeScreen(16384 + i, speccy.readMemory(24576 + i));
     }
 }
 

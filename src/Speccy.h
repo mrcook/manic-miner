@@ -127,6 +127,12 @@ public:
     // Fill the top two thirds of the attribute file with the value given.
     void fillTopTwoThirdsOfAttributeFileWith(uint8_t byte);
 
+    uint8_t Speccy_readScreen(int address);
+
+    void Speccy_writeScreen(int address, uint8_t byte);
+
+    uint8_t Speccy_readAttribute(int address);
+
 
     /*
      * Utility functions to help porting from Z80 to C
@@ -184,12 +190,6 @@ uint8_t Speccy_readNewScreen(int address);
 //
 // Screen/Attribute access
 //
-
-uint8_t Speccy_readScreen(int address);
-
-void Speccy_writeScreen(int address, uint8_t byte);
-
-uint8_t Speccy_readAttribute(int address);
 
 void Speccy_writeAttribute(int address, uint8_t byte);
 
