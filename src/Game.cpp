@@ -268,7 +268,7 @@ bool Game_play() {
             }
         }
 
-        Speccy_tick();
+        speccy.tick();
     }
 
     // return, but don't quit!
@@ -480,7 +480,7 @@ void ENDGAM() {
         Speccy_fillTopTwoThirdsOfAttributeFileWith(distance);
         window.instance().redraw();
 
-        Speccy_tick();
+        speccy.tick();
     }
 
     // Now print the "Game Over" message, just to drive the point home.
@@ -1419,7 +1419,7 @@ void Game_play_intro() {
 
         // Pause for about 0.1s
         millisleep(30);
-        Speccy_tick();
+        speccy.tick();
 
         // Is ENTER being pressed? If so, start the game.
         if (window.instance().getKey() == MM_KEY_ENTER) {

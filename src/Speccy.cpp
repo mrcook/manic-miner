@@ -5,30 +5,28 @@
 #include "Helpers.h"
 #include "Globals.h"
 
-// Initialize the speccy framework (FPS, etc.)
-void Speccy_initialize(int fps) {
+void Speccy::initialize(int fps) {
     // The number of millisecond ticks per frame
-    speccy.frameTick = 1000 / fps;
+    frameTick = 1000 / fps;
 }
 
-// Tick the world over.
-// Call this whenever the display needs updating or FPS syncing.
-void Speccy_tick() {
+void Speccy::tick() {
     static int sleep_time = 0;
     static int nextFrameTick = 0;
 
-    nextFrameTick += speccy.frameTick;
+    nextFrameTick += frameTick;
 
     sleep_time = nextFrameTick - getTickCount();
 
-    if (sleep_time > speccy.frameTick) {
-        sleep_time = speccy.frameTick;
+    if (sleep_time > frameTick) {
+        sleep_time = frameTick;
     }
 
     if (sleep_time >= 0) {
         millisleep(sleep_time);
     }
 }
+
 
 /*
  * NewScreen format functions
@@ -235,21 +233,19 @@ void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len) {
 // Sound and border functions
 //
 
-// Split a Spectrum attribute byte into it's colour parts
-// Extract the ink, paper, brightness values from the attribute
-void Speccy_splitColorAttribute(uint8_t attribute, Colour *colour) {
-    // Flashing uses bit value 128, save as boolean
-    colour->flash = (attribute & 128) != 0;
+uint8_t Speccy::IN(uint16_t addr) {
+    addr = 0; // prevents compiler error
 
-    // Brightness uses bit value 64, save as boolean
-    colour->BRIGHT = (attribute & 64) != 0;
-
-    // Ink uses bit values 1,2,4 (0-7)
-    colour->INK = (uint8_t) (attribute & 7);
-
-    // Paper uses bit values 8,16,32 (56-63), and shift right to be 0-7
-    colour->PAPER = (uint8_t) ((attribute >> 3) & 7);
+    // get keyboard input values
+    return 0;
 }
+
+void Speccy::OUT(uint8_t value) {
+    value = 0; // prevents compiler error
+
+    // output the sound, border colour!
+}
+
 
 void Speccy_setBorderColour(uint8_t colour) {
     Speccy::OUT(colour);
@@ -267,10 +263,6 @@ void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
     }
 }
 
-
-//
-// Utility functions
-//
 
 // Print a ZX Spectrum font characters to the display file
 void printFontCharacterAt(char ch, uint16_t address) {
@@ -290,7 +282,7 @@ void writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
 
     uint8_t attribute = getAttrFromAttributesFile(newScreenAddress);
 
-    Speccy_splitColorAttribute(attribute, &colour);
+    Speccy::splitColorAttribute(attribute, &colour);
 
     uint8_t brightness = (uint8_t) (colour.BRIGHT ? 64 : 0);
 
@@ -319,3 +311,58 @@ uint8_t getAttrFromAttributesFile(int pixelAddress) {
     return speccy.memory[22528 + rowOffset + column];
 }
 
+
+//
+// Utility functions to help porting from Z80 to C
+//
+
+// Handy function to convert a byte to an array of bits,
+// so you can more easily create pixel based graphics.
+void Speccy::byteToBits(uint8_t byte, uint8_t *bits) {
+    for (int i = 0; i < 8; i++) {
+        if (byte & (1 << i)) {
+            bits[i] = 1;
+        } else {
+            bits[i] = 0;
+        }
+    }
+}
+
+// Split a uint16_t memory address into its MSB and LSB values
+void Speccy::splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
+    *lsb = (uint8_t) (addr & 0xFF);
+    *msb = (uint8_t) (addr >> 8);
+}
+
+// Build a uint16_t memory address from the MSB and LSB values
+uint16_t Speccy::buildAddress(uint8_t msb, uint8_t lsb) {
+    return (msb << 8) | lsb;
+}
+
+// Rotate left n places
+uint8_t Speccy::rotL(uint8_t a, uint8_t n) {
+    assert (n > 0 && n < 8);
+    return (a << n) | (a >> (8 - n));
+}
+
+// Rotate right n places
+uint8_t Speccy::rotR(uint8_t a, uint8_t n) {
+    assert (n > 0 && n < 8);
+    return (a >> n) | (a << (8 - n));
+}
+
+// Split a Spectrum attribute byte into it's colour parts
+// Extract the ink, paper, brightness values from the attribute
+void Speccy::splitColorAttribute(uint8_t attribute, Colour *colour) {
+    // Flashing uses bit value 128, save as boolean
+    colour->flash = (attribute & 128) != 0;
+
+    // Brightness uses bit value 64, save as boolean
+    colour->BRIGHT = (attribute & 64) != 0;
+
+    // Ink uses bit values 1,2,4 (0-7)
+    colour->INK = (uint8_t) (attribute & 7);
+
+    // Paper uses bit values 8,16,32 (56-63), and shift right to be 0-7
+    colour->PAPER = (uint8_t) ((attribute >> 3) & 7);
+}

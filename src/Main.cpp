@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         return (0);
     }
 
-    Speccy_initialize(fps);
+    speccy.initialize(fps);
     window.instance().initialize();
     Game_initialize(cheat, teleport);
 

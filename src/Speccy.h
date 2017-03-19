@@ -60,6 +60,12 @@ public:
     // contains data for each pixel, not byte character
     uint8_t newScreen[SCREEN_SIZE * 8];
 
+    // Initialize the speccy framework (FPS, etc.)
+    void initialize(int fps);
+
+    // Tick the world over.
+    // Call this whenever the display needs updating or FPS syncing.
+    void tick();
 
     // IN from Keyboard and Joystick
     // IN 65278 reads the half row CAPS SHIFT to V
@@ -72,65 +78,43 @@ public:
     // IN 32766 reads the half row SPACE to B
     //
     // IN 254   reads every row of keys
-    static uint8_t IN(uint16_t addr) {
-        addr = 0; // prevents compiler error
-
-        // get keyboard input values
-        return 0;
-    }
+    static uint8_t IN(uint16_t addr);
 
     // OUT(254) border/sound output.
-    static void OUT(uint8_t value) {
-        value = 0; // prevents compiler error
+    static void OUT(uint8_t value);
 
-        // output the sound, border colour!
-    }
+    static uint8_t Font[96][8];
 
+    /*
+     * Utility functions to help porting from Z80 to C
+     *
+     *   - Manipulating Address values (split/join MSB and LSB)
+     *   - Converting Display butes to pixels
+     *   - Bit shift/rotate uint8_t values
+     *   - Manipulate Attribute bytes (split out colours)
+     */
 
     // Handy function to convert a byte to an array of bits,
     // so you can more easily create pixel based graphics.
-    static void byteToBits(uint8_t byte, uint8_t *bits) {
-        for (int i = 0; i < 8; i++) {
-            if (byte & (1 << i)) {
-                bits[i] = 1;
-            } else {
-                bits[i] = 0;
-            }
-        }
-    }
+    static void byteToBits(uint8_t byte, uint8_t *bits);
 
     // Split a uint16_t memory address into its MSB and LSB values
-    static void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
-        *lsb = (uint8_t) (addr & 0xFF);
-        *msb = (uint8_t) (addr >> 8);
-    }
+    static void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb);
 
     // Build a uint16_t memory address from the MSB and LSB values
-    static uint16_t buildAddress(uint8_t msb, uint8_t lsb) {
-        return (msb << 8) | lsb;
-    }
+    static uint16_t buildAddress(uint8_t msb, uint8_t lsb);
 
     // Rotate left n places
-    static uint8_t rotL(uint8_t a, uint8_t n) {
-        assert (n > 0 && n < 8);
-        return (a << n) | (a >> (8 - n));
-    }
+    static uint8_t rotL(uint8_t a, uint8_t n);
 
     // Rotate right n places
-    static uint8_t rotR(uint8_t a, uint8_t n) {
-        assert (n > 0 && n < 8);
-        return (a >> n) | (a << (8 - n));
-    }
+    static uint8_t rotR(uint8_t a, uint8_t n);
 
-    static uint8_t Font[96][8];
+    // Split a Spectrum attribute byte into it's colour parts
+    // Extract the ink, paper, brightness values from the attribute
+    static void splitColorAttribute(uint8_t attribute, Colour *colour);
 };
 
-// Initialize the speccy framework (FPS, etc.)
-void Speccy_initialize(int fps);
-
-// Tick the world over.
-// Call this whenever the display needs updating or FPS syncing.
-void Speccy_tick(void);
 
 /*
  * NewScreen format functions
@@ -199,9 +183,6 @@ void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len);
 //
 // Sound and border functions
 //
-
-// Split a Spectrum attribute byte into it's colour parts
-void Speccy_splitColorAttribute(uint8_t attribute, Colour *colour);
 
 void Speccy_setBorderColour(uint8_t colour);
 
