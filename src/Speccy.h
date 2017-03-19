@@ -67,13 +67,14 @@ public:
     // Call this whenever the display needs updating or FPS syncing.
     void tick();
 
-    // General memory read/write. Use as needed.
+    // General memory read.
     uint8_t readMemory(int address);
 
+    // General memory write.
     void writeMemory(int address, uint8_t byte);
 
     //
-    // Input/Output functions
+    // Core Input/Output functions
     //
 
     void setBorderColour(uint8_t colour);
@@ -126,7 +127,7 @@ public:
 
     // Split a Spectrum attribute byte into it's colour parts
     // Extract the ink, paper, brightness values from the attribute
-    static void splitColorAttribute(uint8_t attribute, Colour *colour);
+    static void splitColourAttribute(uint8_t attribute, Colour *colour);
 };
 
 
@@ -184,13 +185,6 @@ void Speccy_printMessage(void *msg, uint16_t address, uint8_t len);
 
 // Draw a sprite item to the given screen address
 void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len);
-
-//
-// Utility functions
-//
-
-void splitColourAttribute(uint8_t attribute, Colour *colour);
-
 
 void printFontCharacterAt(char ch, uint16_t address);
 

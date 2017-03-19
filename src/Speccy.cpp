@@ -28,6 +28,62 @@ void Speccy::tick() {
 }
 
 
+//
+// General memory access
+//
+
+uint8_t Speccy::readMemory(int address) {
+    if (address < 0 && address >= (int) (sizeof(memory) / sizeof(uint8_t))) {
+        exit(-1);
+    }
+
+    return memory[address];
+}
+
+void Speccy::writeMemory(int address, uint8_t byte) {
+    if (address < 0 && address >= (int) (sizeof(memory) / sizeof(uint8_t))) {
+        exit(-1);
+    }
+
+    memory[address] = byte;
+}
+
+
+//
+// Core Input/Output functions
+//
+
+uint8_t Speccy::IN(uint16_t addr) {
+    addr = 0; // prevents compiler error
+
+    // get keyboard input values
+    return 0;
+}
+
+void Speccy::OUT(uint8_t value) {
+    value = 0; // prevents compiler error
+
+    // output the sound, border colour!
+}
+
+void Speccy::setBorderColour(uint8_t colour) {
+    Speccy::OUT(colour);
+}
+
+// The Spectrum uses OUT to make a sound, but here we use a custom function
+void Speccy::makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
+    delay = 0; // prevents compiler error
+
+    // Real speccy does something like this
+    for (int d = duration; d > 0; d--) {
+        Speccy::OUT(pitch);
+        pitch ^= 24;
+        // millisleep(delay);
+    }
+}
+
+
+
 /*
  * NewScreen format functions
  *
@@ -87,26 +143,6 @@ uint8_t Speccy_readNewScreen(int address) {
     return speccy.newScreen[address];
 }
 
-//
-// General memory access
-//
-
-// General memory read/write. Use as needed.
-uint8_t Speccy::readMemory(int address) {
-    if (address < 0 && address >= (int) (sizeof(memory) / sizeof(uint8_t))) {
-        exit(-1);
-    }
-
-    return memory[address];
-}
-
-void Speccy::writeMemory(int address, uint8_t byte) {
-    if (address < 0 && address >= (int) (sizeof(memory) / sizeof(uint8_t))) {
-        exit(-1);
-    }
-
-    memory[address] = byte;
-}
 
 //
 // Screen/Attribute access
@@ -152,52 +188,19 @@ void Speccy_fillTopTwoThirdsOfAttributeFileWith(uint8_t byte) {
 }
 
 uint8_t Speccy_readScreen(int address) {
-    // FIXME: some calls go direct to Display File, others to Buffers,
-    // so we must use normal memory for now!
     return speccy.readMemory(address);
-
-//    if (address < 16384 && address >= 22528) {
-//        exit(-1);
-//    }
-//
-//    return speccy.screen[address - 16384];
 }
 
 void Speccy_writeScreen(int address, uint8_t byte) {
-    // FIXME: some calls go direct to Display File, others to Buffers,
-    // so we must use normal memory for now!
     speccy.writeMemory(address, byte);
-    return;
-
-//    if (address < 16384 && address >= 22528) {
-//        exit(-1);
-//    }
-//
-//    speccy.screen[address - 16384] = byte;
 }
 
 uint8_t Speccy_readAttribute(int address) {
-    // FIXME: some calls go direct to Display File, others to Buffers,
-    // so we must use normal memory for now!
     return speccy.readMemory(address);
-
-//    if (address < 22528 && address >= 23296) {
-//        exit(-1);
-//    }
-//
-//    return speccy.attributes[address - 22528];
 }
 
 void Speccy_writeAttribute(int address, uint8_t byte) {
-    // FIXME: some calls go direct to Display File, others to Buffers,
-    // so we must use normal memory for now!
     speccy.writeMemory(address, byte);
-    return;
-
-//    if (address < 22528 && address >= 23296) {
-//        exit(-1);
-//    }
-//    speccy.attributes[address - 22528] = byte;
 }
 
 
@@ -228,41 +231,6 @@ void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len) {
     }
 }
 
-
-//
-// Input/Output functions
-//
-
-uint8_t Speccy::IN(uint16_t addr) {
-    addr = 0; // prevents compiler error
-
-    // get keyboard input values
-    return 0;
-}
-
-void Speccy::OUT(uint8_t value) {
-    value = 0; // prevents compiler error
-
-    // output the sound, border colour!
-}
-
-void Speccy::setBorderColour(uint8_t colour) {
-    Speccy::OUT(colour);
-}
-
-// The Spectrum uses OUT to make a sound, but here we use a custom function
-void Speccy::makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
-    delay = 0; // prevents compiler error
-
-    // Real speccy does something like this
-    for (int d = duration; d > 0; d--) {
-        Speccy::OUT(pitch);
-        pitch ^= 24;
-        // millisleep(delay);
-    }
-}
-
-
 // Print a ZX Spectrum font characters to the display file
 void printFontCharacterAt(char ch, uint16_t address) {
     // Get the character bitmap ID (in the ROM)
@@ -281,7 +249,7 @@ void writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
 
     uint8_t attribute = getAttrFromAttributesFile(newScreenAddress);
 
-    Speccy::splitColorAttribute(attribute, &colour);
+    Speccy::splitColourAttribute(attribute, &colour);
 
     uint8_t brightness = (uint8_t) (colour.BRIGHT ? 64 : 0);
 
@@ -352,7 +320,7 @@ uint8_t Speccy::rotR(uint8_t a, uint8_t n) {
 
 // Split a Spectrum attribute byte into it's colour parts
 // Extract the ink, paper, brightness values from the attribute
-void Speccy::splitColorAttribute(uint8_t attribute, Colour *colour) {
+void Speccy::splitColourAttribute(uint8_t attribute, Colour *colour) {
     // Flashing uses bit value 128, save as boolean
     colour->flash = (attribute & 128) != 0;
 
