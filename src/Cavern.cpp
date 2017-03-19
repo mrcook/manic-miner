@@ -395,7 +395,7 @@ void Cavern::moveConveyorBelts() {
     if (CONVEYOR.CONVDIR == 0) {
         // Copy the first pixel row of the conveyor tile to A.
         // Rotate it left twice
-        pixels_a = Speccy::rotL(Speccy_read(row_hl), 2);
+        pixels_a = Speccy::rotL(speccy.readMemory(row_hl), 2);
 
         // Point HL at the third pixel row of the conveyor tile.
         Speccy::splitAddress(row_hl, &h, &l);
@@ -403,12 +403,12 @@ void Cavern::moveConveyorBelts() {
         row_hl = Speccy::buildAddress(h, l);
 
         // Copy this pixel row to C
-        pixels_c = Speccy::rotR(Speccy_read(row_hl), 2);
+        pixels_c = Speccy::rotR(speccy.readMemory(row_hl), 2);
     } else {
         // The conveyor is moving right.
 
         // Copy the first pixel row of the conveyor tile to A.
-        pixels_a = Speccy::rotR(Speccy_read(row_hl), 2);
+        pixels_a = Speccy::rotR(speccy.readMemory(row_hl), 2);
 
         // Point HL at the third pixel row of the conveyor tile.
         Speccy::splitAddress(row_hl, &h, &l);
@@ -416,13 +416,13 @@ void Cavern::moveConveyorBelts() {
         row_hl = Speccy::buildAddress(h, l);
 
         // Copy this pixel row to C.
-        pixels_c = Speccy::rotL(Speccy_read(row_hl), 2);
+        pixels_c = Speccy::rotL(speccy.readMemory(row_hl), 2);
     }
 
     for (int b = CONVEYOR.CONVLEN; b > 0; b--) {
         // Update the first and third pixel rows of every conveyor tile in the screen buffer at 28672.
-        Speccy_write(row_de, pixels_a);
-        Speccy_write(row_hl, pixels_c);
+        speccy.writeMemory(row_de, pixels_a);
+        speccy.writeMemory(row_hl, pixels_c);
 
         Speccy::splitAddress(row_hl, &h, &l);
         l++;

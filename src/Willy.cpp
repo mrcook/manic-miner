@@ -43,7 +43,7 @@ bool Willy_updateJumpingState() {
     uint16_t location = Willy_adjustAttributes(willy.PIXEL_Y);
 
     // Is the top-left or top-right cell of Willy's sprite overlapping a wall tile?
-    if (Speccy_read(location) == cavern.WALL.id || Speccy_read(location + 1) == cavern.WALL.id) {
+    if (speccy.readMemory(location) == cavern.WALL.id || speccy.readMemory(location + 1) == cavern.WALL.id) {
         Willy_hitsWall();
         return true;
     }
@@ -72,10 +72,10 @@ bool Willy_updateJumpingState() {
 
     // Pick up the border colour for the current cavern.
     uint8_t border = cavern.BORDER;
-    Speccy_setBorderColour(border);
+    speccy.setBorderColour(border);
 
     // C=32; this value determines the duration of the jumping sound effect.
-    Speccy_makeSound(border, 32, delay);
+    speccy.makeSound(border, 32, delay);
 
     // Jumping animation counter will have a value of 1-18.
     // Has Willy reached the end of the jump? Is the jumping animation counter now 16 or 13?
@@ -165,7 +165,7 @@ bool Willy_gerUserInputAndMove(int keyIntput, uint16_t addr) {
 
     uint8_t converyor_dir = 255;
     // Does the attribute byte of the left or right hand cell below Willy's sprite match that of the conveyor tile?
-    if (Speccy_read(addr) == cavern.CONVEYOR.id || Speccy_read(addr + 1) == cavern.CONVEYOR.id) {
+    if (speccy.readMemory(addr) == cavern.CONVEYOR.id || speccy.readMemory(addr + 1) == cavern.CONVEYOR.id) {
         // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
         // Now E=253 (bit 1 reset) if the conveyor is moving left, or 254 (bit 0 reset) if it's moving right
         // input = (uint8_t) (cavern.CONVEYOR.CONVDIR - 3);
@@ -274,7 +274,7 @@ void Willy_moveWillyLeft() {
     // Pick up the attribute byte of the wall tile for the current cavern.
     // Is there a wall tile in the cell pointed to?
     // Return if so, without moving Willy (his path is blocked).
-    if (Speccy_read(addr) == cavern.WALL.id) {
+    if (speccy.readMemory(addr) == cavern.WALL.id) {
         return;
     }
 
@@ -284,7 +284,7 @@ void Willy_moveWillyLeft() {
         // Point to the cell at (x-1,y+2).
         // Is there a wall tile in the cell pointed to?
         // Return if so without moving Willy (his path is blocked).
-        if (Speccy_read(addr + 32) == cavern.WALL.id) {
+        if (speccy.readMemory(addr + 32) == cavern.WALL.id) {
             return;
         }
     }
@@ -296,7 +296,7 @@ void Willy_moveWillyLeft() {
 
     // Is there a wall tile in the cell pointed to?
     // Return if so without moving Willy (his path is blocked).
-    if (Speccy_read(addr) == cavern.WALL.id) {
+    if (speccy.readMemory(addr) == cavern.WALL.id) {
         return;
     }
 
@@ -330,7 +330,7 @@ void Willy_moveRight() {
 
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked).
-    if (Speccy_read(addr) == cavern.WALL.id) {
+    if (speccy.readMemory(addr) == cavern.WALL.id) {
         return;
     }
 
@@ -340,7 +340,7 @@ void Willy_moveRight() {
         // Point HL at the cell at (x+2,y+2).
         // Is there a wall tile in the cell pointed to by HL?
         // Return if so without moving Willy (his path is blocked).
-        if (Speccy_read(addr + 32) == cavern.WALL.id) {
+        if (speccy.readMemory(addr + 32) == cavern.WALL.id) {
             return;
         }
     }
@@ -349,7 +349,7 @@ void Willy_moveRight() {
 
     // Is there a wall tile in the cell pointed to by HL?
     // Return if so without moving Willy (his path is blocked).
-    if (Speccy_read(addr) == cavern.WALL.id) {
+    if (speccy.readMemory(addr) == cavern.WALL.id) {
         return;
     }
 
@@ -452,7 +452,7 @@ bool Willy_checkAttrs() {
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool Willy_setAttrByte(uint16_t addr, uint8_t pix_y) {
     // Does this cell contain a background tile?
-    if (Speccy_read(addr) == cavern.BACKGROUND.id) {
+    if (speccy.readMemory(addr) == cavern.BACKGROUND.id) {
         // Set the zero flag if we are going to retain the INK colour in this cell;
         // this happens only if the cell is in the bottom row and Willy's sprite
         // is confined to the top two rows.
@@ -462,13 +462,13 @@ bool Willy_setAttrByte(uint16_t addr, uint8_t pix_y) {
             // Pick up the attribute byte of the BACKGROUND tile.
             // Set bits 0-2, making the INK white.
             // Set the attribute byte for this cell in the buffer at 23552.
-            Speccy_write(addr, (uint8_t) (cavern.BACKGROUND.id | 7));
+            speccy.writeMemory(addr, (uint8_t) (cavern.BACKGROUND.id | 7));
         }
     }
 
     // Pick up the attribute byte of the nasty tiles for the current cavern.
     // Has Willy hit a NASTY1 or NASTY2 kind? Kill Willy if so.
-    if (Speccy_read(addr) == cavern.NASTY1.id || Speccy_read(addr) == cavern.NASTY2.id) {
+    if (speccy.readMemory(addr) == cavern.NASTY1.id || speccy.readMemory(addr) == cavern.NASTY2.id) {
         Willy_kill();
         return true;
     }
@@ -503,7 +503,7 @@ void Willy_draw() {
         uint16_t addr = Speccy::buildAddress(h, l | pix_x);
 
         // Merge the sprite byte with the background.
-        Speccy_write(addr, willy.sprites[frame] | Speccy_read(addr));
+        speccy.writeMemory(addr, willy.sprites[frame] | speccy.readMemory(addr));
 
         // Move HL along to the next cell to the right.
         addr++;
@@ -512,7 +512,7 @@ void Willy_draw() {
         frame++;
 
         // Merge the sprite byte with the background.
-        Speccy_write(addr, willy.sprites[frame] | Speccy_read(addr));
+        speccy.writeMemory(addr, willy.sprites[frame] | speccy.readMemory(addr));
 
         // Point to the next entry in the screen buffer address lookup table at SBUFADDRS.
         pix_y += 1;

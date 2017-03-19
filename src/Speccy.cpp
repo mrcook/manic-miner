@@ -92,20 +92,20 @@ uint8_t Speccy_readNewScreen(int address) {
 //
 
 // General memory read/write. Use as needed.
-uint8_t Speccy_read(int address) {
-    if (address < 0 && address >= (int) (sizeof(speccy.memory) / sizeof(uint8_t))) {
+uint8_t Speccy::readMemory(int address) {
+    if (address < 0 && address >= (int) (sizeof(memory) / sizeof(uint8_t))) {
         exit(-1);
     }
 
-    return speccy.memory[address];
+    return memory[address];
 }
 
-void Speccy_write(int address, uint8_t byte) {
-    if (address < 0 && address >= (int) (sizeof(speccy.memory) / sizeof(uint8_t))) {
+void Speccy::writeMemory(int address, uint8_t byte) {
+    if (address < 0 && address >= (int) (sizeof(memory) / sizeof(uint8_t))) {
         exit(-1);
     }
 
-    speccy.memory[address] = byte;
+    memory[address] = byte;
 }
 
 //
@@ -154,7 +154,7 @@ void Speccy_fillTopTwoThirdsOfAttributeFileWith(uint8_t byte) {
 uint8_t Speccy_readScreen(int address) {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
-    return Speccy_read(address);
+    return speccy.readMemory(address);
 
 //    if (address < 16384 && address >= 22528) {
 //        exit(-1);
@@ -166,7 +166,7 @@ uint8_t Speccy_readScreen(int address) {
 void Speccy_writeScreen(int address, uint8_t byte) {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
-    Speccy_write(address, byte);
+    speccy.writeMemory(address, byte);
     return;
 
 //    if (address < 16384 && address >= 22528) {
@@ -179,7 +179,7 @@ void Speccy_writeScreen(int address, uint8_t byte) {
 uint8_t Speccy_readAttribute(int address) {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
-    return Speccy_read(address);
+    return speccy.readMemory(address);
 
 //    if (address < 22528 && address >= 23296) {
 //        exit(-1);
@@ -191,7 +191,7 @@ uint8_t Speccy_readAttribute(int address) {
 void Speccy_writeAttribute(int address, uint8_t byte) {
     // FIXME: some calls go direct to Display File, others to Buffers,
     // so we must use normal memory for now!
-    Speccy_write(address, byte);
+    speccy.writeMemory(address, byte);
     return;
 
 //    if (address < 22528 && address >= 23296) {
@@ -219,7 +219,7 @@ void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len) {
 
     // Copy character data to the screen
     for (int i = 0; i < len; i++) {
-        Speccy_write(address, chr[i]);
+        speccy.writeMemory(address, chr[i]);
 
         // increment address to next pixel row
         Speccy::splitAddress(address, &msb, &lsb);
@@ -230,7 +230,7 @@ void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len) {
 
 
 //
-// Sound and border functions
+// Input/Output functions
 //
 
 uint8_t Speccy::IN(uint16_t addr) {
@@ -246,20 +246,19 @@ void Speccy::OUT(uint8_t value) {
     // output the sound, border colour!
 }
 
-
-void Speccy_setBorderColour(uint8_t colour) {
+void Speccy::setBorderColour(uint8_t colour) {
     Speccy::OUT(colour);
 }
 
 // The Spectrum uses OUT to make a sound, but here we use a custom function
-void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
+void Speccy::makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
     delay = 0; // prevents compiler error
 
     // Real speccy does something like this
     for (int d = duration; d > 0; d--) {
         Speccy::OUT(pitch);
         pitch ^= 24;
-//        millisleep(delay);
+        // millisleep(delay);
     }
 }
 

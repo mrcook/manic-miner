@@ -27,7 +27,7 @@ bool KONGBEAST() {
 
     // Has the switch been flipped?
     // FIXME: Blank Screen Buffer: Screen File = 17670
-    if (Speccy_read(29958) != 16) {
+    if (speccy.readMemory(29958) != 16) {
         return KONGBEAST_8(); // return dead-ness state of Willy! -MRC-
     }
 
@@ -36,7 +36,7 @@ bool KONGBEAST() {
     // Pick up the attribute byte of the tile at (11,17) in the buffer at 24064.
     // Has the wall there been removed yet?
     // FIXME: Blank Screen Buffer: Screen File = 22897
-    if (Speccy_read(24433) != 0) {
+    if (speccy.readMemory(24433) != 0) {
         // Point HL at the bottom row of pixels of the wall tile at (11,17) in the screen buffer at 28672.
         // FIXME: Blank Screen Buffer: Screen File = 20337
         addr = 32625;
@@ -45,9 +45,9 @@ bool KONGBEAST() {
             Speccy::splitAddress(addr, &msb, &lsb);
 
             // Pick up a pixel row. Is it blank yet?
-            if (Speccy_read(addr) != 0) {
+            if (speccy.readMemory(addr) != 0) {
                 // Clear a pixel row of the wall tile at (11,17) in the screen buffer at 28672.
-                Speccy_write(addr, 0);
+                speccy.writeMemory(addr, 0);
 
                 // Point HL at the opposite pixel row of the wall tile one cell down at (12,17).
                 lsb = 145;
@@ -55,7 +55,7 @@ bool KONGBEAST() {
                 addr = Speccy::buildAddress(msb, lsb);
 
                 // Clear that pixel row as well.
-                Speccy_write(addr, 0);
+                speccy.writeMemory(addr, 0);
 
                 break;
             }
@@ -75,14 +75,14 @@ bool KONGBEAST() {
         // Change the attributes at (11,17) and (12,17) in the buffer at 24064.
         // to match the background tile (the wall there is now gone).
         // FIXME: Blank Screen Buffer: Screen File = 22897
-        Speccy_write(24433, cavern.BACKGROUND.id);
+        speccy.writeMemory(24433, cavern.BACKGROUND.id);
         // FIXME: Blank Screen Buffer: Screen File = 22929
-        Speccy_write(24465, cavern.BACKGROUND.id);
+        speccy.writeMemory(24465, cavern.BACKGROUND.id);
 
         // FIXME: I guess we need to update HGUARD2 directly rather than this memeory address.
         // Update the seventh byte of the guardian definition at HGUARD2 so
         // that the guardian moves through the opening in the wall.
-        Speccy_write(32971, 114);
+        speccy.writeMemory(32971, 114);
     }
 
     // Now check the right-hand switch.
@@ -100,9 +100,9 @@ bool KONGBEAST() {
         // Change the attributes of the floor beneath the Kong Beast in the
         // buffer at 24064 to match that of the background tile.
         // FIXME: Blank Screen Buffer: Screen File = 22607
-        Speccy_write(24143, cavern.BACKGROUND.id);
+        speccy.writeMemory(24143, cavern.BACKGROUND.id);
         // FIXME: Blank Screen Buffer: Screen File = 16463
-        Speccy_write(24144, cavern.BACKGROUND.id);
+        speccy.writeMemory(24144, cavern.BACKGROUND.id);
 
         // Point HL at (2,15) in the screen buffer at 28672.
         // FIXME: Blank Screen Buffer: Screen File = 22608
@@ -111,10 +111,10 @@ bool KONGBEAST() {
         // Clear the cells at (2,15) and (2,16), removing the floor beneath the Kong Beast.
         for (int i = 8; i > 0; i--) {
             Speccy::splitAddress(addr, &msb, &lsb);
-            Speccy_write(addr, 0);
+            speccy.writeMemory(addr, 0);
             lsb++;
             addr = Speccy::buildAddress(msb, lsb);
-            Speccy_write(addr, 0);
+            speccy.writeMemory(addr, 0);
             lsb--;
             msb++;
             addr = Speccy::buildAddress(msb, lsb);
@@ -213,11 +213,11 @@ bool KONGBEAST_8() {
     // A=68 (INK 4: PAPER 0: BRIGHT 1).
     // Set the attribute bytes for the Kong Beast in the buffer at 23552.
     // FIXME: Screen Buffer: Screen File = 22575
-    Speccy_write(23599, 68);
-    Speccy_write(23600, 68);
+    speccy.writeMemory(23599, 68);
+    speccy.writeMemory(23600, 68);
     // FIXME: Screen Buffer: Screen File = 22543
-    Speccy_write(23567, 68);
-    Speccy_write(23568, 68);
+    speccy.writeMemory(23567, 68);
+    speccy.writeMemory(23568, 68);
 
     return false; // NOTE: willy is not dead.
 }
@@ -255,7 +255,7 @@ bool CHKSWITCH(uint16_t addr) {
 
     // Has the switch already been flipped?
     // Return (with the zero flag reset) if so.
-    if (Speccy_read(addr) == cavern.EXTRA.id) {
+    if (speccy.readMemory(addr) == cavern.EXTRA.id) {
         return true;
     }
 
@@ -263,13 +263,13 @@ bool CHKSWITCH(uint16_t addr) {
 
     // Update the sixth, seventh and eighth rows of pixels of the switch tile
     // in the screen buffer at 28672 to make it appear flipped.
-    Speccy_write(addr, 8);
+    speccy.writeMemory(addr, 8);
     sw_msb++;
     addr = Speccy::buildAddress(sw_msb, sw_lsb);
-    Speccy_write(addr, 6);
+    speccy.writeMemory(addr, 6);
     sw_msb++;
     addr = Speccy::buildAddress(sw_msb, sw_lsb);
-    Speccy_write(addr, 6);
+    speccy.writeMemory(addr, 6);
 
     // Return true: Willy has flipped the switch.
     return true;

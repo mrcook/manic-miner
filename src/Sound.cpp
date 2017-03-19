@@ -32,7 +32,7 @@ bool PLAYTUNE() {
         addr = PIANOKEY(freq1);
 
         // Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1).
-        Speccy_write(addr, 80);
+        speccy.writeMemory(addr, 80);
 
         // Pick up the third byte of data for this note.
         freq2 = note[2];
@@ -44,7 +44,7 @@ bool PLAYTUNE() {
         addr = PIANOKEY(freq2);
 
         // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0).
-        Speccy_write(addr, 40);
+        speccy.writeMemory(addr, 40);
 
         for (uint8_t d = note[0]; d > 0; d--) {
             // Produce a sound based on the frequency parameters in the second
@@ -76,14 +76,14 @@ bool PLAYTUNE() {
         addr = PIANOKEY(note[1]);
 
         // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0).
-        Speccy_write(addr, 56);
+        speccy.writeMemory(addr, 56);
 
         // Pick up the third byte of data for this note.
         // Calculate the attribute file address for the corresponding piano key.
         addr = PIANOKEY(note[2]);
 
         // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0).
-        Speccy_write(addr, 56);
+        speccy.writeMemory(addr, 56);
     }
 
     return false;

@@ -348,7 +348,7 @@ void flashScreen() {
         // Set every attribute byte in the buffer at 23552 to this value.
         // FIXME: Uses Attr Buffer: Attr File= 22528
         for (int i = 0; i < 512; i++) {
-            Speccy_write(23552 + i, new_flash_value);
+            speccy.writeMemory(23552 + i, new_flash_value);
         }
 
         window.instance().redraw();
@@ -397,8 +397,8 @@ bool MANDEAD() {
         // Set A=0 (this will make the border black).
         uint8_t border = 0;
 
-        Speccy_setBorderColour(border);
-        Speccy_makeSound(pitch, duration, 1);
+        speccy.setBorderColour(border);
+        speccy.makeSound(pitch, duration, 1);
     }
 
     // Finally, check whether any lives remain.
@@ -462,10 +462,10 @@ void ENDGAM() {
         // Store this value (63-255) in E; it determines the (rising) pitch of
         // the sound effect that will be made.
         uint8_t border = 0; // (black border)
-        Speccy_setBorderColour(border);
+        speccy.setBorderColour(border);
 
         // C=64; this value determines the duration of the sound effect
-        // Speccy_makeSound(border, 64, (uint8_t)(distance / 216));
+        // speccy.makeSound(border, 64, (uint8_t)(distance / 216));
 
         // FIXME: delay would be in makeSound (which is wrong anyway),
         // so we must delay to get the correct boot descending effect.
@@ -581,7 +581,7 @@ void DRAWSHEET() {
         uint16_t row_addr = addr;
         for (int b = 0; b < 8; b++) {
             if (sprite != NULL) {
-                Speccy_write(row_addr + offset, sprite[b]);
+                speccy.writeMemory(row_addr + offset, sprite[b]);
             }
             Speccy::splitAddress(row_addr, &msb, &lsb);
             msb++;
@@ -605,7 +605,7 @@ void DRAWSHEET() {
         // of the screen buffer at 28672.
         // FIXME: Blank Screen Buffer: Screen File = 16384
         for (int i = 0; i <= 2048; i++) {
-            Speccy_write(28672 + i, TITLESCR1[i]);
+            speccy.writeMemory(28672 + i, TITLESCR1[i]);
         }
     }
 }
@@ -638,13 +638,13 @@ bool MOVEWILLY(int keyIntput) {
         // Pick up the attribute byte of the crumbling floor tile for the current cavern.
         // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
         // If so, make it crumble.
-        if (Speccy_read(addr) == cavern.CRUMBLING.id) {
+        if (speccy.readMemory(addr) == cavern.CRUMBLING.id) {
             CRUMBLE(addr);
         }
 
-        if (Speccy_read(addr) == cavern.NASTY1.id) {
+        if (speccy.readMemory(addr) == cavern.NASTY1.id) {
             // the left-hand cell below Willy's sprite contain a nasty tile.
-        } else if (Speccy_read(addr) == cavern.NASTY2.id) {
+        } else if (speccy.readMemory(addr) == cavern.NASTY2.id) {
             // the left-hand cell below Willy's sprite contain a nasty tile.
         } else {
             // Point to the right-hand cell below Willy's sprite
@@ -652,13 +652,13 @@ bool MOVEWILLY(int keyIntput) {
 
             // Pick up the attribute byte of the crumbling floor tile for the current cavern.
             // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
-            if (Speccy_read(addr) == cavern.CRUMBLING.id) {
+            if (speccy.readMemory(addr) == cavern.CRUMBLING.id) {
                 CRUMBLE(addr);
             }
 
-            if (Speccy_read(addr) == cavern.NASTY1.id) {
+            if (speccy.readMemory(addr) == cavern.NASTY1.id) {
                 // the right-hand cell below Willy's sprite contain a nasty tile.
-            } else if (Speccy_read(addr) == cavern.NASTY2.id) {
+            } else if (speccy.readMemory(addr) == cavern.NASTY2.id) {
                 // the right-hand cell below Willy's sprite contain a nasty tile.
             } else {
                 // Pick up the attribute byte of the background tile for the current cavern.
@@ -666,12 +666,12 @@ bool MOVEWILLY(int keyIntput) {
                 // Point HL at the left-hand cell below Willy's sprite.
 
                 // Is the right-hand cell below Willy's sprite empty?
-                if (Speccy_read(addr) != cavern.BACKGROUND.id) {
+                if (speccy.readMemory(addr) != cavern.BACKGROUND.id) {
                     return Willy_gerUserInputAndMove(keyIntput, addr);
                 }
                 addr--;
                 // Is the left-hand cell below Willy's sprite empty?
-                if (Speccy_read(addr) != cavern.BACKGROUND.id) {
+                if (speccy.readMemory(addr) != cavern.BACKGROUND.id) {
                     return Willy_gerUserInputAndMove(keyIntput, addr);
                 }
             }
@@ -704,10 +704,10 @@ bool MOVEWILLY(int keyIntput) {
 
     // Pick up the border colour for the current cavern.
     uint8_t border = cavern.BORDER;
-    Speccy_setBorderColour(border);
+    speccy.setBorderColour(border);
 
     // C=32; this value determines the duration of the falling sound effect.
-    Speccy_makeSound(pitch, 32, 1);
+    speccy.makeSound(pitch, 32, 1);
 
     // Add 8 to Willy's pixel y-coordinate at PIXEL_Y; this moves Willy downwards by 4 pixels.
     willy.PIXEL_Y += 8;
@@ -732,10 +732,10 @@ void CRUMBLE(uint16_t addr) {
     while (true) {
         // Collect the pixels from the row above.
         msb--;
-        uint8_t pixel = Speccy_read(Speccy::buildAddress(msb, lsb));
+        uint8_t pixel = speccy.readMemory(Speccy::buildAddress(msb, lsb));
 
         // Copy these pixels into the row below it. Point BC at the next row of pixels up.
-        Speccy_write(Speccy::buildAddress((uint8_t) (msb + 1), lsb), pixel);
+        speccy.writeMemory(Speccy::buildAddress((uint8_t) (msb + 1), lsb), pixel);
 
         // Have we dealt with the bottom seven pixel rows of the crumbling floor tile yet?
         // If not, jump back to deal with the next one up.
@@ -745,19 +745,19 @@ void CRUMBLE(uint16_t addr) {
     }
 
     // Clear the top row of pixels in the crumbling floor tile.
-    Speccy_write(Speccy::buildAddress(msb, lsb), 0);
+    speccy.writeMemory(Speccy::buildAddress(msb, lsb), 0);
 
     // Point to the bottom row of pixels in the crumbling floor tile.
     msb += 7;
 
     // Pick up the bottom row of pixels. Is the bottom row clear? Return if not.
-    if (Speccy_read(Speccy::buildAddress(msb, lsb)) != 0) {
+    if (speccy.readMemory(Speccy::buildAddress(msb, lsb)) != 0) {
         return;
     }
 
     // The bottom row of pixels in the crumbling floor tile is clear.
     // Time to put a background tile in its place.
-    Speccy_write(addr, cavern.BACKGROUND.id);
+    speccy.writeMemory(addr, cavern.BACKGROUND.id);
 }
 
 // Move and draw the light beam in Solar Power Generator.
@@ -772,14 +772,14 @@ void LIGHTBEAM() {
     // The beam-drawing loop begins here.
     while (true) {
         // Does HL point at a floor or wall tile? Return if so (the light beam stops here).
-        if (Speccy_read(addr) == cavern.FLOOR.id || Speccy_read(addr) == cavern.WALL.id) {
+        if (speccy.readMemory(addr) == cavern.FLOOR.id || speccy.readMemory(addr) == cavern.WALL.id) {
             return;
         }
 
         // A=39 (INK 7: PAPER 4)
         // Does HL point at a tile with this attribute value?
         // Jump if not (the light beam is not touching Willy).
-        if (Speccy_read(addr) == 39) {
+        if (speccy.readMemory(addr) == 39) {
             // Decrease the air supply by four units
             cavern.decreaseAir();
             cavern.decreaseAir();
@@ -788,7 +788,7 @@ void LIGHTBEAM() {
             // Jump forward to draw the light beam over Willy.
         } else {
             // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point).
-            if (Speccy_read(addr) == cavern.BACKGROUND.id) {
+            if (speccy.readMemory(addr) == cavern.BACKGROUND.id) {
                 // Toggle the value in DE between 32 and -1 (and therefore the direction of the light beam between
                 // vertically downwards and horizontally to the left): the light beam has hit a guardian.
                 dir ^= 223;
@@ -797,7 +797,7 @@ void LIGHTBEAM() {
         }
 
         // Draw a portion of the light beam with attribute value 119 (INK 7: PAPER 6: BRIGHT 1).
-        Speccy_write(addr, 119);
+        speccy.writeMemory(addr, 119);
 
         // Point HL at the cell where the next portion of the light beam will be drawn.
         addr += dir;
@@ -903,32 +903,32 @@ bool EUGENE() {
 // KONGBEAST:  to set the attributes for the Kong Beast.
 void EUGENE_3(uint16_t addr, uint8_t ink_colour) {
     // Save the INK colour in the attribute buffer temporarily.
-    Speccy_write(addr, ink_colour);
+    speccy.writeMemory(addr, ink_colour);
 
     // Pick up the attribute byte of the background tile for the current cavern.
     // Combine its PAPER colour with the chosen INK colour.
     // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552.
-    Speccy_write(addr, (uint8_t) ((cavern.BACKGROUND.id & 248) | Speccy_read(addr)));
+    speccy.writeMemory(addr, (uint8_t) ((cavern.BACKGROUND.id & 248) | speccy.readMemory(addr)));
 
     // Set the attribute byte for the top-right cell of the sprite in the attribute buffer at 23552.
     addr++;
-    Speccy_write(addr, ink_colour);
+    speccy.writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the middle-left cell of the sprite in the attribute buffer at 23552.
     addr += 31;
-    Speccy_write(addr, ink_colour);
+    speccy.writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the middle-right cell of the sprite in the attribute buffer at 23552.
     addr++;
-    Speccy_write(addr, ink_colour);
+    speccy.writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the bottom-left cell of the sprite in the attribute buffer at 23552.
     addr += 31;
-    Speccy_write(addr, ink_colour);
+    speccy.writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the bottom-right cell of the sprite in the attribute buffer at 23552.
     addr++;
-    Speccy_write(addr, ink_colour);
+    speccy.writeMemory(addr, ink_colour);
 }
 
 // Move and draw the Skylabs in Skylab Landing Bay.
@@ -1047,7 +1047,7 @@ void DRAWITEMS() {
 
         // Pick up the current attribute byte at the item's location.
         // Is the INK white (which happens if Willy is touching the item)?
-        if ((Speccy_read(addr) & 7) == 7) {
+        if ((speccy.readMemory(addr) & 7) == 7) {
             // Willy is touching this item, so add it to his collection.
 
             // Add 100 to the score.
@@ -1074,7 +1074,7 @@ void DRAWITEMS() {
             cavern.ITEMS[i].attribute = attribute;
 
             // Update the attribute byte at the item's location in the buffer at 23552.
-            Speccy_write(addr, attribute);
+            speccy.writeMemory(addr, attribute);
 
             // Store the new attribute byte at ITEMATTR as well.
             game.ITEMATTR = attribute;
@@ -1140,13 +1140,13 @@ bool CHKPORTAL() {
 
     // Pick up the portal's attribute byte from PORTAL.
     // Set the attribute bytes for the portal in the buffer at 23552.
-    Speccy_write(addr, cavern.portal.PORTAL);
+    speccy.writeMemory(addr, cavern.portal.PORTAL);
     addr++;
-    Speccy_write(addr, cavern.portal.PORTAL);
+    speccy.writeMemory(addr, cavern.portal.PORTAL);
     addr += 31;
-    Speccy_write(addr, cavern.portal.PORTAL);
+    speccy.writeMemory(addr, cavern.portal.PORTAL);
     addr++;
-    Speccy_write(addr, cavern.portal.PORTAL);
+    speccy.writeMemory(addr, cavern.portal.PORTAL);
 
     // Point DE at the graphic data for the portal at PORTALG.
     // Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2.
@@ -1527,14 +1527,14 @@ void copyScrBufToDisplayFile() {
     // Copy the contents of the screen buffer at 24576 to the display file.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-        Speccy_writeScreen(16384 + i, Speccy_read(24576 + i));
+        Speccy_writeScreen(16384 + i, speccy.readMemory(24576 + i));
     }
 }
 
 void copyAttrBufToAttrFile() {
     // Copy the contents of the attribute buffer at 23552 to the attribute file.
     for (int i = 0; i < 512; i++) {
-        Speccy_writeAttribute(22528 + i, Speccy_read(23552 + i));
+        Speccy_writeAttribute(22528 + i, speccy.readMemory(23552 + i));
     }
 }
 
@@ -1545,13 +1545,13 @@ void resetScreenAttrBuffers() {
     // into the attribute buffer at 23552.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 512; i++) {
-        Speccy_write(23552 + i, Speccy_read(24064 + i));
+        speccy.writeMemory(23552 + i, speccy.readMemory(24064 + i));
     }
     // Copy the contents of the screen buffer at 28672 (empty cavern tiles)
     // into the screen buffer at 24576.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-        Speccy_write(24576 + i, Speccy_read(28672 + i));
+        speccy.writeMemory(24576 + i, speccy.readMemory(28672 + i));
     }
 }
 

@@ -67,6 +67,20 @@ public:
     // Call this whenever the display needs updating or FPS syncing.
     void tick();
 
+    // General memory read/write. Use as needed.
+    uint8_t readMemory(int address);
+
+    void writeMemory(int address, uint8_t byte);
+
+    //
+    // Input/Output functions
+    //
+
+    void setBorderColour(uint8_t colour);
+
+    // The Spectrum uses OUT to make a sound, but here we use a custom function
+    void makeSound(uint8_t pitch, uint8_t duration, uint8_t delay);
+
     // IN from Keyboard and Joystick
     // IN 65278 reads the half row CAPS SHIFT to V
     // IN 65022 reads the half row A to G
@@ -137,15 +151,6 @@ uint8_t getAttrFromAttributesFile(int pixelAddress);
 // Read a byte from the NewScreen format
 uint8_t Speccy_readNewScreen(int address);
 
-//
-// General memory access
-//
-
-// General memory read/write. Use as needed.
-uint8_t Speccy_read(int address);
-
-void Speccy_write(int address, uint8_t byte);
-
 
 //
 // Screen/Attribute access
@@ -179,16 +184,6 @@ void Speccy_printMessage(void *msg, uint16_t address, uint8_t len);
 
 // Draw a sprite item to the given screen address
 void Speccy_drawSpriteAt(void *character, uint16_t address, uint8_t len);
-
-//
-// Sound and border functions
-//
-
-void Speccy_setBorderColour(uint8_t colour);
-
-// The Spectrum uses OUT to make a sound, but here we use a custom function
-void Speccy_makeSound(uint8_t pitch, uint8_t duration, uint8_t delay);
-
 
 //
 // Utility functions

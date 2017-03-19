@@ -95,13 +95,13 @@ bool GuardianHorizontal::draw() {
     uint8_t attr = (uint8_t) (speedColour & 127);
 
     // Set the attribute bytes for the guardian in the buffer at 23552,
-    Speccy_write(addr, attr);
+    speccy.writeMemory(addr, attr);
     addr++;
-    Speccy_write(addr, attr);
+    speccy.writeMemory(addr, attr);
     addr += 31;
-    Speccy_write(addr, attr);
+    speccy.writeMemory(addr, attr);
     addr++;
-    Speccy_write(addr, attr);
+    speccy.writeMemory(addr, attr);
 
     // Pick up the animation frame (0-7),
     uint8_t anim_frame = (uint8_t) frame;
