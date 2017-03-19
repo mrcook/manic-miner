@@ -1,9 +1,12 @@
 // Speccy library Copyright 2017 Michael R. Cook
 
-#include "../Headers.h"
+#ifndef MANIC_MINER_SPECCY_FONT_H
+#define MANIC_MINER_SPECCY_FONT_H
+
+#include "Headers.h"
 
 // The ZX Spectrum ASCII font graphics
-uint8_t Speccy_font[96][8] = {
+uint8_t Font[96][8] = {
         {0,  0,   0,   0,   0,   0,   0,   0},   // $20 - character: ' '   CHR$(32)
         {0,  16,  16,  16,  16,  0,   16,  0},   // $21 - character: '!'   CHR$(33)
         {0,  36,  36,  0,   0,   0,   0,   0},   // $22 - character: '"'   CHR$(34)
@@ -102,3 +105,4 @@ uint8_t Speccy_font[96][8] = {
         {60, 66,  153, 161, 161, 153, 66,  60},  // $7F - character: '©'   CHR$(127)
 };
 
+#endif //MANIC_MINER_SPECCY_FONT_H

@@ -46,9 +46,8 @@ static const int SCREEN_SIZE = 6144;
 static const int SCREEN_PIXELS_SIZE = SCREEN_SIZE * 8;
 static const int ATTR_SIZE = 768;
 
-extern uint8_t Speccy_font[96][8];
-
-typedef struct Speccy_ {
+class Speccy {
+public:
     // Used to calculate the correct frame rate, during play
     int frameTick;
 
@@ -56,16 +55,11 @@ typedef struct Speccy_ {
     // Mostly you'll use this as a buffer for user memory
     uint8_t memory[TOTAL_MEMORY];
 
-    // Spectrum display file screen/attribute memory.
-    // NOTE: this will be the Spectrum display format
-    uint8_t screen[SCREEN_SIZE];
-    uint8_t attributes[ATTR_SIZE];
-
     // Display buffers in a standard (linear) format.
     // Useful for sending to ncurses/SDL/etc.
-    uint8_t convertedScreen[SCREEN_SIZE];
-    uint8_t newScreen[SCREEN_SIZE * 8]; // contains data for each pixel not byte
-} Speccy;
+    // contains data for each pixel, not byte character
+    uint8_t newScreen[SCREEN_SIZE * 8];
+};
 
 // Initialize the speccy framework (FPS, etc.)
 void Speccy_initialize(int fps);
