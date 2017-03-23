@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     }
 
     speccy.initialize(fps);
-    window.instance().initialize();
+    Window::instance().initialize(&Display::instance());
     Game_initialize(cheat, teleport);
 
     while (true) {
@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
         // Initialise demo mode
         game.DEMO = 64;
 
-         // Display the title screen and play the theme tune
-         Game_play_intro();
+        // Display the title screen and play the theme tune
+        Game_play_intro();
 
         // Play the game!
         if (Game_play()) {
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    window.instance().exit();
+    Window::instance().exit();
     printf("You helped Miner Willy acquire treasure worth %d.\n", game.highScore);
     if (game.highScore > 10000) {
         printf("He's on his way to joining the Jet Set!\n");

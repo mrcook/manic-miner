@@ -42,9 +42,8 @@
 // NOTE: the user can use the address space from 23552 onwards!
 
 static const int TOTAL_MEMORY = 1024 * 64;
-static const int SCREEN_SIZE = 6144;
-static const int SCREEN_PIXELS_SIZE = SCREEN_SIZE * 8;
 static const int ATTR_SIZE = 768;
+static const int SPECCY_SCREEN = 6144;
 
 class Speccy {
 public:
@@ -54,11 +53,6 @@ public:
     // Initialize a 64K block of memory, for general use.
     // Mostly you'll use this as a buffer for user memory
     uint8_t memory[TOTAL_MEMORY];
-
-    // Display buffers in a standard (linear) format.
-    // Useful for sending to ncurses/SDL/etc.
-    // contains data for each pixel, not byte character
-    uint8_t newScreen[SCREEN_PIXELS_SIZE];
 
     // Initialize the speccy framework (FPS, etc.)
     void initialize(int fps);
@@ -140,14 +134,9 @@ public:
      * Utility functions to help porting from Z80 to C
      *
      *   - Manipulating Address values (split/join MSB and LSB)
-     *   - Converting Display butes to pixels
      *   - Bit shift/rotate uint8_t values
      *   - Manipulate Attribute bytes (split out colours)
      */
-
-    // Handy function to convert a byte to an array of bits,
-    // so you can more easily create pixel based graphics.
-    static void byteToBits(uint8_t byte, uint8_t *bits);
 
     // Split a uint16_t memory address into its MSB and LSB values
     static void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb);
@@ -160,33 +149,7 @@ public:
 
     // Rotate right n places
     static uint8_t rotR(uint8_t a, uint8_t n);
-
-    // Split a Spectrum attribute byte into it's colour parts
-    // Extract the ink, paper, brightness values from the attribute
-    static void splitColourAttribute(uint8_t attribute, Colour *colour);
 };
-
-
-/*
- * NewScreen format functions
- *
- * Converts the original Spectrum screen layout to a more standard linear
- * format; bytes are sequential reading from left-to-right, top-to-bottom.
- */
-
-// Converts the entire spectrum screen format to the NewScreen standard format
-void Speccy_convertScreenFormat();
-
-// Write a colour pixel to the new screen.
-// The colour is taken from the Attributes File, using the given address.
-void writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress);
-
-// Given an address from the new screen array (256*192 pixels),
-// calculate the Spectrum Attribute File address
-uint8_t getAttrFromAttributesFile(int pixelAddress);
-
-// Read a byte from the NewScreen format
-uint8_t Speccy_readNewScreen(int address);
 
 
 #endif //MANIC_MINER_SPECCY_H
