@@ -58,7 +58,7 @@ public:
     // Display buffers in a standard (linear) format.
     // Useful for sending to ncurses/SDL/etc.
     // contains data for each pixel, not byte character
-    uint8_t newScreen[SCREEN_SIZE * 8];
+    uint8_t newScreen[SCREEN_PIXELS_SIZE];
 
     // Initialize the speccy framework (FPS, etc.)
     void initialize(int fps);
@@ -127,11 +127,13 @@ public:
     // Fill the top two thirds of the attribute file with the value given.
     void fillTopTwoThirdsOfAttributeFileWith(uint8_t byte);
 
-    uint8_t Speccy_readScreen(int address);
+    uint8_t readScreen(int address);
 
-    void Speccy_writeScreen(int address, uint8_t byte);
+    void writeScreen(int address, uint8_t byte);
 
-    uint8_t Speccy_readAttribute(int address);
+    uint8_t readAttribute(int address);
+
+    void writeAttribute(int address, uint8_t byte);
 
 
     /*
@@ -185,13 +187,6 @@ uint8_t getAttrFromAttributesFile(int pixelAddress);
 
 // Read a byte from the NewScreen format
 uint8_t Speccy_readNewScreen(int address);
-
-
-//
-// Screen/Attribute access
-//
-
-void Speccy_writeAttribute(int address, uint8_t byte);
 
 
 #endif //MANIC_MINER_SPECCY_H

@@ -221,7 +221,8 @@ bool Willy_gerUserInputAndMove(int keyIntput, uint16_t addr) {
     // That is left-right movement taken care of. Now check the jump keys.
 
     // Is jump being pressed?
-    if (keyIntput == Keyboard::MM_KEY_JUMP || keyIntput == Keyboard::MM_KEY_LEFT_JUMP || keyIntput == Keyboard::MM_KEY_RIGHT_JUMP) {
+    if (keyIntput == Keyboard::MM_KEY_JUMP || keyIntput == Keyboard::MM_KEY_LEFT_JUMP ||
+        keyIntput == Keyboard::MM_KEY_RIGHT_JUMP) {
         // Time to make Willy jump. Initialise the jumping animation counter.
         willy.JUMPING = 0;
 

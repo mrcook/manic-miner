@@ -39,9 +39,8 @@ int main(int argc, char *argv[]) {
         // Initialise demo mode
         game.DEMO = 64;
 
-        // FIXME: disable intro for testing
-        // Display the title screen and play the theme tune
-        // Game_play_intro();
+         // Display the title screen and play the theme tune
+         Game_play_intro();
 
         // Play the game!
         if (Game_play()) {

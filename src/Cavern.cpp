@@ -360,7 +360,7 @@ bool Cavern::decreaseAir() {
     // There are four rows of pixels to draw.
     for (uint8_t msb = 82; msb < 86; msb++) {
         // Draw the four rows of pixels at the right end of the air bar.
-        speccy.Speccy_writeScreen(Speccy::buildAddress(msb, AIR), pixels);
+        speccy.writeScreen(Speccy::buildAddress(msb, AIR), pixels);
     }
 
     return false;
@@ -375,7 +375,7 @@ void Cavern::drawAirBar() {
 
         // Draw a single row of pixels across C cells.
         for (uint16_t i = 0; i < AIR - 36; i++) {
-            speccy.Speccy_writeScreen(addr + i, 255);
+            speccy.writeScreen(addr + i, 255);
         }
     }
 }

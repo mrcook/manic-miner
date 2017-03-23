@@ -33,17 +33,13 @@ void Speccy::tick() {
 //
 
 uint8_t Speccy::readMemory(int address) {
-    if (address < 0 && address >= (int) (sizeof(memory) / sizeof(uint8_t))) {
-        exit(-1);
-    }
+    assert(address >= 16384 && address < TOTAL_MEMORY);
 
     return memory[address];
 }
 
 void Speccy::writeMemory(int address, uint8_t byte) {
-    if (address < 0 && address >= (int) (sizeof(memory) / sizeof(uint8_t))) {
-        exit(-1);
-    }
+    assert(address >= 16384 && address < TOTAL_MEMORY);
 
     memory[address] = byte;
 }
@@ -107,6 +103,7 @@ void Speccy::drawSprite(void *character, uint16_t address, uint8_t len) {
     uint8_t *chr = (uint8_t *) character;
     uint8_t msb, lsb;
 
+
     // Copy character data to the screen
     for (int i = 0; i < len; i++) {
         writeMemory(address, chr[i]);
@@ -125,60 +122,61 @@ void Speccy::drawSprite(void *character, uint16_t address, uint8_t len) {
 
 // Clear the entire Spectrum display file
 void Speccy::clearDisplayFile() {
-    // FIXME: some calls go direct to Display File, others to Buffers,
-    // so we must use normal memory for now!
     for (int i = 0; i < SCREEN_SIZE; i++) {
-        memory[16384 + i] = 0;
+        writeScreen(16384 + i, 0);
     }
 }
 
 // Clears the entire attributes file
 void Speccy::clearAttributesFile() {
     for (int i = 0; i < ATTR_SIZE; i++) {
-        memory[22528 + i] = 0;
+        writeAttribute(22528 + i, 0);
     }
 }
 
 // Clear the top two-thirds of the display file
 void Speccy::clearTopTwoThirdsOfDisplayFile() {
-    // FIXME: some calls go direct to Display File, others to Buffers,
-    // so we must use normal memory for now!
     for (int i = 0; i < 4096; i++) {
-        memory[16384 + i] = 0;
+        writeScreen(16384 + i, 0);
     }
 }
 
 // Clear the bottom third of the display file.
 void Speccy::clearBottomThirdOfDisplayFile() {
     for (int i = 0; i < 2048; i++) {
-        Speccy_writeScreen(20480 + i, 0);
+        writeScreen(20480 + i, 0);
     }
 }
 
 // Fill the top two thirds of the attribute file with the value given.
 void Speccy::fillTopTwoThirdsOfAttributeFileWith(uint8_t byte) {
     for (int i = 0; i < 512; i++) {
-        Speccy_writeAttribute(22528 + i, byte);
+        writeAttribute(22528 + i, byte);
     }
 }
 
-uint8_t Speccy::Speccy_readScreen(int address) {
+uint8_t Speccy::readScreen(int address) {
+    assert(address >= 16384 && address < 22528);
+
     return readMemory(address);
 }
 
-void Speccy::Speccy_writeScreen(int address, uint8_t byte) {
+void Speccy::writeScreen(int address, uint8_t byte) {
+    assert(address >= 16384 && address < 22528);
+
     writeMemory(address, byte);
 }
 
-uint8_t Speccy::Speccy_readAttribute(int address) {
+uint8_t Speccy::readAttribute(int address) {
+    assert(address >= 22528 && address < 23296);
+
     return readMemory(address);
 }
 
+void Speccy::writeAttribute(int address, uint8_t byte) {
+    assert(address >= 22528 && address < 23296);
 
-
-
-void Speccy_writeAttribute(int address, uint8_t byte) {
-    speccy.writeMemory(address, byte);
+    writeMemory(address, byte);
 }
 
 // Write a colour pixel to the new screen.
@@ -216,7 +214,7 @@ uint8_t getAttrFromAttributesFile(int pixelAddress) {
     // Will calculate the column value from 0-31 regardless of the pixelAddress value
     int column = ((pixelAddress / 8) % 32);
 
-    return speccy.memory[22528 + rowOffset + column];
+    return speccy.readAttribute(22528 + rowOffset + column);
 }
 
 
@@ -250,12 +248,14 @@ uint16_t Speccy::buildAddress(uint8_t msb, uint8_t lsb) {
 // Rotate left n places
 uint8_t Speccy::rotL(uint8_t a, uint8_t n) {
     assert (n > 0 && n < 8);
+
     return (a << n) | (a >> (8 - n));
 }
 
 // Rotate right n places
 uint8_t Speccy::rotR(uint8_t a, uint8_t n) {
     assert (n > 0 && n < 8);
+
     return (a >> n) | (a << (8 - n));
 }
 
@@ -274,15 +274,6 @@ void Speccy::splitColourAttribute(uint8_t attribute, Colour *colour) {
     // Paper uses bit values 8,16,32 (56-63), and shift right to be 0-7
     colour->PAPER = (uint8_t) ((attribute >> 3) & 7);
 }
-
-
-
-
-
-
-
-
-
 
 
 /*
@@ -309,7 +300,7 @@ void Speccy_convertScreenFormat() {
 
         for (int byte_row = 0; byte_row < 2048; byte_row += 32) {
             for (int b = 0; b < 32; b++) {
-                uint8_t bite = speccy.memory[16384 + block_addr_offset + byte_row + b];
+                uint8_t bite = speccy.readMemory(16384 + block_addr_offset + byte_row + b);
 
                 // Convert the Speccy display bytes to pixels and add to the new screen array
                 Speccy::byteToBits(bite, pixels);
@@ -340,6 +331,7 @@ void Speccy_convertScreenFormat() {
 }
 
 uint8_t Speccy_readNewScreen(int address) {
-    assert(address >= 0 && address < (int) (sizeof(speccy.newScreen) / sizeof(uint8_t)));
+    assert(address >= 0 && address < SCREEN_PIXELS_SIZE);
+
     return speccy.newScreen[address];
 }

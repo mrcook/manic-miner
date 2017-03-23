@@ -35,17 +35,17 @@ void Game_clearBuffers() {
     // Screen buffers
     for (int i = 0; i < 4096; i++) {
         // Screen Buffer
-        Speccy_writeAttribute(24576 + i, 0);
+        speccy.writeMemory(24576 + i, 0);
         // Empty Screen Buffer
-        Speccy_writeAttribute(28672 + i, 0);
+        speccy.writeMemory(28672 + i, 0);
     }
 
     // Attributes Buffers
     for (int i = 0; i < 512; i++) {
         // Attributes Buffer
-        Speccy_writeAttribute(23552 + i, 0);
+        speccy.writeMemory(23552 + i, 0);
         // Empty Attributes Buffer
-        Speccy_writeAttribute(24064 + i, 0);
+        speccy.writeMemory(24064 + i, 0);
     }
 }
 
@@ -60,9 +60,6 @@ bool Game_play() {
     } else {
         cavern.SHEET = 0;
     }
-
-    // FIXME: default level for testing
-    cavern.SHEET = 18;
 
     // Initialise the in-game music note index.
     game.NOTEINDEX = 0;
@@ -307,7 +304,7 @@ void loadCurrentCavern() {
     // Copy the cavern's attribute bytes into the buffer at 24064.
     // FIXME: uses Attr Buff (Blank): Attr File = 22528
     for (int i = 0; i < 512; i++) {
-        Speccy_writeAttribute(24064 + i, cavern.layout[i]);
+        speccy.writeMemory(24064 + i, cavern.layout[i]);
     }
 
     // Draw the current cavern to the screen buffer at 28672.
@@ -531,7 +528,7 @@ void ENDGAM() {
             // LD (22741),A
 
             // IMPORTANT: haha, and you think this is correct? -MRC-
-            Speccy_writeAttribute(22730 + a, (uint8_t) (((d + a) & 7) | 64));
+            speccy.writeAttribute(22730 + a, (uint8_t) (((d + a) & 7) | 64));
             window.instance().redraw();
         }
     }
@@ -575,6 +572,8 @@ void DRAWSHEET() {
             sprite = &cavern.NASTY2.sprite[0];
         } else if (cavern.EXTRA.id == tile_id) {
             sprite = &cavern.EXTRA.sprite[0];
+        } else {
+            sprite = NULL;
         }
 
         // Copy the graphic bytes to their destination cells.
@@ -604,7 +603,7 @@ void DRAWSHEET() {
         // Copy the graphic data from TITLESCR1 to the top half
         // of the screen buffer at 28672.
         // FIXME: Blank Screen Buffer: Screen File = 16384
-        for (int i = 0; i <= 2048; i++) {
+        for (int i = 0; i < 2048; i++) {
             speccy.writeMemory(28672 + i, TITLESCR1[i]);
         }
     }
@@ -1187,17 +1186,17 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
     for (int i = 0; i < 32; i += 2) {
         // Are we in blend mode?
         if (mode == 1) {
-            if (sprite[i] & speccy.Speccy_readScreen(addr) || sprite[i + 1] & speccy.Speccy_readScreen(addr + 1)) {
+            if (sprite[i] & speccy.readMemory(addr) || sprite[i + 1] & speccy.readMemory(addr + 1)) {
                 // collision detected.
                 return true;
             }
-            sprite[i] |= speccy.Speccy_readScreen(addr);
-            sprite[i + 1] |= speccy.Speccy_readScreen(addr + 1);
+            sprite[i] |= speccy.readMemory(addr);
+            sprite[i + 1] |= speccy.readMemory(addr + 1);
         }
 
         // Copy the graphic bytes to their destination cells.
-        speccy.Speccy_writeScreen(addr, sprite[i]);
-        speccy.Speccy_writeScreen(addr + 1, sprite[i + 1]);
+        speccy.writeMemory(addr, sprite[i]);
+        speccy.writeMemory(addr + 1, sprite[i + 1]);
 
         // Move down to the next pixel row
         Speccy::splitAddress(addr, &msb, &lsb);
@@ -1239,7 +1238,7 @@ bool NXSHEET() {
     // Is the current cavern The Final Barrier?
     if (cavern.SHEET == 19) {
         // Are we in demo mode, or cheat mode activated?
-        if (game.DEMO == 0 && game.CHEAT == false) {
+        if (game.DEMO == 0 && !game.CHEAT) {
             // Willy has made it through The Final Barrier without cheating.
 
             // Draw Willy at (2,19) on the ground above the portal.
@@ -1253,16 +1252,16 @@ bool NXSHEET() {
 
             // Set the attributes for the upper half of Willy's sprite
             // at (2,19) and (2,20) to 47 (INK 7: PAPER 5).
-            Speccy_writeAttribute(addr, 47);
+            speccy.writeAttribute(addr, 47);
             addr++;
-            Speccy_writeAttribute(addr, 47);
+            speccy.writeAttribute(addr, 47);
 
             // Set the attributes for the lower half of Willy's sprite
             // at (3,19) and (3,20) to 39 (INK 7: PAPER 4).
             addr += 31;
-            Speccy_writeAttribute(addr, 39);
+            speccy.writeAttribute(addr, 39);
             addr++;
-            Speccy_writeAttribute(addr, 39);
+            speccy.writeAttribute(addr, 39);
 
             // Point HL at (5,19) in the attribute file
             addr += 31;
@@ -1270,23 +1269,23 @@ bool NXSHEET() {
             addr += 31;
 
             // Set the attributes for the fish at (5,19) and (5,20) to 69 (INK 5: PAPER 0: BRIGHT 1).
-            Speccy_writeAttribute(addr, 69);
+            speccy.writeAttribute(addr, 69);
             addr++;
-            Speccy_writeAttribute(addr, 69);
+            speccy.writeAttribute(addr, 69);
 
             // Set the attribute for the handle of the sword at (6,19) to 70 (INK 6: PAPER 0: BRIGHT 1).
             addr += 31;
-            Speccy_writeAttribute(addr, 70);
+            speccy.writeAttribute(addr, 70);
 
             // Set the attribute for the blade of the sword at (6,20) to 71 (INK 7: PAPER 0: BRIGHT 1).
             addr++;
-            Speccy_writeAttribute(addr, 71);
+            speccy.writeAttribute(addr, 71);
 
             // Set the attributes at (7,19) and (7,20) to 0 (to hide Willy's feet just below where the portal was).
             addr += 31;
-            Speccy_writeAttribute(addr, 0);
+            speccy.writeAttribute(addr, 0);
             addr++;
-            Speccy_writeAttribute(addr, 0);
+            speccy.writeAttribute(addr, 0);
 
             // Prepare C and D for the celebratory sound effect.
             uint8_t border = 0; // (black border)
@@ -1341,7 +1340,7 @@ bool NXSHEET() {
 
         // Add 1 to the score and print at (19,26).
         Game_scoreAdd(1);
-        printCurrentScore();
+        printCurrentScore(game.playerScore);
 
         // C=4; this value determines the duration of the sound effect.
         uint8_t duration = 4;
@@ -1372,10 +1371,10 @@ void Game_play_intro() {
 
     // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file.
     for (int i = 0; i < 2048; i++) {
-        speccy.Speccy_writeScreen(16384 + i, TITLESCR1[i]);
+        speccy.writeScreen(16384 + i, TITLESCR1[i]);
     }
     for (int i = 0; i < 2048; i++) {
-        speccy.Speccy_writeScreen(16384 + 2048 + i, TITLESCR2[i]);
+        speccy.writeScreen(16384 + 2048 + i, TITLESCR2[i]);
     }
 
     window.instance().redraw();
@@ -1386,13 +1385,13 @@ void Game_play_intro() {
     // Copy the attribute bytes from CAVERN19 to the top third of the attribute file.
     uint16_t addr = 22528;
     for (int i = 0; i < 256; i++) {
-        Speccy_writeAttribute(addr + i, Data_cavernLayouts[19][i]);
+        speccy.writeAttribute(addr + i, Data_cavernLayouts[19][i]);
     }
 
     // Copy LOWERATTRS to the bottom two-thirds of the attribute file.
     addr += 256;
     for (int i = 0; i < 512; i++) {
-        Speccy_writeAttribute(addr + i, LOWERATTRS[i]);
+        speccy.writeAttribute(addr + i, LOWERATTRS[i]);
     }
 
     window.instance().redraw();
@@ -1474,21 +1473,25 @@ void awardExtraLife() {
 }
 
 void printScores() {
-    printCurrentScore();
-    printHighScore();
+    printCurrentScore(game.playerScore);
+    printHighScore(game.highScore);
 }
 
-void printCurrentScore() {
+void printCurrentScore(int currentScore) {
+    assert(currentScore >= 0 && currentScore <= 999999);
+
     char score[7];
-    sprintf(score, "%06d", game.playerScore);
+    sprintf(score, "%06d", currentScore);
 
     // Print the score (see SCORBUF) at (19,26).
     speccy.printString(&score, 20602, 6);
 }
 
-void printHighScore() {
+void printHighScore(int highestScore) {
+    assert(highestScore >= 0 && highestScore <= 999999);
+
     char score[7];
-    sprintf(score, "%06d", game.highScore);
+    sprintf(score, "%06d", highestScore);
 
     // Print the high score (see HGHSCOR) at (19,11).
     speccy.printString(&score, 20587, 6);
@@ -1527,14 +1530,14 @@ void copyScrBufToDisplayFile() {
     // Copy the contents of the screen buffer at 24576 to the display file.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-        speccy.Speccy_writeScreen(16384 + i, speccy.readMemory(24576 + i));
+        speccy.writeScreen(16384 + i, speccy.readMemory(24576 + i));
     }
 }
 
 void copyAttrBufToAttrFile() {
     // Copy the contents of the attribute buffer at 23552 to the attribute file.
     for (int i = 0; i < 512; i++) {
-        Speccy_writeAttribute(22528 + i, speccy.readMemory(23552 + i));
+        speccy.writeAttribute(22528 + i, speccy.readMemory(23552 + i));
     }
 }
 

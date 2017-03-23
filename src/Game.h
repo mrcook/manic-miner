@@ -112,9 +112,9 @@ void resetCurrentScore();
 // INCSCORE_0 - Award extra life if player reaches milestone
 void awardExtraLife();
 
-void printCurrentScore(void);
+void printCurrentScore(int currentScore);
 
-void printHighScore(void);
+void printHighScore(int highestScore);
 
 void printScores(void);
 

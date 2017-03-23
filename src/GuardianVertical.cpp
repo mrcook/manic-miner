@@ -69,12 +69,10 @@ bool GuardianVertical::updateAndDraw() {
     // Point HL at the address of the guardian's location in the attribute buffer at 23552.
     addr = (uint16_t) (Speccy::rotL((uint8_t) (yCoord & 64), 2) + 92);
     Speccy::splitAddress(addr, &msb, &lsb);
-    msb_bak = msb;
-
+    msb_bak = lsb;
     addr = (uint16_t) (Speccy::rotL(yCoord, 2) & 224);
     Speccy::splitAddress(addr, &msb, &lsb);
-    lsb |= xCoord;
-    addr = Speccy::buildAddress(msb_bak, lsb);
+    addr = Speccy::buildAddress(msb_bak, lsb | xCoord);
 
     // Set the attribute bytes for the guardian.
     EUGENE_3(addr, attribute);
