@@ -1422,7 +1422,7 @@ void Game_play_intro() {
         speccy.tick();
 
         // Is ENTER being pressed? If so, start the game.
-        if (Window::instance().getKey() == Keyboard::MM_KEY_ENTER) {
+        if (processInput() == Keyboard::MM_KEY_ENTER) {
             game.DEMO = 0;
             return;
         }
