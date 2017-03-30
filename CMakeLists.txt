@@ -58,10 +58,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -Werror -Wshadow -std=c++14")
 
-# Link Curses
-find_package(Curses REQUIRED)
-include_directories(${CURSES_INCLUDE_DIR})
-target_link_libraries(manic_miner ${CURSES_LIBRARIES})
+# Link SDL2
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2})
+target_link_libraries(manic_miner ${SDL2_LIBRARIES})
 
 # add the package install targets
 install(TARGETS manic_miner

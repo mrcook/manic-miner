@@ -47,7 +47,7 @@ private:
     // Display buffers in a standard (linear) format.
     // Useful for sending to ncurses/SDL/etc.
     // contains data for each pixel, not byte character
-    uint8_t screen[DISPLAY_PIXELS];
+    uint16_t screen[DISPLAY_PIXELS];
 };
 
 

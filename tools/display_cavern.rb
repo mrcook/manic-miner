@@ -56,7 +56,7 @@ CAVERN.each do |id|
     sprite = EXTRA[1..8]
   else
     puts "Help"
-    exit
+    quit
   end
 
   sprite.each_with_index do |pixel_row, i|

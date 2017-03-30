@@ -87,7 +87,6 @@ bool Game_play() {
     // The Main Loop
     while (gameIsRunning) {
         keyIntput = processInput();
-        keyIntput = processMoveJumpInput(keyIntput);
 
         if (reinitialiseCavern) {
             loadCurrentCavern();
@@ -103,9 +102,6 @@ bool Game_play() {
 
         // Check to see if the user muted the in-game music, or paused, or wants to quit.
         switch (keyIntput) {
-            case Keyboard::MM_KEY_COLOUR_MODE:
-                Window::instance().toggleColour();
-                break;
             case Keyboard::MM_KEY_MUTE:
                 game.playMusic = !game.playMusic;
                 break;
@@ -113,9 +109,11 @@ bool Game_play() {
                 return true; // return true so we quit the game!
             case Keyboard::MM_KEY_PAUSE:
                 keyIntput = Keyboard::MM_KEY_NONE;
-                while (Window::instance().getKey() != Keyboard::MM_KEY_PAUSE) {
+
+                do {
                     millisleep(25); // keep the FPS under control.
-                }
+                } while (processInput() != Keyboard::MM_KEY_PAUSE);
+
                 break;
             default:;
         }
@@ -292,7 +290,7 @@ void loadCurrentCavern() {
     // Copy the cavern definition into the game status buffer at 32768.
     if (!cavern.loadData(cavern.SHEET)) {
         // Oops! We've not loaded the right amount of cavern data into memory.
-        Window::instance().exit();
+        Window::instance().quit();
         exit(-1);
     }
 
@@ -1331,6 +1329,8 @@ bool NXSHEET() {
 
     // The following loop increases the score and decreases the air supply until it runs out.
     while (true) {
+        Window::instance().redraw();
+
         // Decrease the air remaining in the current cavern.
         // Move to the next cavern if the air supply is now gone.
         if (cavern.decreaseAir()) {
@@ -1342,22 +1342,21 @@ bool NXSHEET() {
         printCurrentScore(game.playerScore);
 
         // C=4; this value determines the duration of the sound effect.
-        uint8_t duration = 4;
+//        uint8_t duration = 4;
 
         // Pick up the remaining air supply (S) from AIR.
         // D=2*(63-S); this value determines the pitch of the sound effect
         // (which decreases with the amount of air remaining).
         // uint8_t pitch = Speccy::rotL((uint8_t) (~(cavern.AIR & 63)), 1);
 
-        for (int i = duration; i > 0; i--) {
-            // Produce a short note
-            Speccy::OUT(0);
-            // millisleep(pitch);
-            Speccy::OUT(24);
-            // millisleep(1);
-        }
+//        for (int i = duration; i > 0; i--) {
+//            // Produce a short note
+//            Speccy::OUT(0);
+//            // millisleep(pitch);
+//            Speccy::OUT(24);
+//            // millisleep(1);
+//        }
 
-        Window::instance().redraw();
         // Jump back to decrease the air supply again.
     }
 
@@ -1423,7 +1422,7 @@ void Game_play_intro() {
         speccy.tick();
 
         // Is ENTER being pressed? If so, start the game.
-        if (Window::instance().getKey() == MM_KEY_ENTER) {
+        if (Window::instance().getKey() == Keyboard::MM_KEY_ENTER) {
             game.DEMO = 0;
             return;
         }
@@ -1561,57 +1560,36 @@ int processInput() {
     int input;
 
     switch (Window::instance().getKey()) {
-        case Input::W_KEY_SPACE:
-        case Input::W_KEY_UP:
+        case Input::INPUT_KEY_SPACE:
             input = Keyboard::MM_KEY_JUMP;
             break;
-        case Input::W_KEY_LEFT:
+        case Input::INPUT_KEY_LEFT:
             input = Keyboard::MM_KEY_LEFT;
             break;
-        case Input::W_KEY_RIGHT:
+        case Input::INPUT_KEY_RIGHT:
             input = Keyboard::MM_KEY_RIGHT;
             break;
-        case Input::W_KEY_ENTER:
+        case Input::INPUT_KEY_LEFT_SPACE:
+            input = Keyboard::MM_KEY_LEFT_JUMP;
+            break;
+        case Input::INPUT_KEY_RIGHT_SPACE:
+            input = Keyboard::MM_KEY_RIGHT_JUMP;
+            break;
+        case Input::INPUT_KEY_RETURN:
             input = Keyboard::MM_KEY_ENTER;
             break;
-        case 'p':
-        case 'P':
+        case Input::INPUT_KEY_P:
             input = Keyboard::MM_KEY_PAUSE;
             break;
-        case 'Q':
+        case Input::INPUT_KEY_Q:
             input = Keyboard::MM_KEY_QUIT;
             break;
-        case 'm':
-        case 'M':
+        case Input::INPUT_KEY_M:
             input = Keyboard::MM_KEY_MUTE;
-            break;
-        case 'c':
-        case 'C':
-            input = Keyboard::MM_KEY_COLOUR_MODE;
             break;
         default:
             input = Keyboard::MM_KEY_NONE;
     }
 
     return input;
-}
-
-// Check if player is pressing movement + jump keys.
-int processMoveJumpInput(int firstInput) {
-    int input;
-
-    do {
-        input = processInput();
-
-        // Ignore keft/right key presses, we want JUMP keys!
-        if (input == Keyboard::MM_KEY_LEFT || input == Keyboard::MM_KEY_RIGHT) { continue; }
-
-        if (firstInput == Keyboard::MM_KEY_LEFT && input == Keyboard::MM_KEY_JUMP) {
-            return Keyboard::MM_KEY_LEFT_JUMP;
-        } else if (firstInput == Keyboard::MM_KEY_RIGHT && input == Keyboard::MM_KEY_JUMP) {
-            return Keyboard::MM_KEY_RIGHT_JUMP;
-        }
-    } while (input != Keyboard::MM_KEY_NONE);
-
-    return firstInput;
 }

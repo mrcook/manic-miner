@@ -21,7 +21,7 @@
 // A=119 (INK 7: PAPER 6: BRIGHT 1)  =  INK: WHITE  / PAPER: YELLOW
 
 typedef struct Colour_ {
-    bool flash;
+    bool FLASH;
     bool BRIGHT;
     uint8_t PAPER;
     uint8_t INK;

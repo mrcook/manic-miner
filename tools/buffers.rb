@@ -35,7 +35,7 @@ end
 address = ARGV[0].to_i
 if address < 23552 || address > 32767
   puts "Buffer addresses should be between 23552 and 32767"
-  exit
+  quit
 end
 
 buff, addr = translate_address(address)

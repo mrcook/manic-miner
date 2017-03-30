@@ -62,20 +62,21 @@ void Display::writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
     assert(newScreenAddress >= 0 && newScreenAddress < 256 * 192);
 
     Colour colour;
-
     uint8_t attribute = getAttributeByte(newScreenAddress);
 
     splitColourAttribute(attribute, &colour);
 
+    uint8_t pixelColour;
+    if (pixel == 1) {
+        pixelColour = colour.INK;
+    } else {
+        pixelColour = colour.PAPER;
+    }
+
+    uint8_t flash = (uint8_t) (colour.FLASH ? 128 : 0);
     uint8_t brightness = (uint8_t) (colour.BRIGHT ? 64 : 0);
 
-    // NOTE: bit-7 is normally the FLASH value in the Spectrum attribute,
-    // but here we use it to indicate if a pixel is present.
-    if (pixel == 1) {
-        screen[newScreenAddress] = (uint8_t) (128 | brightness | colour.INK);
-    } else {
-        screen[newScreenAddress] = (uint8_t) (brightness | colour.PAPER);
-    }
+    screen[newScreenAddress] = (uint8_t) (flash | brightness | pixelColour);
 }
 
 // Given an address from the new screen array (256*192 pixels),
@@ -95,17 +96,21 @@ uint8_t Display::getAttributeByte(int pixelAddress) {
 }
 
 void Display::splitColourAttribute(uint8_t attribute, Colour *colour) {
-    // Flashing uses bit value 128, save as boolean
-    colour->flash = (attribute & 128) != 0;
+    // Flashing uses bit flag 7, save as boolean
+    colour->FLASH = (attribute & (1 << 7)) == 1;
 
-    // Brightness uses bit value 64, save as boolean
-    colour->BRIGHT = (attribute & 64) != 0;
+    // Brightness uses bit flag 6, save as boolean
+    colour->BRIGHT = (attribute & (1 << 6)) == 1;
 
-    // Ink uses bit values 1,2,4 (0-7)
+    // Clear the FLASH/BRIGHT flags
+    attribute &= ~(1 << 7);
+    attribute &= ~(1 << 6);
+
+    // Paper uses bit flags 3,4,5 (value 56-63), and shift right to be value 0-7
+    colour->PAPER = (uint8_t) (attribute >> 3);
+
+    // Ink uses bit flags 0,1,2 (value 0-7)
     colour->INK = (uint8_t) (attribute & 7);
-
-    // Paper uses bit values 8,16,32 (56-63), and shift right to be 0-7
-    colour->PAPER = (uint8_t) ((attribute >> 3) & 7);
 }
 
 // Handy function to convert a byte to an array of bits,

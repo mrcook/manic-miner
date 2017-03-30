@@ -76,7 +76,7 @@ unless @options[:output]
   else
     puts addr + 16384
   end
-  exit
+  quit
 end
 
 screen = Screen.new

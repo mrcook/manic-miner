@@ -22,11 +22,16 @@ int main(int argc, char *argv[]) {
     int teleport = -1;
 
     if (!getOptions(argc, argv, &teleport, &fps, &lives, &cheat)) {
-        return (0);
+        return 0;
     }
 
     speccy.initialize(fps);
-    Window::instance().initialize(&Display::instance());
+
+    if (!Window::instance().initialize("Retro Manic Miner", &Display::instance())) {
+        printf("Game Window initialization failure. Can not continue.");
+        return -1;
+    }
+
     Game_initialize(cheat, teleport);
 
     while (true) {
@@ -48,7 +53,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    Window::instance().exit();
+    Window::instance().quit();
+
     printf("You helped Miner Willy acquire treasure worth %d.\n", game.highScore);
     if (game.highScore > 10000) {
         printf("He's on his way to joining the Jet Set!\n");

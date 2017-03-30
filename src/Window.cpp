@@ -1,173 +1,130 @@
-// Curses Terminal Wrapper Copyright 2017 Michael R. Cook
+// SDL Wrapper Copyright 2017 Michael R. Cook
 
 #include "Headers.h"
 #include "Window.h"
 
-// This Window class uses NCurses for io.
-#include <ncurses.h>
-
-#ifdef _WIN32
-// this ncurses constant is also defined on the Windows OS,
-// so we need to undefine it for ncurse to work properly
-#undef KEY_EVENT
-#endif
-
-void Window::initialize(Display *display) {
+bool Window::initialize(const std::string gameName, Display *display) {
     display_ = display;
 
-    if (cursesStarted_) {
-        refreshWindow();
-        return;
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return false;
     }
 
-    initscr(); // <curses.h> do initialization work
+    // FIXME: is this needed?
+    // Set scaling interpolation algorithm: 0 = pixel sampling
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
+    int scalingFactor = 2; // 1024 x 768
 
-    // cbreak();           // <curses.h> not needed when using raw()...does not disable Ctrl chars
-    raw();                 // <curses.h> disable control characters. I.e. Ctrl-C does not work!
-    nonl();                // <curses.h> disable translation return/ newline for detection of return key
-    noecho();              // <curses.h> do not echo typed characters
-    nodelay(stdscr, true); // <curses.h> non-blocking input
-    keypad(stdscr, true);  // <curses.h> enable keypad for input
-    curs_set(0);           // <curses.h> sets the appearance of the cursor based on the value of visibility
+    window_ = SDL_CreateWindow(
+            gameName.c_str(),
+            SDL_WINDOWPOS_UNDEFINED,
+            SDL_WINDOWPOS_UNDEFINED,
+            SCREEN_WIDTH * scalingFactor,
+            SCREEN_HEIGHT * scalingFactor,
+            SDL_WINDOW_SHOWN
+    );
 
-    start_color();   // <curses.h> use colors
-    init_pair(Colours::BLACK, COLOR_BLACK, COLOR_BLACK);       // <curses.h> define color-pair
-    init_pair(Colours::BLUE, COLOR_BLUE, COLOR_BLUE);          // <curses.h> define color-pair
-    init_pair(Colours::RED, COLOR_RED, COLOR_RED);             // <curses.h> define color-pair
-    init_pair(Colours::MAGENTA, COLOR_MAGENTA, COLOR_MAGENTA); // <curses.h> define color-pair
-    init_pair(Colours::GREEN, COLOR_GREEN, COLOR_GREEN);       // <curses.h> define color-pair
-    init_pair(Colours::CYAN, COLOR_CYAN, COLOR_CYAN);          // <curses.h> define color-pair
-    init_pair(Colours::YELLOW, COLOR_YELLOW, COLOR_YELLOW);    // <curses.h> define color-pair
-    init_pair(Colours::WHITE, COLOR_WHITE, COLOR_WHITE);       // <curses.h> define color-pair
+    if (window_ == NULL) {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
 
-    clearWindow();
-    cursesStarted_ = true;
+    renderer_ = SDL_CreateRenderer(window_, -1, 0);
+    if (renderer_ == NULL) {
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
+    texture_ = SDL_CreateTexture(
+            renderer_,
+            pixelFormat->format,
+            SDL_TEXTUREACCESS_STATIC,
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT
+    );
+    if (texture_ == NULL) {
+        printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
+    pixels_ = new uint32_t[SCREEN_WIDTH * SCREEN_HEIGHT];
+
+    memset(pixels_, 0, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t));
+
+    return true;
 }
 
 int Window::getKey() {
     int input;
-    int key = getch();
 
-    switch (key) {
-        case ERR:
-            // No key is currently being pressed
-            input = Input::W_KEY_NONE;
-            break;
-        case ' ':
-            input = Input::W_KEY_SPACE;
-            break;
-        case KEY_LEFT:
-            input = Input::W_KEY_LEFT;
-            break;
-        case KEY_RIGHT:
-            input = Input::W_KEY_RIGHT;
-            break;
-        case KEY_UP:
-            input = Input::W_KEY_UP;
-            break;
-        case KEY_DOWN:
-            input = Input::W_KEY_DOWN;
-            break;
-        case '\n':
-        case '\r':
-        case KEY_ENTER:
-            input = Input::W_KEY_ENTER;
-            break;
-        default:
-            // forward all other key inputs to caller
-            input = key;
+    SDL_PumpEvents();
+    sdlKeyState = SDL_GetKeyboardState(NULL);
+
+    if (sdlKeyState[SDL_SCANCODE_M]) {
+        input = Input::INPUT_KEY_M;
+    } else if (sdlKeyState[SDL_SCANCODE_P]) {
+        input = Input::INPUT_KEY_P;
+    } else if (sdlKeyState[SDL_SCANCODE_Q]) {
+        input = Input::INPUT_KEY_Q;
+    } else if (sdlKeyState[SDL_SCANCODE_RETURN] || sdlKeyState[SDL_SCANCODE_RETURN2] ||
+               sdlKeyState[SDL_SCANCODE_KP_ENTER]) {
+        input = Input::INPUT_KEY_RETURN;
+    } else if (sdlKeyState[SDL_SCANCODE_SPACE] && sdlKeyState[SDL_SCANCODE_LEFT]) {
+        input = Input::INPUT_KEY_LEFT_SPACE;
+    } else if (sdlKeyState[SDL_SCANCODE_SPACE] && sdlKeyState[SDL_SCANCODE_RIGHT]) {
+        input = Input::INPUT_KEY_RIGHT_SPACE;
+    } else if (sdlKeyState[SDL_SCANCODE_SPACE]) {
+        input = Input::INPUT_KEY_SPACE;
+    } else if (sdlKeyState[SDL_SCANCODE_LEFT]) {
+        input = Input::INPUT_KEY_LEFT;
+    } else if (sdlKeyState[SDL_SCANCODE_RIGHT]) {
+        input = Input::INPUT_KEY_RIGHT;
+    } else if (sdlKeyState[SDL_QUIT]) {
+        quit();
+        exit(0);
+    } else {
+        input = Input::INPUT_KEY_NONE;
     }
+
+    sdlKeyState = nullptr;
 
     return input;
 }
 
-void Window::drawPixelAt(int y, int x, int16_t pixel) {
-    mvaddch(y, x, pixel);
-}
-
-void Window::clearWindow() {
-    clear();
-}
-
-void Window::refreshWindow() {
-    refresh();
-}
-
-// Redraws the screen data.
 void Window::redraw() {
     // Update new screen format with latest display information
     display_->convertSpeccyScreen();
 
-    uint8_t bufferAttribute;
-    char pixel;
-    bool bright;
-    uint8_t colour;
-    chtype character;
+    Colour attribute = Colour();
 
-    // Iterate over the new screen pixels, apply the colour.
-    int row = 0;
-    for (int r = 0; r < display_->DISPLAY_PIXELS; r += 256) {
-        for (int col = 0; col < 256; col++) {
-            bufferAttribute = display_->read(r + col);
-
-            // pick up the brightness value
-            bright = (bool) (bufferAttribute & 64);
-
-            // ignore bit-7 (pixel) so we only get the colour values (0-7)
-            colour = (uint8_t) (bufferAttribute & 7);
-
-            // pickup bit-7 (value 128) for the pixel information
-            if (bufferAttribute & 128) {
-                pixel = '#';
-            } else {
-                pixel = ' ';
-            }
-
-            // Try to speed things up a little by first checking the current
-            // attributes, and only writing if they have changed.
-            character = mvinch(row, col);
-
-            if (doColour_) {
-                if (PAIR_NUMBER(character & A_ATTRIBUTES) != colour || (character & A_CHARTEXT) != pixel) {
-                    if (bright) {
-                        attron(A_BOLD | COLOR_PAIR(colour));
-                    } else {
-                        attron(COLOR_PAIR(colour));
-                    }
-
-                    drawPixelAt(row, col, pixel);
-
-                    if (bright) {
-                        attroff(A_BOLD | COLOR_PAIR(colour));
-                    } else {
-                        attroff(COLOR_PAIR(colour));
-                    }
-                }
-            } else {
-                if ((character & A_CHARTEXT) != pixel) {
-                    drawPixelAt(row, col, pixel);
-                }
-            }
-        }
-        row++;
+    for (int y = 0; y < display_->DISPLAY_PIXELS; y++) {
+        display_->splitColourAttribute(display_->read(y), &attribute);
+        pixels_[y] = SDLPixelColour(&attribute);
     }
 
-    refresh();
+    SDL_UpdateTexture(texture_, NULL, pixels_, SCREEN_WIDTH * sizeof(uint32_t));
+
+    SDL_RenderClear(renderer_);
+    SDL_RenderCopy(renderer_, texture_, NULL, NULL);
+    SDL_RenderPresent(renderer_);
 }
 
-// Puts the terminal in the original mode
-void Window::exit() {
-    // move curses to bottom right corner
-    int y = 0;
-    int x = 0;
-    getyx(stdscr, y, x);
-    mvcur(y, x, LINES - 1, 0);
-
-    // exit curses
-    endwin();
-    fflush(stdout);
+void Window::quit() {
+    delete[] pixels_;
+    SDL_DestroyTexture(texture_);
+    SDL_DestroyRenderer(renderer_);
+    SDL_DestroyWindow(window_);
+    SDL_Quit();
 }
 
-void Window::toggleColour() {
-    doColour_ = !doColour_;
+uint32_t Window::SDLPixelColour(Colour *attribute) {
+    uint8_t brightColour = 0;
+    if (attribute->BRIGHT) {
+        brightColour = 8;
+    }
+
+    // FIXME: Display.cpp sets the pixel colour in the INK field.
+    // FIXME: this means PAPER is not used. This is confusing!
+    SDL_Color *colour = &spectrumColourPalette[attribute->INK + brightColour];
+
+    return SDL_MapRGB(pixelFormat, colour->r, colour->g, colour->b);
 }

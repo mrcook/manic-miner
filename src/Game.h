@@ -14,12 +14,10 @@ enum Keyboard {
     MM_KEY_JUMP,
     MM_KEY_LEFT_JUMP,
     MM_KEY_RIGHT_JUMP,
-
     MM_KEY_ENTER,
     MM_KEY_PAUSE,
     MM_KEY_QUIT,
     MM_KEY_MUTE,
-    MM_KEY_COLOUR_MODE,
 };
 
 typedef struct Game_ {

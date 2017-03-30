@@ -1,4 +1,4 @@
-// Curses Terminal Wrapper Copyright 2017 Michael R. Cook
+// SDL Wrapper Copyright 2017 Michael R. Cook
 
 #ifndef MANIC_MINER_WINDOW_H
 #define MANIC_MINER_WINDOW_H
@@ -7,15 +7,28 @@
 #include "Colour.h"
 #include "Speccy.h"
 #include "Display.h"
+#include <SDL2/SDL.h>
+#include <string>
+
+//Screen dimension constants
+const int SCREEN_WIDTH = 256;
+const int SCREEN_HEIGHT = 192;
 
 enum Input {
-    W_KEY_NONE,
-    W_KEY_SPACE,
-    W_KEY_LEFT,
-    W_KEY_RIGHT,
-    W_KEY_UP,
-    W_KEY_DOWN,
-    W_KEY_ENTER,
+    INPUT_KEY_NONE,
+
+    INPUT_KEY_M,
+    INPUT_KEY_P,
+    INPUT_KEY_Q,
+
+    INPUT_KEY_RETURN,
+    INPUT_KEY_SPACE,
+
+    INPUT_KEY_LEFT,
+    INPUT_KEY_RIGHT,
+
+    INPUT_KEY_LEFT_SPACE,
+    INPUT_KEY_RIGHT_SPACE,
 };
 
 class Window {
@@ -25,30 +38,56 @@ public:
         return *instance;
     }
 
-    void initialize(Display *display);
+    bool initialize(const std::string gameName, Display *display);
 
     int getKey();
-
-    void drawPixelAt(int y, int x, int16_t pixel);
-
-    void clearWindow();
-
-    void refreshWindow();
 
     // Redraws the screen data.
     void redraw();
 
-    // Puts the terminal in the original mode
-    void exit();
-
-    void toggleColour();
+    // Destroys SDL window and quits SDL subsystems
+    void quit();
 
 private:
-    bool doColour_, cursesStarted_;
+    Window() {}
 
-    Display *display_;
+    // The window we'll be rendering to
+    SDL_Window *window_ = nullptr;
+    SDL_Renderer *renderer_ = nullptr;
 
-    Window() : doColour_(false), cursesStarted_(false) {}
+    // The texture on which the pixels will be drawn
+    SDL_Texture *texture_ = nullptr;
+
+    // Pixels array used to render to the screen
+    uint32_t *pixels_ = nullptr;
+
+    // Pointer to the Display, where we create a usable display array
+    Display *display_ = nullptr;
+
+    uint32_t SDLPixelColour(Colour *attribute);
+
+    SDL_PixelFormat *pixelFormat = SDL_AllocFormat(SDL_PIXELFORMAT_RGB888);
+
+    const uint8_t *sdlKeyState = nullptr;
+};
+
+static SDL_Color spectrumColourPalette[] = {
+        {0,   0,   0,   0},
+        {0,   0,   192, 0},
+        {192, 0,   0,   0},
+        {192, 0,   192, 0},
+        {0,   192, 0,   0},
+        {0,   192, 192, 0},
+        {192, 192, 0,   0},
+        {192, 192, 192, 0},
+        {0,   0,   0,   0},
+        {0,   0,   255, 0},
+        {255, 0,   0,   0},
+        {255, 0,   255, 0},
+        {0,   255, 0,   0},
+        {0,   255, 255, 0},
+        {255, 255, 0,   0},
+        {255, 255, 255, 0}
 };
 
 
