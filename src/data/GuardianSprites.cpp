@@ -153,21 +153,14 @@ uint16_t Data_horizontalGuardianLocations[20][4][6] = {
         },
         // Cavern #13 - Skylab Landing Bay
         {
-                // NOTE: no HGUARDS are used in this cavern.
-                // Commenting out to make update/draw methods easier.
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-
                 // // Horizontal guardian 1: y=7, initial x=9, 9<=x<=14, speed=slow (unused)
-                // {255, 23785, 96, 0, 233, 238},
+                {255, 23785, 96, 0, 233, 238},
                 // // Horizontal guardian 2: y=10, initial x=12, 8<=x<=14, speed=slow (unused)
-                // {194, 23884, 104, 0, 72, 78},
+                {194, 23884, 104, 0, 72, 78},
                 // // Horizontal guardian 3: y=13, initial x=8, 4<=x<=26, speed=normal (unused)
-                // {67, 23976, 104, 0, 164, 186},
+                {67, 23976, 104, 0, 164, 186},
                 // // Horizontal guardian 4 (unused)
-                // {0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0},
         },
         // Cavern #14 - The Bank
         {
@@ -244,88 +237,88 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #1 - The Cold Room
         {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #2 - The Menagerie
         {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #3 - Abandoned Uranium Workings
         {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #4 - Eugene's Lair
         {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #5 - Processing Plant
         {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #6 - The Vat
         {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #7 - Miner Willy meets the Kong
         {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #8 - Wacky Amoebatrons
         {
@@ -343,11 +336,11 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #10 - Attack of the Mutant Telephones
         {
@@ -365,11 +358,11 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #12 - Ore Refinery
         {
@@ -378,9 +371,9 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 2 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #13 - Skylab Landing Bay
         {
@@ -409,11 +402,11 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 1 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 2 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
         // Cavern #16 - The Warehouse
         {
@@ -455,9 +448,9 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
                 // Vertical guardian 2 (unused)
                 {255, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 3 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
                 // Vertical guardian 4 (unused)
-                {255, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0},
         },
 };
 
