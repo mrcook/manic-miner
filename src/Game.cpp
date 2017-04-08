@@ -1404,6 +1404,12 @@ void Game_play_intro() {
 
     // Scroll intro message across the screen.
     for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
+        // Is ENTER being pressed? If so, start the game.
+        if (processInput() == Keyboard::MM_KEY_ENTER) {
+            game.DEMO = 0;
+            return;
+        }
+
         // Print 32 characters of the message at 20576 (19,0).
         speccy.printString((void *) &MESSINTRO[pos], 20576, 32);
 
@@ -1420,12 +1426,6 @@ void Game_play_intro() {
         // Pause for about 0.1s
         millisleep(30);
         speccy.tick();
-
-        // Is ENTER being pressed? If so, start the game.
-        if (processInput() == Keyboard::MM_KEY_ENTER) {
-            game.DEMO = 0;
-            return;
-        }
     }
 }
 

@@ -65,8 +65,7 @@ int Window::getKey() {
         input = Input::INPUT_KEY_P;
     } else if (sdlKeyState[SDL_SCANCODE_Q]) {
         input = Input::INPUT_KEY_Q;
-    } else if (sdlKeyState[SDL_SCANCODE_RETURN] || sdlKeyState[SDL_SCANCODE_RETURN2] ||
-               sdlKeyState[SDL_SCANCODE_KP_ENTER]) {
+    } else if (sdlKeyState[SDL_SCANCODE_RETURN] || sdlKeyState[SDL_SCANCODE_RETURN2] || sdlKeyState[SDL_SCANCODE_KP_ENTER]) {
         input = Input::INPUT_KEY_RETURN;
     } else if (sdlKeyState[SDL_SCANCODE_SPACE] && sdlKeyState[SDL_SCANCODE_LEFT]) {
         input = Input::INPUT_KEY_LEFT_SPACE;
