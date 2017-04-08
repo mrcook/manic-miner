@@ -193,7 +193,16 @@ bool Game_play() {
                 break;
             case 18:
                 // Solar Power Generator.
-                // LIGHTBEAM(); // FIXME: LIGHTBEAM() is broken!
+
+                // NOTE: we need to duplicate the guardian update here,
+                // otherwise this dungeon has no vertical guards!
+                for (GuardianVertical &guardian : VGUARDS) {
+                    if (guardian.updateAndDraw()) {
+                        goto LOOP_4; // Willy has died!
+                    }
+                }
+                // Note: LIGHTBEAM() must be after guardians update.
+                LIGHTBEAM();
                 break;
             default:; // NOOP
         }
@@ -761,7 +770,7 @@ void LIGHTBEAM() {
     uint16_t addr = 23575;
 
     // Prepare DE for addition (the beam travels vertically downwards to start with).
-    int8_t dir = 32; // gets toggled between 32 and -1.
+    int16_t dir = 32; // gets toggled between 32 and -1.
 
     // The beam-drawing loop begins here.
     while (true) {
@@ -782,11 +791,14 @@ void LIGHTBEAM() {
             // Jump forward to draw the light beam over Willy.
         } else {
             // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point).
-            if (speccy.readMemory(addr) == cavern.BACKGROUND.id) {
+            if (speccy.readMemory(addr) != cavern.BACKGROUND.id) {
                 // Toggle the value in DE between 32 and -1 (and therefore the direction of the light beam between
                 // vertically downwards and horizontally to the left): the light beam has hit a guardian.
-                dir ^= 223;
-                dir = ~dir;
+                if (dir == 32) {
+                    dir = -1;
+                } else {
+                    dir = 32;
+                }
             }
         }
 
