@@ -155,56 +155,37 @@ bool Game_play() {
         DRAWITEMS();
 
         // Handle the different vertical guardians.
-        switch (cavern.SHEET) {
-            case 4:
-                // Eugene's Lair
-                if (EUGENE()) {
-                    goto LOOP_4; // Willy has died!
-                }
-                break;
-            case 13:
-                // Skylab Landing Bay.
-                if (SKYLABS()) {
-                    goto LOOP_4; // Willy has died!
-                }
-                break;
-            case 8:
-            case 10:
-            case 12:
-            case 14:
-            case 16:
-            case 17:
-            case 19:
-                // Wacky Amoebatrons, and other regular guardians.
 
-                // The guardian-moving loop begins here.
-                for (GuardianVertical &guardian : VGUARDS) {
-                    if (guardian.updateAndDraw()) {
-                        goto LOOP_4; // Willy has died!
-                    }
-                }
-                break;
-            case 7:
-            case 11:
-                // Miner Willy meets the Kong Beast and Return of the Alien Kong Beast.
-                if (KONGBEAST()) {
+        // Eugene's Lair
+        if (cavern.SHEET == 4) {
+            if (EUGENE()) {
+                goto LOOP_4; // Willy has died!
+            }
+        }
+        // Skylab Landing Bay.
+        if (cavern.SHEET == 13) {
+            if (SKYLABS()) {
+                goto LOOP_4; // Willy has died!
+            }
+        }
+        // Wacky Amoebatrons, and other regular guardians.
+        if (cavern.SHEET >= 8 && cavern.SHEET != 13) {
+            // The guardian-moving loop begins here.
+            for (GuardianVertical &guardian : VGUARDS) {
+                if (guardian.updateAndDraw()) {
                     goto LOOP_4; // Willy has died!
                 }
-                break;
-            case 18:
-                // Solar Power Generator.
-
-                // NOTE: we need to duplicate the guardian update here,
-                // otherwise this dungeon has no vertical guards!
-                for (GuardianVertical &guardian : VGUARDS) {
-                    if (guardian.updateAndDraw()) {
-                        goto LOOP_4; // Willy has died!
-                    }
-                }
-                // Note: LIGHTBEAM() must be after guardians update.
-                LIGHTBEAM();
-                break;
-            default:; // NOOP
+            }
+        }
+        // Miner Willy meets the Kong Beast and Return of the Alien Kong Beast.
+        if (cavern.SHEET == 7 || cavern.SHEET == 11) {
+            if (KONGBEAST()) {
+                goto LOOP_4; // Willy has died!
+            }
+        }
+        // Solar Power Generator.
+        if (cavern.SHEET == 18) {
+            LIGHTBEAM();
         }
 
         // FIXME: this should be moved up, directly after moving Willy...?
