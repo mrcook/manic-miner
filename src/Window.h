@@ -64,7 +64,7 @@ private:
     // Pointer to the Display, where we create a usable display array
     Display *display_ = nullptr;
 
-    uint32_t SDLPixelColour(Colour *attribute);
+    uint32_t GenerateSDLPixelColour(uint8_t colour_id);
 
     SDL_PixelFormat *pixelFormat = SDL_AllocFormat(SDL_PIXELFORMAT_RGB888);
 
@@ -73,13 +73,13 @@ private:
 
 static SDL_Color spectrumColourPalette[] = {
         {0,   0,   0,   0},
-        {0,   0,   192, 0},
-        {192, 0,   0,   0},
-        {192, 0,   192, 0},
-        {0,   192, 0,   0},
-        {0,   192, 192, 0},
-        {192, 192, 0,   0},
-        {192, 192, 192, 0},
+        {0,   0,   215, 0},
+        {215, 0,   0,   0},
+        {215, 0,   215, 0},
+        {0,   215, 0,   0},
+        {0,   215, 215, 0},
+        {215, 215, 0,   0},
+        {215, 215, 215, 0},
         {0,   0,   0,   0},
         {0,   0,   255, 0},
         {255, 0,   0,   0},

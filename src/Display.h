@@ -39,6 +39,8 @@ public:
     // Extract the ink, paper, brightness values from the attribute
     void splitColourAttribute(uint8_t attribute, Colour *colour);
 
+    void toggleFlashing(void);
+
 private:
     // Handy function to convert a byte to an array of bits,
     // so you can more easily create pixel based graphics.
@@ -47,7 +49,9 @@ private:
     // Display buffers in a standard (linear) format.
     // Useful for sending to ncurses/SDL/etc.
     // contains data for each pixel, not byte character
-    uint16_t screen[DISPLAY_PIXELS];
+    uint8_t screen[DISPLAY_PIXELS];
+
+    bool flashState_;
 };
 
 

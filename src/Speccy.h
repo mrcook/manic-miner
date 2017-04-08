@@ -23,14 +23,16 @@
 //
 // Colour number, name, binary value, with their RGB (hex) equivalent
 //   #  Name     Binary   RGB: NORMAL   BRIGHT
-//   0  BLACK    000           #000000  #000000c
-//   1  BLUE     001           #0000D7  #0000FFc
-//   2  RED      010           #D70000  #FF0000c
-//   3  MAGENTA  011           #D700D7  #FF00FFc  (purple)
-//   4  GREEN    100           #00D700  #00FF00c
-//   5  CYAN     101           #00D7D7  #00FFFFc  (pale blue)
-//   6  YELLOW   110           #D7D700  #FFFF00c
-//   7  WHITE    111           #D7D7D7  #FFFFFFc
+//   0  BLACK    000           #000000  #000000
+//   1  BLUE     001           #0000D7  #0000FF
+//   2  RED      010           #D70000  #FF0000
+//   3  MAGENTA  011           #D700D7  #FF00FF  (purple)
+//   4  GREEN    100           #00D700  #00FF00
+//   5  CYAN     101           #00D7D7  #00FFFF  (pale blue)
+//   6  YELLOW   110           #D7D700  #FFFF00
+//   7  WHITE    111           #D7D7D7  #FFFFFF
+
+// FLASHing swaps the INK and PAPER colours, and changes every 16 frames.
 
 // 23672: Interrupt counter (stored in the system variables).
 // The interrupt service routine in the ROM updates the Spectrum’s 24-bit

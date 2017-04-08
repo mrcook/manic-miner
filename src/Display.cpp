@@ -1,6 +1,7 @@
 // Display library Copyright 2017 Michael R. Cook
 
 #include "Headers.h"
+#include "Helpers.h"
 #include "Colour.h"
 #include "Globals.h"
 #include "Display.h"
@@ -16,6 +17,9 @@ void Display::convertSpeccyScreen() {
     int address, line, offset;
 
     uint8_t pixels[8];
+
+    // Toggle the flashing state, before writing the new pixels.
+    toggleFlashing();
 
     // Iterate over each Display File block (top, middle, bottom)
     for (int block = 0; block < 3; block++) {
@@ -56,8 +60,9 @@ void Display::convertSpeccyScreen() {
     }
 }
 
-// Write a colour pixel to the new screen.
+// Write a colour ID for the pixel to the new screen.
 // The colour is taken from the Attributes File, using the given address.
+// Normal colours are values 0-7, brights colour 8-15.
 void Display::writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
     assert(newScreenAddress >= 0 && newScreenAddress < 256 * 192);
 
@@ -66,17 +71,31 @@ void Display::writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
 
     splitColourAttribute(attribute, &colour);
 
-    uint8_t pixelColour;
-    if (pixel == 1) {
-        pixelColour = colour.INK;
-    } else {
-        pixelColour = colour.PAPER;
+    // FLASH swaps the INK and PAPER colours
+    uint8_t paperColour = colour.PAPER;
+    uint8_t inkColour = colour.INK;
+    if (colour.FLASH && flashState_) {
+        uint8_t newINK = paperColour;
+        paperColour = inkColour;
+        inkColour = newINK;
     }
 
-    uint8_t flash = (uint8_t) (colour.FLASH ? 128 : 0);
-    uint8_t brightness = (uint8_t) (colour.BRIGHT ? 64 : 0);
+    // Choose INK/PAPER colour based on presence of a pixel
+    uint8_t colourID;
+    if (pixel == 1) {
+        colourID = inkColour;
+    } else {
+        colourID = paperColour;
+    }
 
-    screen[newScreenAddress] = (uint8_t) (flash | brightness | pixelColour);
+    // If BRIGHT, then add 8 to the colour, given a range of 8-15
+    if (colour.BRIGHT) {
+        colourID += 8;
+    }
+
+    if (screen[newScreenAddress] != colourID) {
+        screen[newScreenAddress] = colourID;
+    }
 }
 
 // Given an address from the new screen array (256*192 pixels),
@@ -97,10 +116,10 @@ uint8_t Display::getAttributeByte(int pixelAddress) {
 
 void Display::splitColourAttribute(uint8_t attribute, Colour *colour) {
     // Flashing uses bit flag 7, save as boolean
-    colour->FLASH = (attribute & (1 << 7)) == 1;
+    colour->FLASH = ((attribute >> 7) & 1) == 1;
 
     // Brightness uses bit flag 6, save as boolean
-    colour->BRIGHT = (attribute & (1 << 6)) == 1;
+    colour->BRIGHT = ((attribute >> 6) & 1) == 1;
 
     // Clear the FLASH/BRIGHT flags
     attribute &= ~(1 << 7);
@@ -122,5 +141,15 @@ void Display::byteToBits(uint8_t byte, uint8_t *bits) {
         } else {
             bits[i] = 0;
         }
+    }
+}
+
+void Display::toggleFlashing() {
+    static int lastTick = 0;
+
+    int currentTick = getTickCount();
+    if (currentTick - lastTick > 62) {
+        lastTick = currentTick;
+        flashState_ = !flashState_;
     }
 }

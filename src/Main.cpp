@@ -16,7 +16,7 @@ static bool getOptions(int argc, char *argv[], int *teleport, int *fps, int *liv
 
 // The game has just loaded
 int main(int argc, char *argv[]) {
-    int fps = 17;
+    int fps = 16;
     bool cheat = false;
     int lives = 2;
     int teleport = -1;

@@ -94,11 +94,11 @@ void Window::redraw() {
     // Update new screen format with latest display information
     display_->convertSpeccyScreen();
 
-    Colour attribute = Colour();
-
     for (int y = 0; y < display_->DISPLAY_PIXELS; y++) {
-        display_->splitColourAttribute(display_->read(y), &attribute);
-        pixels_[y] = SDLPixelColour(&attribute);
+        uint32_t pixel = GenerateSDLPixelColour(display_->read(y));
+        if (pixels_[y] != pixel) {
+            pixels_[y] = pixel;
+        }
     }
 
     SDL_UpdateTexture(texture_, NULL, pixels_, SCREEN_WIDTH * sizeof(uint32_t));
@@ -116,15 +116,7 @@ void Window::quit() {
     SDL_Quit();
 }
 
-uint32_t Window::SDLPixelColour(Colour *attribute) {
-    uint8_t brightColour = 0;
-    if (attribute->BRIGHT) {
-        brightColour = 8;
-    }
-
-    // FIXME: Display.cpp sets the pixel colour in the INK field.
-    // FIXME: this means PAPER is not used. This is confusing!
-    SDL_Color *colour = &spectrumColourPalette[attribute->INK + brightColour];
-
+uint32_t Window::GenerateSDLPixelColour(uint8_t colour_id) {
+    SDL_Color *colour = &spectrumColourPalette[colour_id];
     return SDL_MapRGB(pixelFormat, colour->r, colour->g, colour->b);
 }
