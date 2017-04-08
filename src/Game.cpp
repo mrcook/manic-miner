@@ -997,13 +997,10 @@ bool SKYLABS() {
         }
 
         // Point HL at the address of the Skylab's location in the attribute buffer at 23552.
-        addr = (uint16_t) (Speccy::rotL((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
-        Speccy::splitAddress(addr, &msb, &lsb);
-        uint8_t msb_bak = msb;
-        addr = (uint8_t) (Speccy::rotL(VGUARDS[i].yCoord, 2) & 224);
-        addr |= VGUARDS[i].xCoord;
-        Speccy::splitAddress(addr, &msb, &lsb);
-        addr = Speccy::buildAddress(msb_bak, lsb);
+        msb = (uint8_t) (Speccy::rotL((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
+        lsb = (uint8_t) (Speccy::rotL(VGUARDS[i].yCoord, 2) & 224);
+        lsb |= VGUARDS[i].xCoord;
+        addr = Speccy::buildAddress(msb, lsb);
 
         // Set the attribute bytes for the Skylab.
         EUGENE_3(addr, VGUARDS[i].attribute);
