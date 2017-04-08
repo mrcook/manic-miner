@@ -463,9 +463,7 @@ void ENDGAM() {
 
         // FIXME: delay would be in makeSound (which is wrong anyway),
         // so we must delay to get the correct boot descending effect.
-        for (int d = 64; d > 0; d--) {
-            millisleep(distance / 216);
-        }
+        millisleep(distance >> 4);
 
         // Keep only bits 2 and 3.
         distance = (uint8_t) (bootDistanceFromTop & 12);

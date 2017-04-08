@@ -14,7 +14,11 @@ bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
     // FIXME: is this needed?
     // Set scaling interpolation algorithm: 0 = pixel sampling
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
-    int scalingFactor = 2; // 1024 x 768
+
+    // 1 = 256 x 192
+    // 2 = 512 x 384
+    // 4 = 1024 x 768
+    int scalingFactor = 3;
 
     window_ = SDL_CreateWindow(
             gameName.c_str(),
