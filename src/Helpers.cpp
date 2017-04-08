@@ -23,8 +23,8 @@ int getTickCount() {
 #ifdef _WIN32
     return GetTickCount();
 #elif _POSIX_C_SOURCE >= 199309L
-    return (int)(clock() / (CLOCKS_PER_SEC * 1000));
+    return (int) (clock() * 1000.0 / CLOCKS_PER_SEC);
 #else
-    return (int) (clock() / (CLOCKS_PER_SEC * 1000));
+    return (int) (clock() * 1000.0 / CLOCKS_PER_SEC);
 #endif
 }
