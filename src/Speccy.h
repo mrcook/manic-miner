@@ -5,7 +5,7 @@
 
 
 #include "Headers.h"
-#include "Colour.h"
+#include "SpeccyColour.h"
 
 // Simple ZX Spectrum platform wrapper to aid developers porting Z80 software.
 

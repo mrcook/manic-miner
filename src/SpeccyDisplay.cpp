@@ -1,18 +1,18 @@
-// Display library Copyright 2017 Michael R. Cook
+// Spectrum Display library Copyright 2017 Michael R. Cook
 
 #include "Headers.h"
 #include "Helpers.h"
-#include "Colour.h"
+#include "SpeccyColour.h"
 #include "Globals.h"
-#include "Display.h"
+#include "SpeccyDisplay.h"
 
-uint8_t Display::read(int address) {
+uint8_t SpeccyDisplay::read(int address) {
     assert(address >= 0 && address < DISPLAY_PIXELS);
 
     return screen[address];
 }
 
-void Display::convertSpeccyScreen() {
+void SpeccyDisplay::convertSpeccyScreen() {
     int block_addr_offset;
     int address, line, offset;
 
@@ -63,7 +63,7 @@ void Display::convertSpeccyScreen() {
 // Write a colour ID for the pixel to the new screen.
 // The colour is taken from the Attributes File, using the given address.
 // Normal colours are values 0-7, brights colour 8-15.
-void Display::writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
+void SpeccyDisplay::writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
     assert(newScreenAddress >= 0 && newScreenAddress < 256 * 192);
 
     Colour colour;
@@ -100,7 +100,7 @@ void Display::writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
 
 // Given an address from the new screen array (256*192 pixels),
 // calculate the Spectrum Attribute File address
-uint8_t Display::getAttributeByte(int pixelAddress) {
+uint8_t SpeccyDisplay::getAttributeByte(int pixelAddress) {
     // each third of the screen is 16384 pixels.
     // bottom third starts at: 32768
 
@@ -114,7 +114,7 @@ uint8_t Display::getAttributeByte(int pixelAddress) {
     return speccy.readAttribute(22528 + rowOffset + column);
 }
 
-void Display::splitColourAttribute(uint8_t attribute, Colour *colour) {
+void SpeccyDisplay::splitColourAttribute(uint8_t attribute, Colour *colour) {
     // Flashing uses bit flag 7, save as boolean
     colour->FLASH = ((attribute >> 7) & 1) == 1;
 
@@ -134,7 +134,7 @@ void Display::splitColourAttribute(uint8_t attribute, Colour *colour) {
 
 // Handy function to convert a byte to an array of bits,
 // so you can more easily create pixel based graphics.
-void Display::byteToBits(uint8_t byte, uint8_t *bits) {
+void SpeccyDisplay::byteToBits(uint8_t byte, uint8_t *bits) {
     for (int i = 0; i < 8; i++) {
         if (byte & (1 << i)) {
             bits[i] = 1;
@@ -144,7 +144,7 @@ void Display::byteToBits(uint8_t byte, uint8_t *bits) {
     }
 }
 
-void Display::toggleFlashing() {
+void SpeccyDisplay::toggleFlashing() {
     static int lastTick = 0;
 
     int currentTick = getTickCount();

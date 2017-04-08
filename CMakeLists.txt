@@ -18,13 +18,13 @@ set(SOURCE_FILES
         src/Speccy.h
         src/SpeccyFont.cpp
         src/Speccy.cpp
-        src/Display.h
-        src/Display.cpp
+        src/SpeccyDisplay.h
+        src/SpeccyDisplay.cpp
         src/Window.h
         src/Window.cpp
         src/Sound.h
         src/Sound.cpp
-        src/Colour.h
+        src/SpeccyColour.h
         src/Coord.h
         src/Data.h
         src/data/Caverns.cpp

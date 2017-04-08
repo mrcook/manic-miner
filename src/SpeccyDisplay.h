@@ -1,22 +1,22 @@
-// Display library Copyright 2017 Michael R. Cook
+// Spectrum Display library Copyright 2017 Michael R. Cook
 
 // Converts the original Spectrum screen layout to a more standard linear
 // format; bytes are sequential reading from left-to-right, top-to-bottom.
 
-#ifndef MANIC_MINER_DISPLAY_H
-#define MANIC_MINER_DISPLAY_H
+#ifndef MANIC_MINER_SPECCY_DISPLAY_H
+#define MANIC_MINER_SPECCY_DISPLAY_H
 
 
 #include "Headers.h"
-#include "Colour.h"
+#include "SpeccyColour.h"
 
-class Display {
+class SpeccyDisplay {
 public:
     static const int SPECCY_SCREEN = 6144;
     static const int DISPLAY_PIXELS = SPECCY_SCREEN * 8;
 
-    static Display &instance() {
-        static Display *instance = new Display();
+    static SpeccyDisplay &instance() {
+        static SpeccyDisplay *instance = new SpeccyDisplay();
         return *instance;
     }
 
@@ -46,7 +46,7 @@ private:
     // so you can more easily create pixel based graphics.
     void byteToBits(uint8_t byte, uint8_t *bits);
 
-    // Display buffers in a standard (linear) format.
+    // Display in a standard (linear) format.
     // Useful for sending to ncurses/SDL/etc.
     // contains data for each pixel, not byte character
     uint8_t screen[DISPLAY_PIXELS];
@@ -55,4 +55,4 @@ private:
 };
 
 
-#endif //MANIC_MINER_DISPLAY_H
+#endif //MANIC_MINER_SPECCY_DISPLAY_H

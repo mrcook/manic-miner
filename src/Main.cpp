@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 
     speccy.initialize(fps);
 
-    if (!Window::instance().initialize("Retro Manic Miner", &Display::instance())) {
+    if (!Window::instance().initialize("Retro Manic Miner", &SpeccyDisplay::instance())) {
         printf("Game Window initialization failure. Can not continue.");
         return -1;
     }

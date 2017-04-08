@@ -4,9 +4,9 @@
 #define MANIC_MINER_WINDOW_H
 
 #include "Headers.h"
-#include "Colour.h"
+#include "SpeccyColour.h"
 #include "Speccy.h"
-#include "Display.h"
+#include "SpeccyDisplay.h"
 #include <SDL2/SDL.h>
 #include <string>
 
@@ -38,7 +38,7 @@ public:
         return *instance;
     }
 
-    bool initialize(const std::string gameName, Display *display);
+    bool initialize(const std::string gameName, SpeccyDisplay *display);
 
     int getKey();
 
@@ -61,8 +61,8 @@ private:
     // Pixels array used to render to the screen
     uint32_t *pixels_ = nullptr;
 
-    // Pointer to the Display, where we create a usable display array
-    Display *display_ = nullptr;
+    // Pointer to the SpeccyDisplay, where we create a usable display array
+    SpeccyDisplay *display_ = nullptr;
 
     uint32_t GenerateSDLPixelColour(uint8_t colour_id);
 

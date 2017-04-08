@@ -3,7 +3,7 @@
 #include "Headers.h"
 #include "Window.h"
 
-bool Window::initialize(const std::string gameName, Display *display) {
+bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
     display_ = display;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {

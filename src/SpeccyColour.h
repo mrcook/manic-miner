@@ -1,7 +1,7 @@
-// Manic Miner C Port Copyright 2017 Michael R. Cook
+// Spectrum Colour library Copyright 2017 Michael R. Cook
 
-#ifndef MANIC_MINER_COLOUR_H
-#define MANIC_MINER_COLOUR_H
+#ifndef MANIC_MINER_SPECCY_COLOUR_H
+#define MANIC_MINER_SPECCY_COLOUR_H
 
 
 #include "Headers.h"
@@ -40,4 +40,4 @@ enum Colours {
 };
 
 
-#endif //MANIC_MINER_COLOUR_H
+#endif //MANIC_MINER_SPECCY_COLOUR_H
