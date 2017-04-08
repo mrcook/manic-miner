@@ -819,11 +819,11 @@ bool EUGENE() {
         }
     }
 
+    // Now that Eugene's movement has been dealt with, it's time to draw him.
+
     uint8_t msb, lsb;
     uint8_t x_msb, x_lsb;
     uint16_t addr;
-
-    // Now that Eugene's movement has been dealt with, it's time to draw him.
 
     // Pick up Eugene's pixel y-coordinate from EUGHGT.
     // Point DE at the entry in the screen buffer address lookup table at
@@ -879,7 +879,7 @@ bool EUGENE() {
         ink_colour = (uint8_t) (Speccy::rotR(cavern.CLOCK, 2) & 7);
     }
 
-    EUGENE_3(addr, ink_colour); // IMPORTANT: implicit jump -MRC-
+    EUGENE_3(addr, ink_colour);
 
     return false;
 }
@@ -889,13 +889,10 @@ bool EUGENE() {
 // GuardianVertical::updateAndDraw: to set the attributes for a vertical guardian.
 // KONGBEAST:  to set the attributes for the Kong Beast.
 void EUGENE_3(uint16_t addr, uint8_t ink_colour) {
-    // Save the INK colour in the attribute buffer temporarily.
-    speccy.writeMemory(addr, ink_colour);
-
     // Pick up the attribute byte of the background tile for the current cavern.
     // Combine its PAPER colour with the chosen INK colour.
     // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552.
-    speccy.writeMemory(addr, (uint8_t) ((cavern.BACKGROUND.id & 248) | speccy.readMemory(addr)));
+    speccy.writeMemory(addr, (uint8_t) ((cavern.BACKGROUND.id & 248) | ink_colour));
 
     // Set the attribute byte for the top-right cell of the sprite in the attribute buffer at 23552.
     addr++;

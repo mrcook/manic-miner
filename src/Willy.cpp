@@ -459,7 +459,7 @@ bool Willy_setAttrByte(uint16_t addr, uint8_t pix_y) {
         // is confined to the top two rows.
 
         // Jump if we are going to retain the current INK colour in this cell.
-        if (pix_y == 15) {
+        if (pix_y & 15) {
             // Pick up the attribute byte of the BACKGROUND tile.
             // Set bits 0-2, making the INK white.
             // Set the attribute byte for this cell in the buffer at 23552.
