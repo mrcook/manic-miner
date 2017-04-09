@@ -38,6 +38,7 @@ set(SOURCE_FILES
         src/Cavern.cpp
         src/GuardianHorizontal.h
         src/GuardianHorizontal.cpp
+        src/GuardianSpecial.cpp
         src/GuardianVertical.h
         src/GuardianVertical.cpp
         src/KongBeast.h
@@ -49,7 +50,7 @@ set(SOURCE_FILES
         src/Willy.cpp
         src/Game.h
         src/Game.cpp
-        src/Main.cpp)
+        src/Main.cpp src/GuardianSpecial.h)
 
 add_executable(manic_miner ${SOURCE_FILES})
 

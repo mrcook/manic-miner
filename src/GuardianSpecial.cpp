@@ -1,0 +1,307 @@
+// Manic Miner C Port Copyright 2017 Michael R. Cook
+// Manic Miner Copyright 1983 Bug-Byte Ltd.
+
+#include "Headers.h"
+#include "Globals.h"
+#include "Data.h"
+#include "GuardianSpecial.h"
+#include "KongBeast.h"
+
+// Check sheet and update Vertical Guardians Eugene, Skylaps, Kongbeast.
+// return `true` if Willy is dead! (used to be `goto LOOP_4`)
+bool UpdateSpecialVerticalGuardians(uint8_t sheet) {
+    // Eugene's Lair
+    if (sheet == 4) {
+        if (EUGENE()) {
+            return true;
+        }
+    }
+
+    // Skylab Landing Bay.
+    if (sheet == 13) {
+        if (SKYLABS()) {
+            return true;
+        }
+    }
+
+    // Wacky Amoebatrons, and other regular guardians.
+    if (sheet >= 8 && sheet != 13) {
+        // The guardian-moving loop begins here.
+        for (GuardianVertical &guardian : VGUARDS) {
+            if (guardian.updateAndDraw()) {
+                return true;
+            }
+        }
+    }
+
+    // Miner Willy meets the Kong Beast and Return of the Alien Kong Beast.
+    if (sheet == 7 || sheet == 11) {
+        if (KONGBEAST()) {
+            return true;
+        }
+    }
+
+    // Solar Power Generator.
+    if (sheet == 18) {
+        LIGHTBEAM();
+    }
+
+    return false;
+}
+
+// Move and draw the light beam in Solar Power Generator.
+void LIGHTBEAM() {
+    // Point to the cell at (0,23) in the attribute buffer at 23552 (the source of the light beam).
+    // FIXME: Screen Buffer: Screen File = 22551
+    uint16_t addr = 23575;
+
+    // Prepare DE for addition (the beam travels vertically downwards to start with).
+    int16_t dir = 32; // gets toggled between 32 and -1.
+
+    // The beam-drawing loop begins here.
+    while (true) {
+        // Does HL point at a floor or wall tile? Return if so (the light beam stops here).
+        if (speccy.readMemory(addr) == cavern.FLOOR.id || speccy.readMemory(addr) == cavern.WALL.id) {
+            return;
+        }
+
+        // A=39 (INK 7: PAPER 4)
+        // Does HL point at a tile with this attribute value?
+        // Jump if not (the light beam is not touching Willy).
+        if (speccy.readMemory(addr) == 39) {
+            // Decrease the air supply by four units
+            cavern.decreaseAir();
+            cavern.decreaseAir();
+            cavern.decreaseAir();
+            cavern.decreaseAir();
+            // Jump forward to draw the light beam over Willy.
+        } else {
+            // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point).
+            if (speccy.readMemory(addr) != cavern.BACKGROUND.id) {
+                // Toggle the value in DE between 32 and -1 (and therefore the direction of the light beam between
+                // vertically downwards and horizontally to the left): the light beam has hit a guardian.
+                if (dir == 32) {
+                    dir = -1;
+                } else {
+                    dir = 32;
+                }
+            }
+        }
+
+        // Draw a portion of the light beam with attribute value 119 (INK 7: PAPER 6: BRIGHT 1).
+        speccy.writeMemory(addr, 119);
+
+        // Point HL at the cell where the next portion of the light beam will be drawn.
+        addr += dir;
+    }
+}
+
+// Move and draw Eugene in Eugene's Lair.
+// First we move Eugene up or down, or change his direction.
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool EUGENE() {
+    // Have all the items been collected, or is Eugene moving downwards?
+    if (game.ITEMATTR != 0 && EUGDIR != 0) {
+        // Pick up Eugene's pixel y-coordinate from EUGHGT.
+        // Decrement it (moving Eugene up)
+        // Jump if Eugene has reached the top of the cavern.
+        if (EUGHGT - 1 == 0) {
+            // Toggle Eugene's direction at EUGDIR.
+            EUGDIR = (uint8_t) !EUGDIR;
+        } else {
+            // Update Eugene's pixel y-coordinate at EUGHGT.
+            EUGHGT--;
+        }
+    } else {
+        // Pick up Eugene's pixel y-coordinate from EUGHGT.
+        // Increment it (moving Eugene down).
+        // Has Eugene reached the portal yet? Jump if so.
+        if (EUGHGT + 1 == 88) {
+            EUGDIR = (uint8_t) !EUGDIR;
+        } else {
+            // Update Eugene's pixel y-coordinate at EUGHGT.
+            EUGHGT++;
+        }
+    }
+
+    // Now that Eugene's movement has been dealt with, it's time to draw him.
+
+    uint8_t msb, lsb;
+    uint8_t x_msb, x_lsb;
+    uint16_t addr;
+
+    // Pick up Eugene's pixel y-coordinate from EUGHGT.
+    // Point DE at the entry in the screen buffer address lookup table at
+    // SBUFADDRS that corresponds to Eugene's y-coordinate.
+    // Point HL at the address of Eugene's location in the screen buffer at 24576.
+    uint8_t y_coord = (uint8_t) (EUGHGT & 127);
+    y_coord = Speccy::rotL(y_coord, 1);
+    addr = SBUFADDRS[y_coord / 2];
+    addr |= 15;
+    Speccy::splitAddress(addr, &msb, &lsb);
+    y_coord++;
+    addr = SBUFADDRS[y_coord / 2];
+    Speccy::splitAddress(addr, &x_msb, &x_lsb);
+    addr = Speccy::buildAddress(x_msb, lsb);
+
+    // Draw Eugene to the screen buffer at 24576.
+    bool kill_willy = DRWFIX(&EUGENEG, addr, 1);
+
+    // Kill Willy if Eugene collided with him.
+    if (kill_willy) {
+        Willy_kill();
+        return true;
+    }
+
+
+    // Pick up Eugene's pixel y-coordinate from EUGHGT.
+    // Point HL at the address of Eugene's location in the attribute buffer at 23552.
+    y_coord = (uint8_t) (EUGHGT & 120);
+    y_coord = Speccy::rotL(y_coord, 1);
+    y_coord |= 7;
+
+    // IMPORTANT: SCF should set the carry flag, and the following RL loads that into bit 0 -MRC-
+    msb = 0;
+    if ((y_coord >> 7) & 1) {
+        msb = 1;
+    }
+    y_coord = Speccy::rotL(y_coord, 1);
+    y_coord |= 1 << 0;
+    msb += 92;
+    addr = Speccy::buildAddress(msb, y_coord);
+
+    // Assume we will draw Eugene with white INK.
+    uint8_t ink_colour = 7;
+
+    // Pick up the attribute of the last item drawn from ITEMATTR.
+    // Set the zero flag if all the items have been collected.
+    // Jump if there are items remaining to be collected.
+    if (game.ITEMATTR == 0) {
+        // Pick up the value of the game clock at CLOCK.
+        // Move bits 2-4 into bits 0-2 and clear the other bits; this value
+        // (which decreases by one on each pass through the main loop) will
+        // be Eugene's INK colour.
+        ink_colour = (uint8_t) (Speccy::rotR(cavern.CLOCK, 2) & 7);
+    }
+
+    EUGENE_3(addr, ink_colour);
+
+    return false;
+}
+
+// Sets the colour attributes for a 16x16 pixel sprite.
+// SKYLABS:    to set the attributes for a Skylab.
+// GuardianVertical::updateAndDraw: to set the attributes for a vertical guardian.
+// KONGBEAST:  to set the attributes for the Kong Beast.
+void EUGENE_3(uint16_t addr, uint8_t ink_colour) {
+    // Pick up the attribute byte of the background tile for the current cavern.
+    // Combine its PAPER colour with the chosen INK colour.
+    // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552.
+    speccy.writeMemory(addr, (uint8_t) ((cavern.BACKGROUND.id & 248) | ink_colour));
+
+    // Set the attribute byte for the top-right cell of the sprite in the attribute buffer at 23552.
+    addr++;
+    speccy.writeMemory(addr, ink_colour);
+
+    // Set the attribute byte for the middle-left cell of the sprite in the attribute buffer at 23552.
+    addr += 31;
+    speccy.writeMemory(addr, ink_colour);
+
+    // Set the attribute byte for the middle-right cell of the sprite in the attribute buffer at 23552.
+    addr++;
+    speccy.writeMemory(addr, ink_colour);
+
+    // Set the attribute byte for the bottom-left cell of the sprite in the attribute buffer at 23552.
+    addr += 31;
+    speccy.writeMemory(addr, ink_colour);
+
+    // Set the attribute byte for the bottom-right cell of the sprite in the attribute buffer at 23552.
+    addr++;
+    speccy.writeMemory(addr, ink_colour);
+}
+
+// Move and draw the Skylabs in Skylab Landing Bay.
+// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
+bool SKYLABS() {
+    uint8_t msb;
+    uint8_t lsb;
+    uint16_t addr;
+
+    // The Skylab-moving loop begins here.
+    for (int i = 0; i < 4; i++) {
+        // Have we dealt with all the Skylabs yet? If so, re-enter the main loop.
+        if (VGUARDS[i].attribute == 255) {
+            return false;
+        }
+
+        // Has it reached its crash site yet?
+        if (VGUARDS[i].yCoord < VGUARDS[i].yCoordMaximum) {
+            // Increment the Skylab's y-coordinate (moving it downwards).
+            VGUARDS[i].yCoord += VGUARDS[i].yPixelIncrement;
+        } else {
+            // The Skylab has reached its crash site. Start or continue its disintegration.
+
+            // Increment the animation frame.
+            VGUARDS[i].frame++;
+
+            // Pick up the animation frame.
+            // Has the Skylab completely disintegrated yet?
+            if (VGUARDS[i].frame == 8) {
+                // Reset the Skylab's pixel y-coordinate
+                VGUARDS[i].yCoord = VGUARDS[i].yCoordMinimum;
+
+                // Add 8 to the Skylab's x-coordinate (wrapping around at the right side of the screen).
+                VGUARDS[i].xCoord += 8;
+                VGUARDS[i].xCoord &= 31;
+
+                // Reset the animation frame to 0.
+                VGUARDS[i].frame = 0;
+            }
+        }
+
+        // Now that the Skylab's movement has been dealt with, time to draw it.
+
+        // Pickup the entry in the screen buffer address lookup table at SBUFADDRS
+        // that corresponds to the Skylab's pixel y-coordinate.
+        uint8_t y_coord = Speccy::rotL(VGUARDS[i].yCoord, 1);
+
+        // Point HL at the address of the Skylab's location in the screen buffer at 24576.
+        addr = SBUFADDRS[y_coord / 2];
+        addr += VGUARDS[i].xCoord;
+
+        Speccy::splitAddress(addr, &msb, &lsb);
+        y_coord++;
+
+        addr = SBUFADDRS[y_coord / 2];
+
+        uint8_t y_msb, y_lsb;
+        Speccy::splitAddress(addr, &y_msb, &y_lsb);
+        addr = Speccy::buildAddress(y_msb, lsb);
+
+        // Pick up the animation frame (0-7). Multiply it by 32.
+        // Skylab sprite (at GGDATA+A).
+        uint8_t sprite_offset = Speccy::rotR(VGUARDS[i].frame, 3);
+
+        // Draw the Skylab to the screen buffer at 24576.
+        bool kill_willy = DRWFIX(&VGUARDS[i].GGDATA[sprite_offset], addr, 1);
+
+        // Kill Willy if the Skylab collided with him.
+        if (kill_willy) {
+            Willy_kill();
+            return true;
+        }
+
+        // Point HL at the address of the Skylab's location in the attribute buffer at 23552.
+        msb = (uint8_t) (Speccy::rotL((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
+        lsb = (uint8_t) (Speccy::rotL(VGUARDS[i].yCoord, 2) & 224);
+        lsb |= VGUARDS[i].xCoord;
+        addr = Speccy::buildAddress(msb, lsb);
+
+        // Set the attribute bytes for the Skylab.
+        EUGENE_3(addr, VGUARDS[i].attribute);
+
+        // The current guardian definition has been dealt with. Time for the next one.
+    }
+
+    return false; // Willy is not dead!
+}
