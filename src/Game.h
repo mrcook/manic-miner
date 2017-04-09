@@ -128,14 +128,6 @@ bool MOVEWILLY(int keyIntput);
 
 void CRUMBLE(uint16_t addr);
 
-void LIGHTBEAM(void);
-
-bool EUGENE(void);
-
-void EUGENE_3(uint16_t addr, uint8_t ink_colour);
-
-bool SKYLABS(void);
-
 void DRAWITEMS(void);
 
 bool CHKPORTAL(void);

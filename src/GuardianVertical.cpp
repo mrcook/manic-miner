@@ -4,6 +4,7 @@
 #include "Headers.h"
 #include "Globals.h"
 #include "Data.h"
+#include "GuardianSpecial.h"
 
 // Move and draw the vertical guardians in the current cavern.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
@@ -75,7 +76,7 @@ bool GuardianVertical::updateAndDraw() {
     addr = Speccy::buildAddress(msb_bak, lsb | xCoord);
 
     // Set the attribute bytes for the guardian.
-    EUGENE_3(addr, attribute);
+    UpdateGuardianColourAttributes(addr, attribute);
 
     // Great, Willy is not dead!
     return false;

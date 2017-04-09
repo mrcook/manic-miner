@@ -6,6 +6,7 @@
 #include "Data.h"
 #include "Globals.h"
 #include "KongBeast.h"
+#include "GuardianSpecial.h"
 
 // Move and draw the Kong Beast in the current cavern.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
@@ -181,7 +182,7 @@ bool KONGBEAST() {
 
         // The Kong Beast is drawn with yellow INK.
         // Set the attribute bytes for the Kong Beast.
-        EUGENE_3(addr, 6);
+        UpdateGuardianColourAttributes(addr, 6);
 
         // return false; // FIXME: do we need to return here? Probably not.
     }

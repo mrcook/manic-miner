@@ -7,12 +7,11 @@
 #include "GuardianSpecial.h"
 #include "KongBeast.h"
 
-// Check sheet and update Vertical Guardians Eugene, Skylaps, Kongbeast.
-// return `true` if Willy is dead! (used to be `goto LOOP_4`)
 bool UpdateSpecialVerticalGuardians(uint8_t sheet) {
     // Eugene's Lair
     if (sheet == 4) {
-        if (EUGENE()) {
+        EugeneMove();
+        if (EugeneDraw()) {
             return true;
         }
     }
@@ -49,7 +48,6 @@ bool UpdateSpecialVerticalGuardians(uint8_t sheet) {
     return false;
 }
 
-// Move and draw the light beam in Solar Power Generator.
 void LIGHTBEAM() {
     // Point to the cell at (0,23) in the attribute buffer at 23552 (the source of the light beam).
     // FIXME: Screen Buffer: Screen File = 22551
@@ -96,53 +94,50 @@ void LIGHTBEAM() {
     }
 }
 
-// Move and draw Eugene in Eugene's Lair.
-// First we move Eugene up or down, or change his direction.
-// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
-bool EUGENE() {
-    // Have all the items been collected, or is Eugene moving downwards?
-    if (game.ITEMATTR != 0 && EUGDIR != 0) {
+void EugeneMove() {
+    // Have all the items been collected, or is Eugene moving downwards?.
+    if (game.ITEMATTR == 0 || EUGDIR == 0) {
+        // Pick up Eugene's pixel y-coordinate from EUGHGT.
+        // Increment it (moving Eugene down).
+        // Has Eugene reached the portal yet? Jump if so.
+        if (EUGHGT + 1 == 88) {
+            // Toggle Eugene's direction at EUGDIR.
+            EUGDIR ^= 1;
+        } else {
+            // Update Eugene's pixel y-coordinate at EUGHGT.
+            EUGHGT++;
+        }
+    } else {
         // Pick up Eugene's pixel y-coordinate from EUGHGT.
         // Decrement it (moving Eugene up)
         // Jump if Eugene has reached the top of the cavern.
         if (EUGHGT - 1 == 0) {
             // Toggle Eugene's direction at EUGDIR.
-            EUGDIR = (uint8_t) !EUGDIR;
+            EUGDIR ^= 1;
         } else {
             // Update Eugene's pixel y-coordinate at EUGHGT.
             EUGHGT--;
         }
-    } else {
-        // Pick up Eugene's pixel y-coordinate from EUGHGT.
-        // Increment it (moving Eugene down).
-        // Has Eugene reached the portal yet? Jump if so.
-        if (EUGHGT + 1 == 88) {
-            EUGDIR = (uint8_t) !EUGDIR;
-        } else {
-            // Update Eugene's pixel y-coordinate at EUGHGT.
-            EUGHGT++;
-        }
     }
+}
 
-    // Now that Eugene's movement has been dealt with, it's time to draw him.
-
-    uint8_t msb, lsb;
-    uint8_t x_msb, x_lsb;
-    uint16_t addr;
-
+bool EugeneDraw() {
     // Pick up Eugene's pixel y-coordinate from EUGHGT.
     // Point DE at the entry in the screen buffer address lookup table at
     // SBUFADDRS that corresponds to Eugene's y-coordinate.
     // Point HL at the address of Eugene's location in the screen buffer at 24576.
-    uint8_t y_coord = (uint8_t) (EUGHGT & 127);
-    y_coord = Speccy::rotL(y_coord, 1);
-    addr = SBUFADDRS[y_coord / 2];
-    addr |= 15;
+    uint8_t y_coord = Speccy::rotL((uint8_t) (EUGHGT & 127), 1);
+    uint16_t addr = (uint16_t) (SBUFADDRS[y_coord / 2] | 15);
+
+    uint8_t msb, lsb;
     Speccy::splitAddress(addr, &msb, &lsb);
-    y_coord++;
-    addr = SBUFADDRS[y_coord / 2];
-    Speccy::splitAddress(addr, &x_msb, &x_lsb);
-    addr = Speccy::buildAddress(x_msb, lsb);
+
+    addr = SBUFADDRS[(y_coord + 1) / 2];
+
+    uint8_t _lsb;
+    Speccy::splitAddress(addr, &msb, &_lsb);
+
+    addr = Speccy::buildAddress(msb, lsb);
 
     // Draw Eugene to the screen buffer at 24576.
     bool kill_willy = DRWFIX(&EUGENEG, addr, 1);
@@ -153,21 +148,17 @@ bool EUGENE() {
         return true;
     }
 
-
     // Pick up Eugene's pixel y-coordinate from EUGHGT.
     // Point HL at the address of Eugene's location in the attribute buffer at 23552.
-    y_coord = (uint8_t) (EUGHGT & 120);
-    y_coord = Speccy::rotL(y_coord, 1);
-    y_coord |= 7;
+    y_coord = (uint8_t) (Speccy::rotL((uint8_t) (EUGHGT & 120), 1) | 7);
 
     // IMPORTANT: SCF should set the carry flag, and the following RL loads that into bit 0 -MRC-
-    msb = 0;
-    if ((y_coord >> 7) & 1) {
-        msb = 1;
+    msb = 92;
+    if (y_coord >> 7 == 1) {
+        msb = 93;
     }
-    y_coord = Speccy::rotL(y_coord, 1);
-    y_coord |= 1 << 0;
-    msb += 92;
+    y_coord = (uint8_t) (Speccy::rotL(y_coord, 1) | (1 << 0));
+
     addr = Speccy::buildAddress(msb, y_coord);
 
     // Assume we will draw Eugene with white INK.
@@ -184,20 +175,18 @@ bool EUGENE() {
         ink_colour = (uint8_t) (Speccy::rotR(cavern.CLOCK, 2) & 7);
     }
 
-    EUGENE_3(addr, ink_colour);
+    UpdateGuardianColourAttributes(addr, ink_colour);
 
     return false;
 }
 
-// Sets the colour attributes for a 16x16 pixel sprite.
-// SKYLABS:    to set the attributes for a Skylab.
-// GuardianVertical::updateAndDraw: to set the attributes for a vertical guardian.
-// KONGBEAST:  to set the attributes for the Kong Beast.
-void EUGENE_3(uint16_t addr, uint8_t ink_colour) {
+void UpdateGuardianColourAttributes(uint16_t addr, uint8_t ink_colour) {
     // Pick up the attribute byte of the background tile for the current cavern.
     // Combine its PAPER colour with the chosen INK colour.
+    ink_colour = (uint8_t) ((cavern.BACKGROUND.id & 248) | ink_colour);
+
     // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552.
-    speccy.writeMemory(addr, (uint8_t) ((cavern.BACKGROUND.id & 248) | ink_colour));
+    speccy.writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the top-right cell of the sprite in the attribute buffer at 23552.
     addr++;
@@ -220,8 +209,6 @@ void EUGENE_3(uint16_t addr, uint8_t ink_colour) {
     speccy.writeMemory(addr, ink_colour);
 }
 
-// Move and draw the Skylabs in Skylab Landing Bay.
-// IMPORTANT: return value is Willy's "death" state: true/false -MRC-
 bool SKYLABS() {
     uint8_t msb;
     uint8_t lsb;
@@ -298,7 +285,7 @@ bool SKYLABS() {
         addr = Speccy::buildAddress(msb, lsb);
 
         // Set the attribute bytes for the Skylab.
-        EUGENE_3(addr, VGUARDS[i].attribute);
+        UpdateGuardianColourAttributes(addr, VGUARDS[i].attribute);
 
         // The current guardian definition has been dealt with. Time for the next one.
     }
