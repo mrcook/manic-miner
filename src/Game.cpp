@@ -7,7 +7,6 @@
 #include "Helpers.h"
 #include "Window.h"
 #include "Sound.h"
-#include "KongBeast.h"
 #include "GuardianSpecial.h"
 
 static bool gameIsRunning = true;
@@ -1027,9 +1026,8 @@ bool NXSHEET() {
     }
 
     // The following loop increases the score and decreases the air supply until it runs out.
+    int redrawStep = 0;
     while (true) {
-        Window::instance().redraw();
-
         // Decrease the air remaining in the current cavern.
         // Move to the next cavern if the air supply is now gone.
         if (cavern.decreaseAir()) {
@@ -1056,7 +1054,12 @@ bool NXSHEET() {
 //            // millisleep(1);
 //        }
 
-        // Jump back to decrease the air supply again.
+        if (redrawStep < 4) {
+            redrawStep++;
+        } else {
+            Window::instance().redraw();
+            redrawStep = 0;
+        }
     }
 
     return false; // IMPORTANT: no `goto NEWSHT` required. -MRC-

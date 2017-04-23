@@ -42,7 +42,7 @@ bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
     texture_ = SDL_CreateTexture(
             renderer_,
             pixelFormat->format,
-            SDL_TEXTUREACCESS_STATIC,
+            SDL_TEXTUREACCESS_STREAMING,
             SCREEN_WIDTH,
             SCREEN_HEIGHT
     );
