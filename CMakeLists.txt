@@ -22,8 +22,8 @@ set(SOURCE_FILES
         src/SpeccyDisplay.cpp
         src/Window.h
         src/Window.cpp
-        src/Sound.h
-        src/Sound.cpp
+        src/Music.h
+        src/Music.cpp
         src/SpeccyColour.h
         src/Coord.h
         src/Data.h
@@ -38,6 +38,7 @@ set(SOURCE_FILES
         src/Cavern.cpp
         src/GuardianHorizontal.h
         src/GuardianHorizontal.cpp
+        src/GuardianSpecial.h
         src/GuardianSpecial.cpp
         src/GuardianVertical.h
         src/GuardianVertical.cpp
@@ -50,7 +51,7 @@ set(SOURCE_FILES
         src/Willy.cpp
         src/Game.h
         src/Game.cpp
-        src/Main.cpp src/GuardianSpecial.h)
+        src/Main.cpp)
 
 add_executable(manic_miner ${SOURCE_FILES})
 

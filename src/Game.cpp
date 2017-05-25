@@ -6,7 +6,7 @@
 #include "Globals.h"
 #include "Helpers.h"
 #include "Window.h"
-#include "Sound.h"
+#include "Music.h"
 #include "GuardianSpecial.h"
 
 static bool gameIsRunning = true;

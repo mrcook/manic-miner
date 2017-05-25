@@ -5,7 +5,7 @@
 #include "Helpers.h"
 #include "Data.h"
 #include "Window.h"
-#include "Sound.h"
+#include "Music.h"
 
 // Play the theme tune (The Blue Danube).
 //
