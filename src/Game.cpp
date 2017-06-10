@@ -1205,25 +1205,15 @@ void playGameMusic() {
     uint8_t index = Speccy::rotR((uint8_t) (game.NOTEINDEX & 126), 1);
 
     // Pick up the border colour for the current cavern from BORDER.
-    uint8_t note = cavern.BORDER;
+    // uint8_t border = cavern.BORDER;
 
     // Initialise the pitch delay counter in E.
-    uint8_t pitch_delay_counter = GAMETUNE[index];
+    int pitch = GAMETUNE[index] * 16;
 
-    // Initialise the duration delay counters in B (0) and C (3).
-    for (int i = 0; i < 3; i++) {
-        // Produce a note of the in-game music.
-        Speccy::OUT(note);
-
-        pitch_delay_counter--;
-
-        if (pitch_delay_counter > 0) {
-            pitch_delay_counter = GAMETUNE[index];
-            note ^= 24;
-        }
-
-        millisleep(1);
-    }
+    // Initialise the duration delay counters in B (0) and C (3)...3 milliseconds
+    // Produce a note of the in-game music.
+    Window::instance().audio->playNote(pitch, 30, 1);
+    // Speccy::OUT(note);
 }
 
 void copyScrBufToDisplayFile() {

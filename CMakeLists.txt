@@ -15,6 +15,8 @@ set(SOURCE_FILES
         src/Helpers.h
         src/Helpers.cpp
         src/Globals.cpp
+        src//BlipBuffer/Blip_Buffer.h
+        src//BlipBuffer/Blip_Buffer.cpp
         src/Speccy.h
         src/SpeccyFont.cpp
         src/Speccy.cpp
@@ -22,6 +24,8 @@ set(SOURCE_FILES
         src/SpeccyDisplay.cpp
         src/Window.h
         src/Window.cpp
+        src/AudioSystem.h
+        src/AudioSystem.cpp
         src/Music.h
         src/Music.cpp
         src/SpeccyColour.h

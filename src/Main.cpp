@@ -31,6 +31,7 @@ int main(int argc, char *argv[]) {
         printf("Game Window initialization failure. Can not continue.");
         return -1;
     }
+    Window::instance().audio->frame_rate = fps;
 
     Game_initialize(cheat, teleport);
 

@@ -6,7 +6,7 @@
 bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
     display_ = display;
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
@@ -53,6 +53,8 @@ bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
     pixels_ = new uint32_t[SCREEN_WIDTH * SCREEN_HEIGHT];
 
     memset(pixels_, 0, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t));
+
+    audio = new AudioSystem();
 
     return true;
 }
@@ -116,6 +118,7 @@ void Window::quit() {
     SDL_DestroyTexture(texture_);
     SDL_DestroyRenderer(renderer_);
     SDL_DestroyWindow(window_);
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
     SDL_Quit();
 }
 
