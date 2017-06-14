@@ -111,7 +111,7 @@ bool Game_play() {
                 keyIntput = Keyboard::MM_KEY_NONE;
 
                 do {
-                    millisleep(25); // keep the FPS under control.
+                    speccy.tick();
                 } while (processInput() != Keyboard::MM_KEY_PAUSE);
 
                 break;
