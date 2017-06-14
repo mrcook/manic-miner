@@ -76,7 +76,7 @@ public:
     void setBorderColour(uint8_t colour);
 
     // The Spectrum uses OUT to make a sound, but here we use a custom function
-    void makeSound(uint8_t pitch, uint8_t duration, uint8_t delay);
+    void makeSound(int pitch, uint8_t duration, uint8_t volume);
 
     // IN from Keyboard and Joystick
     // IN 65278 reads the half row CAPS SHIFT to V

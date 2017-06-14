@@ -281,7 +281,8 @@ void loadCurrentCavern() {
     speccy.printString(&game.MESSHSSC, 20576, 32);
 
     // Set the border colour.
-    Speccy::OUT(cavern.BORDER);
+    // Speccy::OUT(cavern.BORDER);
+    speccy.setBorderColour(cavern.BORDER);
 
     Window::instance().redraw();
 
@@ -343,16 +344,16 @@ bool MANDEAD() {
 
         // C=8+32*(E AND 7).
         // This value determines the duration of the short note that will be played.
-        duration = attr;
-        duration = Speccy::rotR(duration, 3);
-        // Set bit 4 of A (for no apparent reason).
-        duration |= 16;
+        duration = (uint8_t) ((8 + 32) * (pitch & 7));
 
         // Set A=0 (this will make the border black).
-        uint8_t border = 0;
+        speccy.setBorderColour(0);
 
-        speccy.setBorderColour(border);
-        speccy.makeSound(pitch, duration, 1);
+        // Update screen colours
+        Window::instance().redraw();
+
+        // speccy.makeSound(pitch, duration, 1);
+        Window::instance().audio->playNote(pitch, duration, 5);
     }
 
     // Finally, check whether any lives remain.
@@ -384,7 +385,7 @@ void ENDGAM() {
     Window::instance().redraw();
 
     // determines the distance of the boot from the top of the screen.
-    uint8_t bootDistanceFromTop = 0;
+    uint8_t bootDistanceFromTop = 0; // aka EUGHGT
 
     // Draw Willy at 18575 (12,15) using frame 3.
     DRWFIX(&willy.sprites[64], 18575, 0);
@@ -410,29 +411,26 @@ void ENDGAM() {
         // it's at the end of a long, extending trouser leg.
         DRWFIX(&BOOT, addr, 0);
 
-        // Pick up the distance variable from EUGHGT  (A=255-A).
-        uint8_t distance = (uint8_t) (255 - bootDistanceFromTop);
+        // (black border)
+        speccy.setBorderColour(0);
 
+        // Pick up the distance variable from EUGHGT  (A=255-A).
         // Store this value (63-255) in E; it determines the (rising) pitch of
         // the sound effect that will be made.
-        uint8_t border = 0; // (black border)
-        speccy.setBorderColour(border);
+        uint8_t pitch = (uint8_t) (255 - bootDistanceFromTop);
 
         // C=64; this value determines the duration of the sound effect
         // speccy.makeSound(border, 64, (uint8_t)(distance / 216));
-
-        // FIXME: delay would be in makeSound (which is wrong anyway),
-        // so we must delay to get the correct boot descending effect.
-        millisleep(distance >> 4);
+        Window::instance().audio->playNote(pitch, 64, 5);
 
         // Keep only bits 2 and 3.
-        distance = (uint8_t) (bootDistanceFromTop & 12);
+        uint8_t attr = (uint8_t) (bootDistanceFromTop & 12);
         // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3.
-        distance = Speccy::rotL(distance, 1);
+        attr = Speccy::rotL(attr, 1);
         // Set bits 0-2 (INK 7) and 6 (BRIGHT 1).
-        distance |= 71;
+        attr |= 71;
 
-        speccy.fillTopTwoThirdsOfAttributeFileWith(distance);
+        speccy.fillTopTwoThirdsOfAttributeFileWith(attr);
         Window::instance().redraw();
 
         speccy.tick();
@@ -485,6 +483,7 @@ void ENDGAM() {
             // IMPORTANT: haha, and you think this is correct? -MRC-
             speccy.writeAttribute(22730 + a, (uint8_t) (((d + a) & 7) | 64));
             Window::instance().redraw();
+            speccy.tick();
         }
     }
 
@@ -661,7 +660,8 @@ bool MOVEWILLY(int keyIntput) {
     speccy.setBorderColour(border);
 
     // C=32; this value determines the duration of the falling sound effect.
-    speccy.makeSound(pitch, 32, 1);
+    // speccy.makeSound(pitch, 32, 1);
+    Window::instance().audio->playNote(pitch, 32, 5);
 
     // Add 8 to Willy's pixel y-coordinate at PIXEL_Y; this moves Willy downwards by 4 pixels.
     willy.PIXEL_Y += 8;
@@ -1208,12 +1208,12 @@ void playGameMusic() {
     // uint8_t border = cavern.BORDER;
 
     // Initialise the pitch delay counter in E.
-    int pitch = GAMETUNE[index] * 16;
+    int pitch = GAMETUNE[index];
 
     // Initialise the duration delay counters in B (0) and C (3)...3 milliseconds
     // Produce a note of the in-game music.
-    Window::instance().audio->playNote(pitch, 30, 1);
     // Speccy::OUT(note);
+    Window::instance().audio->playNote(pitch, 32, 3);
 }
 
 void copyScrBufToDisplayFile() {

@@ -4,6 +4,7 @@
 #include "Headers.h"
 #include "Data.h"
 #include "Globals.h"
+#include "Window.h"
 
 void Willy_loadSprites() {
     for (int i = 0; i < 256; i++) {
@@ -51,48 +52,63 @@ bool Willy_updateJumpingState() {
     // Increment the jumping animation counter.
     willy.JUMPING++;
 
+    Willy_triggerJumpingSound(willy.JUMPING);
+
+    // Pick up the border colour for the current cavern.
+    speccy.setBorderColour(cavern.BORDER);
+
+    return Willy_hasFinishedJumping();
+}
+
+void Willy_triggerJumpingSound(uint8_t jumpHeight) {
+    uint8_t pitch = jumpHeight;
+
+    // SUB 8
     // A=J-8, where J (1-18) is the new value of the jumping animation counter.
-    // Jump if J>=8
-    // A=8-J (1<=J<=7, 1<=A<=7)
-    uint8_t anim_counter;
-    if (willy.JUMPING < 8) {
-        anim_counter = (uint8_t) (8 - willy.JUMPING);
-    } else {
-        anim_counter = (uint8_t) (willy.JUMPING - 8);
+    pitch -= 8;
+
+    // Jump if J>=8, else....
+    if (jumpHeight < 8) {
+        // NEG pitch
+        // A=8-J (1<=J<=7, 1<=A<=7)
+        pitch *= -1;
     }
 
     // A=1+ABS(J-8)
-    anim_counter++;
+    pitch++;
 
     // D=8*(1+ABS(J-8)); this value determines the pitch of the jumping
     // sound effect (rising as Willy rises, falling as Willy falls).
-    anim_counter = Speccy::rotL(anim_counter, 3);
-
-    uint8_t delay = anim_counter;
-
-    // Pick up the border colour for the current cavern.
-    uint8_t border = cavern.BORDER;
-    speccy.setBorderColour(border);
+    pitch = Speccy::rotL(pitch, 3);
 
     // C=32; this value determines the duration of the jumping sound effect.
-    speccy.makeSound(border, 32, delay);
+    // speccy.makeSound(border, 32, delay);
+    Window::instance().audio->playNote(pitch, 32, 5);
+}
 
+bool Willy_hasFinishedJumping() {
     // Jumping animation counter will have a value of 1-18.
-    // Has Willy reached the end of the jump? Is the jumping animation counter now 16 or 13?
+    // Has Willy reached the end of the jump?
     if (willy.JUMPING == 18) {
         // Willy has just finished a jump.
         // Set the airborne status indicator at AIRBORNE to 6: Willy will
         // continue to fall unless he's landed on a wall or floor block.
         willy.AIRBORNE = 6;
         return true;
-    } else if (willy.JUMPING == 16) {
+    }
+
+    // Is the jumping animation counter now 16 or 13?
+    if (willy.JUMPING == 16) {
         return false;
-    } else if (willy.JUMPING != 13) {
+    }
+
+    if (willy.JUMPING != 13) {
         Willy_moveInDirectionFacing();
         return true;
     }
 
-    return false; // Willy is still jumping!
+    // Willy is still jumping!
+    return false;
 }
 
 // Adjust Willy's attribute buffer location at LOCATION to

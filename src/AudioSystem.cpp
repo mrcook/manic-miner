@@ -192,12 +192,13 @@ int AudioSystem::initAudio() {
 
     // Setup blipBuffer
     blipBuffer.clock_rate(clockRate);
-    if (blipBuffer.set_sample_rate(sampleRate, 1000 / frame_rate)) {
+    if (blipBuffer.set_sample_rate(sampleRate, 1000 / frame_rate * 100)) {
         return 1; // out of memory
     }
 
     // Setup synth
-    blipSynth.volume(0.3);
+    blipSynth.volume(0.5);
+    blipSynth.treble_eq(-37.0);
     blipSynth.output(&blipBuffer);
 
     // Start audio
@@ -215,13 +216,20 @@ int AudioSystem::playNote(int note, int duration, int volume) {
         amplitude = volume;
     }
 
-    int period = note;
+    // IMPORTANT: for SDL we need to multiply the note to get the correct pitch!
+    int period = note * 24;
 
-    int durationInMilliseconds = duration / frame_rate * 2;
+    // IMPORTANT: the duration calculations currently make the delay
+    // twice as long as it should be, so we should not multiply by 2.
+    // Of course, this may change in the future.
+    long durationInMilliseconds = duration / frame_rate;
+    // long durationInMilliseconds = duration / frame_rate * 2;
 
-    for (int n = durationInMilliseconds; n--;) {
+    if (durationInMilliseconds < 1.00) { durationInMilliseconds = (long) 1.00; }
+
+    for (long n = durationInMilliseconds; n > 0 ; n--) {
         // Fill buffer with frame of sound
-        int length = clockRate / frame_rate / 3;
+        long length = (int) clockRate / frame_rate / 3;
 
         while (time < length) {
             amplitude = -amplitude;

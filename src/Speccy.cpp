@@ -57,7 +57,6 @@ uint8_t Speccy::IN(uint16_t addr) {
 
 void Speccy::OUT(uint8_t value) {
     value = 0; // prevents compiler error
-
     // output the sound, border colour!
 }
 
@@ -66,14 +65,14 @@ void Speccy::setBorderColour(uint8_t colour) {
 }
 
 // The Spectrum uses OUT to make a sound, but here we use a custom function
-void Speccy::makeSound(uint8_t pitch, uint8_t duration, uint8_t delay) {
-    delay = 0; // prevents compiler error
+void Speccy::makeSound(int pitch, uint8_t duration, uint8_t volume) {
+    volume = 0; // prevents compiler error
 
     // Real speccy does something like this
     for (int d = duration; d > 0; d--) {
         Speccy::OUT(pitch);
         pitch ^= 24;
-        // millisleep(delay);
+        // millisleep(d);
     }
 }
 

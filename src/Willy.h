@@ -10,8 +10,7 @@
 extern uint8_t LRMOVEMENT[16];
 
 enum WillyFacing {
-    WillyRight,
-    WillyLeft,
+    WillyRight, WillyLeft,
 };
 
 typedef struct Willy_ {
@@ -62,15 +61,12 @@ typedef struct Willy_ {
 } Willy;
 
 void Willy_loadSprites();
-
 void Willy_reset(int lives);
-
 void Willy_setToUnmoving(void);
-
 bool Willy_updateJumpingState(void);
-
+void Willy_triggerJumpingSound(uint8_t jumpHeight);
+bool Willy_hasFinishedJumping(void);
 uint16_t Willy_adjustAttributes(uint8_t y_coord);
-
 void Willy_hitsWall(void);
 
 // MOVEWILLY2

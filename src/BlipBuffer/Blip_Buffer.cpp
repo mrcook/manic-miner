@@ -32,7 +32,7 @@ Blip_Buffer::Blip_Buffer()
 	reader_accum = 0;
 	bass_shift = 0;
 	clock_rate_ = 0;
-	bass_freq_ = 16;
+	bass_freq_ = 200;
 	length_ = 0;
 	
 	// assumptions code makes about implementation-defined features
