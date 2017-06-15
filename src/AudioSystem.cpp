@@ -29,7 +29,7 @@ const int bufferSize = 10000;
 static blip_sample_t samples[bufferSize];
 
 static Blip_Buffer blipBuffer;
-static Blip_Synth<blip_good_quality, 20> blipSynth;
+static Blip_Synth<blip_med_quality, 20> blipSynth;
 
 // Return current SDL_GetError() string, or str if SDL didn't have a string
 static const char *sdl_error(const char *str) {
@@ -84,14 +84,8 @@ const char *AudioSystem::start(int rate, int channelCount, int latencyMillisecon
     }
 
     SDL_AudioSpec as = {
-            .freq = rate,
-            .format = AUDIO_S16SYS,
-            .channels = (uint8_t) channelCount,
-            .silence = 0,
-            .samples = (uint16_t) (bufferSize / channelCount),
-            .size = 0,
-            .callback = fillBuffer_,
-            .userdata = this,
+            .freq = rate, .format = AUDIO_S16SYS, .channels = (uint8_t) channelCount, .silence = 0, .samples = (uint16_t) (bufferSize /
+                                                                                                                           channelCount), .size = 0, .callback = fillBuffer_, .userdata = this,
     };
 
     if (SDL_OpenAudio(&as, 0) < 0) {
@@ -211,30 +205,28 @@ int AudioSystem::initAudio() {
 
 int AudioSystem::playNote(int note, int duration, int volume) {
     int time = 0;
+
     int amplitude = 5;
     if (volume > 0) {
         amplitude = volume;
     }
 
-    // IMPORTANT: for SDL we need to multiply the note to get the correct pitch!
-    int period = note * 24;
-
     // IMPORTANT: the duration calculations currently make the delay
     // twice as long as it should be, so we should not multiply by 2.
     // Of course, this may change in the future.
-    long durationInMilliseconds = duration / frame_rate;
+    long durationInMilliseconds = duration / frame_rate / 2;
     // long durationInMilliseconds = duration / frame_rate * 2;
 
-    if (durationInMilliseconds < 1.00) { durationInMilliseconds = (long) 1.00; }
-
-    for (long n = durationInMilliseconds; n > 0 ; n--) {
+    for (long n = durationInMilliseconds; n > 0; n--) {
         // Fill buffer with frame of sound
         long length = (int) clockRate / frame_rate / 3;
 
         while (time < length) {
             amplitude = -amplitude;
             blipSynth.update(time, amplitude);
-            time += period;
+
+            // IMPORTANT: at the moment we need to multiply the note to get the correct pitch!
+            time += note * 24;
         }
 
         blipBuffer.end_frame(length);
