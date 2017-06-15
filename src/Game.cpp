@@ -163,6 +163,8 @@ bool Game_play() {
                 reinitialiseCavern = true;
                 continue;
             }
+        } else {
+            Willy_kill();
         }
 
         // Okay, ugly goto! We should try to remove this.

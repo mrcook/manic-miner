@@ -41,7 +41,7 @@ typedef struct Willy_ {
     uint8_t AIRBORNE;
 
     // Address of Willy's current location in the attribute buffer at 23552
-    uint16_t LOCATION;
+    uint16_t LOCATION; // g32876
 
     // Current Jumping animation counter. Possible values: 0-17.
     // FIXME: another part of the program says, Possible values: 1-18.
