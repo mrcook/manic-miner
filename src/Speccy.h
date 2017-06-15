@@ -146,6 +146,12 @@ public:
     // Build a uint16_t memory address from the MSB and LSB values
     static uint16_t buildAddress(uint8_t msb, uint8_t lsb);
 
+    // Return the MSB of a uint16_t address
+    static uint8_t getAddressMSB(uint16_t addr);
+
+    // Return the LSB of a uint16_t address
+    static uint8_t getAddressLSB(uint16_t addr);
+
     // Rotate left n places
     static uint8_t rotL(uint8_t a, uint8_t n);
 

@@ -193,6 +193,14 @@ uint16_t Speccy::buildAddress(uint8_t msb, uint8_t lsb) {
     return (msb << 8) | lsb;
 }
 
+uint8_t Speccy::getAddressMSB(uint16_t addr) {
+    return (uint8_t) (addr >> 8);
+}
+
+uint8_t Speccy::getAddressLSB(uint16_t addr) {
+    return (uint8_t) (addr & 0xFF);
+}
+
 // Rotate left n places
 uint8_t Speccy::rotL(uint8_t a, uint8_t n) {
     assert (n > 0 && n < 8);
