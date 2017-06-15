@@ -984,12 +984,14 @@ bool NXSHEET() {
             addr++;
             speccy.writeAttribute(addr, 0);
 
-            // Prepare C and D for the celebratory sound effect.
-            uint8_t border = 0; // (black border)
 
+            // Prepare C and D for the celebratory sound effect.
+            uint8_t border = 0;
+            speccy.setBorderColour(0); // (black border)
+
+            // Produce the celebratory sound effect: Willy has escaped from the mine.
             for (int i = 0; i < 50; i++) {
-                // Produce the celebratory sound effect: Willy has escaped from the mine.
-                Speccy::OUT(border);
+                Speccy::OUT(0);
                 border ^= 24;
 
                 millisleep(1);
@@ -1029,6 +1031,7 @@ bool NXSHEET() {
 
     // The following loop increases the score and decreases the air supply until it runs out.
     int redrawStep = 0;
+    int audioStep = 0;
     while (true) {
         // Decrease the air remaining in the current cavern.
         // Move to the next cavern if the air supply is now gone.
@@ -1041,21 +1044,19 @@ bool NXSHEET() {
         printCurrentScore(game.playerScore);
 
         // C=4; this value determines the duration of the sound effect.
-//        uint8_t duration = 4;
+        uint8_t duration = 4;
 
         // Pick up the remaining air supply (S) from AIR.
         // D=2*(63-S); this value determines the pitch of the sound effect
         // (which decreases with the amount of air remaining).
-        // uint8_t pitch = Speccy::rotL((uint8_t) (~(cavern.AIR & 63)), 1);
+        uint8_t pitch = Speccy::rotL((uint8_t) (~(cavern.AIR & 63)), 1);
 
-//        for (int i = duration; i > 0; i--) {
-//            // Produce a short note
-//            Speccy::OUT(0);
-//            // millisleep(pitch);
-//            Speccy::OUT(24);
-//            // millisleep(1);
-//        }
-
+        if (audioStep < 25) {
+            audioStep++;
+        } else {
+            Window::instance().audio->playNote(pitch, duration, 5);
+            audioStep = 0;
+        }
         if (redrawStep < 4) {
             redrawStep++;
         } else {
