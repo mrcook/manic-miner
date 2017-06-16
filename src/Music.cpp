@@ -14,76 +14,63 @@
 //
 // IY THEMETUNE (tune data)
 bool PLAYTUNE() {
-    // FIXME: no need to play the tune just yet, so return early :)
-    if (true) {
-        return false;
-    }
-
     uint8_t freq1, freq2;
     uint16_t addr;
 
     for (int i = 0; i < 95; i++) {
         uint8_t *note = THEMETUNE[i];
 
+        // Copy the first byte of data for this note (which determines the duration) to C
+        uint8_t duration = note[0];
+
         // Pick up the second byte of data for this note. Copy it to A.
         freq1 = note[1];
-
         // Calculate the attribute file address for the corresponding piano key.
         addr = PIANOKEY(freq1);
-
         // Set the attribute byte for the piano key to 80 (INK 0: PAPER 2: BRIGHT 1).
         speccy.writeMemory(addr, 80);
 
         // Pick up the third byte of data for this note.
-        freq2 = note[2];
-
         // Copy it to A.
-        uint8_t pitch = freq2;
-
+        freq2 = note[2];
         // Calculate the attribute file address for the corresponding piano key.
         addr = PIANOKEY(freq2);
-
         // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0).
         speccy.writeMemory(addr, 40);
 
-        for (uint8_t d = note[0]; d > 0; d--) {
-            // Produce a sound based on the frequency parameters in the second
-            // and third bytes of data for this note (copied into D and E).
-            Speccy::OUT(pitch);
+        Window::instance().redraw();
 
-            freq1--;
-            if (freq1 == 0) {
-                freq1 = note[1];
-                pitch ^= 24;
-            }
-            freq2--;
-            if (freq2 == 0) {
-                freq2 = note[2];
-                pitch ^= 24;
-            }
+        // Produce a sound based on the frequency parameters in the second
+        // and third bytes of data for this note (copied into D and E).
+        for (uint8_t d = duration; d > 0; d--) {
+            // Speccy::OUT(pitch);
 
-            // FIXME: reg B (delay) is initialized to 0, but never set anywhere else, so this code is obsolete...?
-            millisleep(1);
+            if (freq1 == 0 || freq2 == 0) {
+                millisleep(d / 3);
+            } else if (d % 3 == 0) {
+                Window::instance().audio->playNote(freq1, d, 5);
+                Window::instance().audio->playNote(freq2, d, 5);
+            }
         }
 
         // Check whether ENTER or the fire button is being pressed.
-        if (Window::instance().getKey() == Keyboard::MM_KEY_ENTER) {
+        if (processInput() == Keyboard::MM_KEY_ENTER) {
             return true;
         }
 
         // Pick up the second byte of data for this note.
         // Calculate the attribute file address for the corresponding piano key.
         addr = PIANOKEY(note[1]);
-
         // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0).
         speccy.writeMemory(addr, 56);
 
         // Pick up the third byte of data for this note.
         // Calculate the attribute file address for the corresponding piano key.
         addr = PIANOKEY(note[2]);
-
         // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0).
         speccy.writeMemory(addr, 56);
+
+        Window::instance().redraw();
     }
 
     return false;

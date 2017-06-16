@@ -1107,12 +1107,14 @@ void Game_play_intro() {
         return;
     }
 
+    speccy.tick();
+
     // Scroll intro message across the screen.
     for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
         // Is ENTER being pressed? If so, start the game.
         if (processInput() == Keyboard::MM_KEY_ENTER) {
             game.DEMO = 0;
-            return;
+            break;
         }
 
         // Print 32 characters of the message at 20576 (19,0).
@@ -1129,7 +1131,6 @@ void Game_play_intro() {
         Window::instance().redraw();
 
         // Pause for about 0.1s
-        millisleep(30);
         speccy.tick();
     }
 }
