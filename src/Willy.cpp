@@ -4,7 +4,6 @@
 #include "Headers.h"
 #include "Data.h"
 #include "Globals.h"
-#include "Window.h"
 
 void Willy_loadSprites() {
     for (int i = 0; i < 256; i++) {
@@ -82,8 +81,7 @@ void Willy_triggerJumpingSound(uint8_t jumpHeight) {
     pitch = Speccy::rotL(pitch, 3);
 
     // C=32; this value determines the duration of the jumping sound effect.
-    // speccy.makeSound(border, 32, delay);
-    Window::instance().audio->playNote(pitch, 32, 5);
+    speccy.beep(pitch, 32, 5);
 }
 
 bool Willy_hasFinishedJumping() {
@@ -237,8 +235,7 @@ bool Willy_gerUserInputAndMove(int keyIntput, uint16_t addr) {
     // That is left-right movement taken care of. Now check the jump keys.
 
     // Is jump being pressed?
-    if (keyIntput == Keyboard::MM_KEY_JUMP || keyIntput == Keyboard::MM_KEY_LEFT_JUMP ||
-        keyIntput == Keyboard::MM_KEY_RIGHT_JUMP) {
+    if (keyIntput == Keyboard::MM_KEY_JUMP || keyIntput == Keyboard::MM_KEY_LEFT_JUMP || keyIntput == Keyboard::MM_KEY_RIGHT_JUMP) {
         // Time to make Willy jump. Initialise the jumping animation counter.
         willy.JUMPING = 0;
 

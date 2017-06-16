@@ -39,6 +39,7 @@ bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
         printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
+
     texture_ = SDL_CreateTexture(
             renderer_,
             pixelFormat->format,
@@ -50,8 +51,8 @@ bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
         printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
-    pixels_ = new uint32_t[SCREEN_WIDTH * SCREEN_HEIGHT];
 
+    pixels_ = new uint32_t[SCREEN_WIDTH * SCREEN_HEIGHT];
     memset(pixels_, 0, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t));
 
     audio = new AudioSystem();
@@ -66,28 +67,28 @@ int Window::getKey() {
     sdlKeyState = SDL_GetKeyboardState(NULL);
 
     if (sdlKeyState[SDL_SCANCODE_M]) {
-        input = Input::INPUT_KEY_M;
+        input = WindowKeys::INPUT_KEY_M;
     } else if (sdlKeyState[SDL_SCANCODE_P]) {
-        input = Input::INPUT_KEY_P;
+        input = WindowKeys::INPUT_KEY_P;
     } else if (sdlKeyState[SDL_SCANCODE_Q]) {
-        input = Input::INPUT_KEY_Q;
+        input = WindowKeys::INPUT_KEY_Q;
     } else if (sdlKeyState[SDL_SCANCODE_RETURN] || sdlKeyState[SDL_SCANCODE_RETURN2] || sdlKeyState[SDL_SCANCODE_KP_ENTER]) {
-        input = Input::INPUT_KEY_RETURN;
+        input = WindowKeys::INPUT_KEY_RETURN;
     } else if (sdlKeyState[SDL_SCANCODE_SPACE] && sdlKeyState[SDL_SCANCODE_LEFT]) {
-        input = Input::INPUT_KEY_LEFT_SPACE;
+        input = WindowKeys::INPUT_KEY_LEFT_SPACE;
     } else if (sdlKeyState[SDL_SCANCODE_SPACE] && sdlKeyState[SDL_SCANCODE_RIGHT]) {
-        input = Input::INPUT_KEY_RIGHT_SPACE;
+        input = WindowKeys::INPUT_KEY_RIGHT_SPACE;
     } else if (sdlKeyState[SDL_SCANCODE_SPACE]) {
-        input = Input::INPUT_KEY_SPACE;
+        input = WindowKeys::INPUT_KEY_SPACE;
     } else if (sdlKeyState[SDL_SCANCODE_LEFT]) {
-        input = Input::INPUT_KEY_LEFT;
+        input = WindowKeys::INPUT_KEY_LEFT;
     } else if (sdlKeyState[SDL_SCANCODE_RIGHT]) {
-        input = Input::INPUT_KEY_RIGHT;
+        input = WindowKeys::INPUT_KEY_RIGHT;
     } else if (sdlKeyState[SDL_QUIT]) {
         quit();
         exit(0);
     } else {
-        input = Input::INPUT_KEY_NONE;
+        input = WindowKeys::INPUT_KEY_NONE;
     }
 
     sdlKeyState = nullptr;

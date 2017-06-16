@@ -4,6 +4,7 @@
 #define MANIC_MINER_SPECCY_H
 
 
+#include <string>
 #include "Headers.h"
 #include "SpeccyColour.h"
 
@@ -57,7 +58,9 @@ public:
     uint8_t memory[TOTAL_MEMORY];
 
     // Initialize the speccy framework (FPS, etc.)
-    void initialize(int fps);
+    bool initialize(const std::string gameName, int fps);
+
+    void quit(void);
 
     // Tick the world over.
     // Call this whenever the display needs updating or FPS syncing.
@@ -76,7 +79,7 @@ public:
     void setBorderColour(uint8_t colour);
 
     // The Spectrum uses OUT to make a sound, but here we use a custom function
-    void makeSound(int pitch, uint8_t duration, uint8_t volume);
+    void beep(int pitch, uint8_t duration, uint8_t volume);
 
     // IN from Keyboard and Joystick
     // IN 65278 reads the half row CAPS SHIFT to V
@@ -89,7 +92,8 @@ public:
     // IN 32766 reads the half row SPACE to B
     //
     // IN 254   reads every row of keys
-    static uint8_t IN(uint16_t addr);
+    // uint8_t IN(uint16_t addr);
+    int getKey(void);
 
     // OUT(254) border/sound output.
     static void OUT(uint8_t value);
@@ -123,14 +127,13 @@ public:
     // Fill the top two thirds of the attribute file with the value given.
     void fillTopTwoThirdsOfAttributeFileWith(uint8_t byte);
 
-    uint8_t readScreen(int address);
-
     void writeScreen(int address, uint8_t byte);
 
     uint8_t readAttribute(int address);
 
     void writeAttribute(int address, uint8_t byte);
 
+    void redrawWindow();
 
     /*
      * Utility functions to help porting from Z80 to C
@@ -157,6 +160,23 @@ public:
 
     // Rotate right n places
     static uint8_t rotR(uint8_t a, uint8_t n);
+};
+
+enum SpeccyKeys {
+    KEY_NONE,
+
+    KEY_M,
+    KEY_P,
+    KEY_Q,
+
+    KEY_RETURN,
+    KEY_SPACE,
+
+    KEY_LEFT,
+    KEY_RIGHT,
+
+    KEY_LEFT_SPACE,
+    KEY_RIGHT_SPACE,
 };
 
 

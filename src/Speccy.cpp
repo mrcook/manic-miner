@@ -3,10 +3,23 @@
 #include "Headers.h"
 #include "Helpers.h"
 #include "Globals.h"
+#include "Window.h"
 
-void Speccy::initialize(int fps) {
+bool Speccy::initialize(const std::string gameName, int fps) {
+    if (!Window::instance().initialize(gameName, &SpeccyDisplay::instance())) {
+        return false;
+    }
+
+    Window::instance().audio->frame_rate = fps;
+
     // The number of millisecond ticks per frame
     frameTick = 1000 / fps;
+
+    return true;
+}
+
+void Speccy::quit(void) {
+    Window::instance().quit();
 }
 
 void Speccy::tick() {
@@ -48,11 +61,29 @@ void Speccy::writeMemory(int address, uint8_t byte) {
 // Core Input/Output functions
 //
 
-uint8_t Speccy::IN(uint16_t addr) {
-    addr = 0; // prevents compiler error
-
-    // get keyboard input values
-    return 0;
+int Speccy::getKey() {
+    switch (Window::instance().getKey()) {
+        case WindowKeys::INPUT_KEY_M:
+            return KEY_M;
+        case WindowKeys::INPUT_KEY_P:
+            return KEY_P;
+        case WindowKeys::INPUT_KEY_Q:
+            return KEY_Q;
+        case WindowKeys::INPUT_KEY_RETURN:
+            return KEY_RETURN;
+        case WindowKeys::INPUT_KEY_LEFT_SPACE:
+            return KEY_LEFT_SPACE;
+        case WindowKeys::INPUT_KEY_RIGHT_SPACE:
+            return KEY_RIGHT_SPACE;
+        case WindowKeys::INPUT_KEY_SPACE:
+            return KEY_SPACE;
+        case WindowKeys::INPUT_KEY_LEFT:
+            return KEY_LEFT;
+        case WindowKeys::INPUT_KEY_RIGHT:
+            return KEY_RIGHT;
+        default:
+            return KEY_NONE;
+    }
 }
 
 void Speccy::OUT(uint8_t value) {
@@ -65,15 +96,8 @@ void Speccy::setBorderColour(uint8_t colour) {
 }
 
 // The Spectrum uses OUT to make a sound, but here we use a custom function
-void Speccy::makeSound(int pitch, uint8_t duration, uint8_t volume) {
-    volume = 0; // prevents compiler error
-
-    // Real speccy does something like this
-    for (int d = duration; d > 0; d--) {
-        Speccy::OUT(pitch);
-        pitch ^= 24;
-        // millisleep(d);
-    }
+void Speccy::beep(int pitch, uint8_t duration, uint8_t volume) {
+    Window::instance().audio->playNote(pitch, duration, volume);
 }
 
 // Print a ZX Spectrum font characters to the display file
@@ -153,12 +177,6 @@ void Speccy::fillTopTwoThirdsOfAttributeFileWith(uint8_t byte) {
     }
 }
 
-uint8_t Speccy::readScreen(int address) {
-    assert(address >= 16384 && address < 22528);
-
-    return readMemory(address);
-}
-
 void Speccy::writeScreen(int address, uint8_t byte) {
     assert(address >= 16384 && address < 22528);
 
@@ -177,6 +195,9 @@ void Speccy::writeAttribute(int address, uint8_t byte) {
     writeMemory(address, byte);
 }
 
+void Speccy::redrawWindow() {
+    Window::instance().redraw();
+}
 
 //
 // Utility functions to help porting from Z80 to C

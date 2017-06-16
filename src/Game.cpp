@@ -5,7 +5,6 @@
 #include "Data.h"
 #include "Globals.h"
 #include "Helpers.h"
-#include "Window.h"
 #include "Music.h"
 #include "GuardianSpecial.h"
 
@@ -171,7 +170,7 @@ bool Game_play() {
         LOOP_4:
         copyScrBufToDisplayFile();
 
-        Window::instance().redraw();
+        speccy.redrawWindow();
 
         // this also redraws the screen.
         flashScreen();
@@ -180,7 +179,7 @@ bool Game_play() {
 
         printScores();
 
-        Window::instance().redraw();
+        speccy.redrawWindow();
 
         // Decrease the air remaining in the current cavern.
         bool depletedAir = cavern.decreaseAir();
@@ -252,7 +251,7 @@ void loadCurrentCavern() {
     // Copy the cavern definition into the game status buffer at 32768.
     if (!cavern.loadData(cavern.SHEET)) {
         // Oops! We've not loaded the right amount of cavern data into memory.
-        Window::instance().quit();
+        speccy.quit();
         exit(-1);
     }
 
@@ -286,7 +285,7 @@ void loadCurrentCavern() {
     // Speccy::OUT(cavern.BORDER);
     speccy.setBorderColour(cavern.BORDER);
 
-    Window::instance().redraw();
+    speccy.redrawWindow();
 
     // Are we in demo mode?
     if (game.DEMO > 0) {
@@ -308,7 +307,7 @@ void flashScreen() {
             speccy.writeMemory(23552 + i, new_flash_value);
         }
 
-        Window::instance().redraw();
+        speccy.redrawWindow();
     }
 }
 
@@ -352,10 +351,9 @@ bool MANDEAD() {
         speccy.setBorderColour(0);
 
         // Update screen colours
-        Window::instance().redraw();
+        speccy.redrawWindow();
 
-        // speccy.makeSound(pitch, duration, 1);
-        Window::instance().audio->playNote(pitch, duration, 5);
+        speccy.beep(pitch, duration, 5);
     }
 
     // Finally, check whether any lives remain.
@@ -384,7 +382,7 @@ void ENDGAM() {
     // Now prepare the screen for the game over sequence.
 
     speccy.clearTopTwoThirdsOfDisplayFile();
-    Window::instance().redraw();
+    speccy.redrawWindow();
 
     // determines the distance of the boot from the top of the screen.
     uint8_t bootDistanceFromTop = 0; // aka EUGHGT
@@ -395,7 +393,7 @@ void ENDGAM() {
     // Draw the plinth (see PLINTH) underneath Willy at 18639 (14,15).
     DRWFIX(&PLINTH, 18639, 0);
 
-    Window::instance().redraw();
+    speccy.redrawWindow();
 
     uint8_t msb, lsb;
     uint16_t addr;
@@ -422,8 +420,7 @@ void ENDGAM() {
         uint8_t pitch = (uint8_t) (255 - bootDistanceFromTop);
 
         // C=64; this value determines the duration of the sound effect
-        // speccy.makeSound(border, 64, (uint8_t)(distance / 216));
-        Window::instance().audio->playNote(pitch, 64, 5);
+        speccy.beep(pitch, 64, 5);
 
         // Keep only bits 2 and 3.
         uint8_t attr = (uint8_t) (bootDistanceFromTop & 12);
@@ -433,7 +430,7 @@ void ENDGAM() {
         attr |= 71;
 
         speccy.fillTopTwoThirdsOfAttributeFileWith(attr);
-        Window::instance().redraw();
+        speccy.redrawWindow();
 
         speccy.tick();
     }
@@ -484,7 +481,7 @@ void ENDGAM() {
 
             // IMPORTANT: haha, and you think this is correct? -MRC-
             speccy.writeAttribute(22730 + a, (uint8_t) (((d + a) & 7) | 64));
-            Window::instance().redraw();
+            speccy.redrawWindow();
             speccy.tick();
         }
     }
@@ -662,8 +659,7 @@ bool MOVEWILLY(int keyIntput) {
     speccy.setBorderColour(border);
 
     // C=32; this value determines the duration of the falling sound effect.
-    // speccy.makeSound(pitch, 32, 1);
-    Window::instance().audio->playNote(pitch, 32, 5);
+    speccy.beep(pitch, 32, 5);
 
     // Add 8 to Willy's pixel y-coordinate at PIXEL_Y; this moves Willy downwards by 4 pixels.
     willy.PIXEL_Y += 8;
@@ -1017,7 +1013,7 @@ bool NXSHEET() {
     // Iterate through all attribute values from 63 down to 1.
     for (uint8_t ink = colours; ink > 0; ink--) {
         speccy.fillTopTwoThirdsOfAttributeFileWith(ink);
-        Window::instance().redraw();
+        speccy.redrawWindow();
 
         // Pause for about 0.004s
         millisleep(4);
@@ -1054,13 +1050,13 @@ bool NXSHEET() {
         if (audioStep < 25) {
             audioStep++;
         } else {
-            Window::instance().audio->playNote(pitch, duration, 5);
+            speccy.beep(pitch, duration, 5);
             audioStep = 0;
         }
         if (redrawStep < 4) {
             redrawStep++;
         } else {
-            Window::instance().redraw();
+            speccy.redrawWindow();
             redrawStep = 0;
         }
     }
@@ -1080,7 +1076,7 @@ void Game_play_intro() {
         speccy.writeScreen(16384 + 2048 + i, TITLESCR2[i]);
     }
 
-    Window::instance().redraw();
+    speccy.redrawWindow();
 
     // Draw Willy at 18493 (9,29).
     DRWFIX(&willy.sprites[64], 18493, 0);
@@ -1097,7 +1093,7 @@ void Game_play_intro() {
         speccy.writeAttribute(addr + i, LOWERATTRS[i]);
     }
 
-    Window::instance().redraw();
+    speccy.redrawWindow();
 
     // And finally, play the theme tune and check for key presses.
 
@@ -1128,7 +1124,7 @@ void Game_play_intro() {
         // Draw Willy at 18493 (9,29).
         DRWFIX(&willy.sprites[sprite_id], 18493, 0);
 
-        Window::instance().redraw();
+        speccy.redrawWindow();
 
         // Pause for about 0.1s
         speccy.tick();
@@ -1216,8 +1212,7 @@ void playGameMusic() {
 
     // Initialise the duration delay counters in B (0) and C (3)...3 milliseconds
     // Produce a note of the in-game music.
-    // Speccy::OUT(note);
-    Window::instance().audio->playNote(pitch, 32, 3);
+    speccy.beep(pitch, 32, 3);
 }
 
 void copyScrBufToDisplayFile() {
@@ -1255,32 +1250,32 @@ void resetScreenAttrBuffers() {
 int processInput() {
     int input;
 
-    switch (Window::instance().getKey()) {
-        case Input::INPUT_KEY_SPACE:
+    switch (speccy.getKey()) {
+        case SpeccyKeys::KEY_SPACE:
             input = Keyboard::MM_KEY_JUMP;
             break;
-        case Input::INPUT_KEY_LEFT:
+        case SpeccyKeys::KEY_LEFT:
             input = Keyboard::MM_KEY_LEFT;
             break;
-        case Input::INPUT_KEY_RIGHT:
+        case SpeccyKeys::KEY_RIGHT:
             input = Keyboard::MM_KEY_RIGHT;
             break;
-        case Input::INPUT_KEY_LEFT_SPACE:
+        case SpeccyKeys::KEY_LEFT_SPACE:
             input = Keyboard::MM_KEY_LEFT_JUMP;
             break;
-        case Input::INPUT_KEY_RIGHT_SPACE:
+        case SpeccyKeys::KEY_RIGHT_SPACE:
             input = Keyboard::MM_KEY_RIGHT_JUMP;
             break;
-        case Input::INPUT_KEY_RETURN:
+        case SpeccyKeys::KEY_RETURN:
             input = Keyboard::MM_KEY_ENTER;
             break;
-        case Input::INPUT_KEY_P:
+        case SpeccyKeys::KEY_P:
             input = Keyboard::MM_KEY_PAUSE;
             break;
-        case Input::INPUT_KEY_Q:
+        case SpeccyKeys::KEY_Q:
             input = Keyboard::MM_KEY_QUIT;
             break;
-        case Input::INPUT_KEY_M:
+        case SpeccyKeys::KEY_M:
             input = Keyboard::MM_KEY_MUTE;
             break;
         default:

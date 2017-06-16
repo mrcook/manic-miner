@@ -3,11 +3,10 @@
 
 // Manic Miner disassembly
 // Copyright 2010, 2012-2016 Richard Dymond
-// http://skoolkit.ca/
+// http://skoolkit.ca
 
 #include "Headers.h"
 #include "Globals.h"
-#include "Window.h"
 
 // Current game version
 static const char *version = "0.0.1";
@@ -25,13 +24,10 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    speccy.initialize(fps);
-
-    if (!Window::instance().initialize("Retro Manic Miner", &SpeccyDisplay::instance())) {
-        printf("Game Window initialization failure. Can not continue.");
+    if (!speccy.initialize("Manic Miner: Retro!", fps)) {
+        printf("Game initialization failure. Can not continue.");
         return -1;
     }
-    Window::instance().audio->frame_rate = fps;
 
     Game_initialize(cheat, teleport);
 
@@ -54,7 +50,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    Window::instance().quit();
+    speccy.quit();
 
     printf("You helped Miner Willy acquire treasure worth %d.\n", game.highScore);
     if (game.highScore > 10000) {

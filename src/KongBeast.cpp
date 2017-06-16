@@ -6,7 +6,6 @@
 #include "Globals.h"
 #include "KongBeast.h"
 #include "GuardianSpecial.h"
-#include "Window.h"
 
 // Move and draw the Kong Beast in the current cavern.
 // IMPORTANT: return value is Willy's "death" state: true/false -MRC-
@@ -156,7 +155,7 @@ void Kong_beastFalls(void) {
     speccy.setBorderColour(cavern.BORDER);
 
     // Make a falling sound effect.
-    Window::instance().audio->playNote(EUGHGT, 16, 5);
+    speccy.beep(EUGHGT, 16, 5);
 
     // Point DE at the entry in the screen buffer address lookup table at
     // SBUFADDRS that corresponds to the Kong Beast's pixel y-coordinate.

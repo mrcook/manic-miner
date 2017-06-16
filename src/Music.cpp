@@ -4,7 +4,6 @@
 #include "Globals.h"
 #include "Helpers.h"
 #include "Data.h"
-#include "Window.h"
 #include "Music.h"
 
 // Play the theme tune (The Blue Danube).
@@ -38,7 +37,7 @@ bool PLAYTUNE() {
         // Set the attribute byte for the piano key to 40 (INK 0: PAPER 5: BRIGHT 0).
         speccy.writeMemory(addr, 40);
 
-        Window::instance().redraw();
+        speccy.redrawWindow();
 
         // Produce a sound based on the frequency parameters in the second
         // and third bytes of data for this note (copied into D and E).
@@ -48,8 +47,8 @@ bool PLAYTUNE() {
             if (freq1 == 0 || freq2 == 0) {
                 millisleep(d / 3);
             } else if (d % 3 == 0) {
-                Window::instance().audio->playNote(freq1, d, 5);
-                Window::instance().audio->playNote(freq2, d, 5);
+                speccy.beep(freq1, d, 5);
+                speccy.beep(freq2, d, 5);
             }
         }
 
@@ -70,7 +69,7 @@ bool PLAYTUNE() {
         // Set the attribute byte for the piano key back to 56 (INK 0: PAPER 7: BRIGHT 0).
         speccy.writeMemory(addr, 56);
 
-        Window::instance().redraw();
+        speccy.redrawWindow();
     }
 
     return false;
