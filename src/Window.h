@@ -74,6 +74,19 @@ private:
     const uint8_t *sdlKeyState = nullptr;
 };
 
+
+// RIPPED from YAKC
+//uint32_t palette[8] = {
+//        0xFF000000,     // black
+//        0xFFFF0000,     // blue
+//        0xFF0000FF,     // red
+//        0xFFFF00FF,     // magenta
+//        0xFF00FF00,     // green
+//        0xFFFFFF00,     // cyan
+//        0xFF00FFFF,     // yellow
+//        0xFFFFFFFF,     // white
+//};
+
 static SDL_Color spectrumColourPalette[] = {
     {0,   0,   0,   0},
     {0,   0,   215, 0},
