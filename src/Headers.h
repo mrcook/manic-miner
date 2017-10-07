@@ -29,14 +29,13 @@ error "Unknown compiler"
 
 // Headers we can use on all supported systems!
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <ctime>
 
-#include <assert.h>
+#include <cassert>
 
 
 #endif //MANIC_MINER_HEADERS_H
