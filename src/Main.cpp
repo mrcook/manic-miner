@@ -11,7 +11,7 @@
 // Current game version
 static const char *version = "0.0.1";
 
-static bool getOptions(int argc, char *argv[], int *teleport, int *fps, int *lives, bool *cheat);
+static bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool &cheat);
 
 // The game has just loaded
 int main(int argc, char *argv[]) {
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     int lives = 2;
     int teleport = -1;
 
-    if (!getOptions(argc, argv, &teleport, &fps, &lives, &cheat)) {
+    if (!getOptions(argc, argv, teleport, fps, lives, cheat)) {
         return 0;
     }
 
@@ -60,27 +60,27 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-bool getOptions(int argc, char *argv[], int *teleport, int *fps, int *lives, bool *cheat) {
+bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool &cheat) {
     int c;
     int cavernNumber;
 
     while ((c = getopt(argc, argv, "cl:s:t:h")) != -1) {
         switch (c) {
             case 'c':
-                *cheat = true;
+                cheat = true;
                 break;
             case 'l':
-                *lives = (int) strtol(optarg, (char **) NULL, 10);
-                if (*lives > 2) { *cheat = true; }
+                lives = (int) strtol(optarg, (char **) NULL, 10);
+                if (lives > 2) { cheat = true; }
                 break;
             case 's':
-                *fps = (int) strtol(optarg, (char **) NULL, 10);
+                fps = (int) strtol(optarg, (char **) NULL, 10);
                 break;
             case 't':
                 cavernNumber = (int) strtol(optarg, (char **) NULL, 10);
                 if (cavernNumber >= 1 && cavernNumber <= 20) {
-                    *teleport = cavernNumber - 1;
-                    *cheat = true;
+                    teleport = cavernNumber - 1;
+                    cheat = true;
                 }
                 break;
             case 'h':
@@ -104,7 +104,7 @@ bool getOptions(int argc, char *argv[], int *teleport, int *fps, int *lives, boo
         }
     }
 
-    if (*cheat) { *lives = 2; }
+    if (cheat) { lives = 2; }
 
     return true;
 }
