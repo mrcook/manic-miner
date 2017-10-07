@@ -70,14 +70,14 @@ bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool
                 cheat = true;
                 break;
             case 'l':
-                lives = (int) strtol(optarg, (char **) NULL, 10);
+                lives = (int) strtol(optarg, (char **) nullptr, 10);
                 if (lives > 2) { cheat = true; }
                 break;
             case 's':
-                fps = (int) strtol(optarg, (char **) NULL, 10);
+                fps = (int) strtol(optarg, (char **) nullptr, 10);
                 break;
             case 't':
-                cavernNumber = (int) strtol(optarg, (char **) NULL, 10);
+                cavernNumber = (int) strtol(optarg, (char **) nullptr, 10);
                 if (cavernNumber >= 1 && cavernNumber <= 20) {
                     teleport = cavernNumber - 1;
                     cheat = true;

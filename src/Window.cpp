@@ -29,13 +29,13 @@ bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
             SDL_WINDOW_SHOWN
     );
 
-    if (window_ == NULL) {
+    if (window_ == nullptr) {
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
 
     renderer_ = SDL_CreateRenderer(window_, -1, 0);
-    if (renderer_ == NULL) {
+    if (renderer_ == nullptr) {
         printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
@@ -47,7 +47,7 @@ bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
             SCREEN_WIDTH,
             SCREEN_HEIGHT
     );
-    if (texture_ == NULL) {
+    if (texture_ == nullptr) {
         printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
@@ -64,7 +64,7 @@ int Window::getKey() {
     int input;
 
     SDL_PumpEvents();
-    sdlKeyState = SDL_GetKeyboardState(NULL);
+    sdlKeyState = SDL_GetKeyboardState(nullptr);
 
     if (sdlKeyState[SDL_SCANCODE_M]) {
         input = WindowKeys::INPUT_KEY_M;
@@ -107,10 +107,10 @@ void Window::redraw() {
         }
     }
 
-    SDL_UpdateTexture(texture_, NULL, pixels_, SCREEN_WIDTH * sizeof(uint32_t));
+    SDL_UpdateTexture(texture_, nullptr, pixels_, SCREEN_WIDTH * sizeof(uint32_t));
 
     SDL_RenderClear(renderer_);
-    SDL_RenderCopy(renderer_, texture_, NULL, NULL);
+    SDL_RenderCopy(renderer_, texture_, nullptr, nullptr);
     SDL_RenderPresent(renderer_);
 }
 

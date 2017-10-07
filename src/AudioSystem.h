@@ -11,7 +11,7 @@ public:
     ~AudioSystem();
 
     // Initialize with specified sample rate, channel count, and latency.
-    // Returns NULL on success, otherwise error string.
+    // Returns nullptr on success, otherwise error string.
     const char *start(int rate, int channelCount = 1, int latencyMilliseconds = 200);
 
     // Set gain, where 1.0 leaves sound unaltered
