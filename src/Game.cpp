@@ -526,13 +526,13 @@ void DRAWSHEET() {
         } else if (cavern.EXTRA.id == tile_id) {
             sprite = &cavern.EXTRA.sprite[0];
         } else {
-            sprite = NULL;
+            sprite = nullptr;
         }
 
         // Copy the graphic bytes to their destination cells.
         uint16_t row_addr = addr;
         for (int b = 0; b < 8; b++) {
-            if (sprite != NULL) {
+            if (sprite != nullptr) {
                 speccy.writeMemory(row_addr + offset, sprite[b]);
             }
             Speccy::splitAddress(row_addr, &msb, &lsb);
@@ -1142,10 +1142,10 @@ void drawRemainingLives() {
         // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96 (frame 3).
         uint8_t anim_frame = (uint8_t) (Speccy::rotL(game.NOTEINDEX, 3) & 96);
 
-        uint8_t *sprite = &willy.sprites[anim_frame];
+        uint8_t &sprite = willy.sprites[anim_frame];
 
         // C=0; this tells DRWFIX to overwrite any existing graphics.
-        DRWFIX(sprite, addr, 0);
+        DRWFIX(&sprite, addr, 0);
 
         // Move to the location at which to draw the next Willy sprite.
         addr += 2;
