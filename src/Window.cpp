@@ -124,6 +124,6 @@ void Window::quit() {
 }
 
 uint32_t Window::GenerateSDLPixelColour(uint8_t colour_id) {
-    SDL_Color *colour = &spectrumColourPalette[colour_id];
-    return SDL_MapRGB(pixelFormat, colour->r, colour->g, colour->b);
+    const SDL_Color &colour = spectrumColourPalette[colour_id];
+    return SDL_MapRGB(pixelFormat, colour.r, colour.g, colour.b);
 }

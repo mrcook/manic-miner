@@ -291,7 +291,7 @@ void Blip_Synth_::treble_eq( blip_eq_t const& eq )
 	
 	// volume might require rescaling
 	double vol = volume_unit_;
-	if ( vol )
+	if ( vol < 0 || vol > 0 )
 	{
 		volume_unit_ = 0.0;
 		volume_unit( vol );
@@ -300,7 +300,7 @@ void Blip_Synth_::treble_eq( blip_eq_t const& eq )
 
 void Blip_Synth_::volume_unit( double new_unit )
 {
-	if ( new_unit != volume_unit_ )
+	if ( new_unit < volume_unit_ || new_unit > volume_unit_ )
 	{
 		// use default eq if it hasn't been set yet
 		if ( !kernel_unit )

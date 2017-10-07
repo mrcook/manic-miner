@@ -87,7 +87,7 @@ private:
 //        0xFFFFFFFF,     // white
 //};
 
-static SDL_Color spectrumColourPalette[] = {
+constexpr SDL_Color spectrumColourPalette[] = {
     {0,   0,   0,   0},
     {0,   0,   215, 0},
     {215, 0,   0,   0},

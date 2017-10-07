@@ -498,7 +498,7 @@ void DRAWSHEET() {
     uint8_t *sprite;
 
     int offset = 0;
-    int col;
+    int col = 0;
 
     // The following loop draws the 512 tiles for the cavern to the screen buffer at 28672.
     // This is done for each of the 2 screen blocks (top two thirds of the screen)

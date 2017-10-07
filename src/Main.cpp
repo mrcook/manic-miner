@@ -7,9 +7,7 @@
 
 #include "Headers.h"
 #include "Globals.h"
-
-// Current game version
-std::string version = "0.0.1";
+#include "Version.h"
 
 static bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool &cheat);
 
@@ -84,7 +82,7 @@ bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool
                 }
                 break;
             case 'h':
-                printf("Manic Miner %s\n", version.c_str());
+                printf("Manic Miner %d.%d.%d\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
                 printf("Copyright © 1983 Matthew Smith\n");
                 printf("Z80 to C port Copyright © 2017 Michael R. Cook\n");
                 printf("\n");

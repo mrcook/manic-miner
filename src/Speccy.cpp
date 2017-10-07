@@ -87,7 +87,7 @@ int Speccy::getKey() {
 }
 
 void Speccy::OUT(uint8_t value) {
-    value = 0; // prevents compiler error
+    (void) value; // prevents compiler error
     // output the sound, border colour!
 }
 
@@ -120,7 +120,7 @@ void Speccy::printString(void *msg, uint16_t address, uint8_t len) {
 
 // Draw a sprite item to the given screen address
 void Speccy::drawSprite(void *character, uint16_t address, uint8_t len) {
-    assert(len >= 0 && len <= (sizeof(character) / sizeof(uint8_t)));
+    assert(len <= (sizeof(character) / sizeof(uint8_t)));
 
     uint8_t *chr = (uint8_t *) character;
     uint8_t msb, lsb;

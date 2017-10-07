@@ -83,16 +83,15 @@ const char *AudioSystem::start(int rate, int channelCount, int latencyMillisecon
         return sdl_error("Couldn't create semaphore");
     }
 
-    SDL_AudioSpec as = {
-            .freq = rate,
-            .format = AUDIO_S16SYS,
-            .channels = (uint8_t) channelCount,
-            .silence = 0,
-            .samples = (uint16_t) (bufferSize / channelCount),
-            .size = 0,
-            .callback = fillBuffer_,
-            .userdata = this,
-    };
+    SDL_AudioSpec as = SDL_AudioSpec{};
+    as.freq = rate;
+    as.format = AUDIO_S16SYS;
+    as.channels = (uint8_t) channelCount;
+    as.silence = 0;
+    as.samples = (uint16_t) (bufferSize / channelCount);
+    as.size = 0;
+    as.callback = fillBuffer_;
+    as.userdata = this;
 
     if (SDL_OpenAudio(&as, 0) < 0) {
         return sdl_error("Couldn't open SDL audio");
