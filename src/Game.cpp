@@ -400,7 +400,7 @@ void ENDGAM() {
 
     // The following loop draws the boot's descent onto the plinth that supports Willy.
     for (bootDistanceFromTop = 0; bootDistanceFromTop < 98; bootDistanceFromTop += 4) {
-        Speccy::splitAddress(SBUFADDRS[bootDistanceFromTop], &msb, &lsb);
+        Speccy::splitAddress(SBUFADDRS[bootDistanceFromTop], msb, lsb);
 
         // center of screen
         addr = Speccy::buildAddress((uint8_t) (msb - 32), (uint8_t) (lsb | 15));
@@ -535,13 +535,13 @@ void DRAWSHEET() {
             if (sprite != nullptr) {
                 speccy.writeMemory(row_addr + offset, sprite[b]);
             }
-            Speccy::splitAddress(row_addr, &msb, &lsb);
+            Speccy::splitAddress(row_addr, msb, lsb);
             msb++;
             row_addr = Speccy::buildAddress(msb, lsb);
         }
         col++;
 
-        Speccy::splitAddress(addr, &msb, &lsb);
+        Speccy::splitAddress(addr, msb, lsb);
         if (col == 31) {
             col = 0;
             msb++;
@@ -676,7 +676,7 @@ void CRUMBLE(uint16_t addr) {
 
     // Point to the bottom row of pixels of the crumbling
     // floor tile in the screen buffer at 28672.
-    Speccy::splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, msb, lsb);
 
     msb += 27;
     msb |= 7;
@@ -772,7 +772,7 @@ void DRAWITEMS() {
             game.ITEMATTR = attribute;
 
             // Point DE at the address of the item's location in the screen buffer at 24576.
-            Speccy::splitAddress(addr, &msb, &lsb);
+            Speccy::splitAddress(addr, msb, lsb);
             msb = (uint8_t) cavern.ITEMS[i].addressMSB;
             addr = Speccy::buildAddress(msb, lsb);
 
@@ -806,11 +806,11 @@ bool CHKPORTAL() {
 
     // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1.
     uint16_t addr = cavern.portal.PORTALLOC1;
-    Speccy::splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, msb, lsb);
 
     // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION.
     uint16_t w_addr = willy.LOCATION;
-    Speccy::splitAddress(w_addr, &w_msb, &w_lsb);
+    Speccy::splitAddress(w_addr, w_msb, w_lsb);
 
     // Does it match that of the portal?
     if (lsb == w_lsb) {
@@ -892,7 +892,7 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
         speccy.writeMemory(addr + 1, sprite[i + 1]);
 
         // Move down to the next pixel row
-        Speccy::splitAddress(addr, &msb, &lsb);
+        Speccy::splitAddress(addr, msb, lsb);
         msb++;
 
         // Have we drawn the bottom pixel row in this pair of cells yet?

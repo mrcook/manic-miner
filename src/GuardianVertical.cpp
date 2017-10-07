@@ -47,11 +47,11 @@ bool GuardianVertical::updateAndDraw() {
     uint8_t msb_bak, lsb_bak;
 
     // Point HL at the address of the guardian's location in the screen buffer at 24576.
-    Speccy::splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, msb, lsb);
     lsb_bak = lsb | xCoord;
     y_coord++;
     addr = SBUFADDRS[y_coord / 2];
-    Speccy::splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, msb, lsb);
     addr = Speccy::buildAddress(msb, lsb_bak);
 
     // Pick up the guardian's animation frame (0-3). Multiply it by 32.
@@ -69,10 +69,10 @@ bool GuardianVertical::updateAndDraw() {
     // Pick up the guardian's pixel y-coordinate.
     // Point HL at the address of the guardian's location in the attribute buffer at 23552.
     addr = (uint16_t) (Speccy::rotL((uint8_t) (yCoord & 64), 2) + 92);
-    Speccy::splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, msb, lsb);
     msb_bak = lsb;
     addr = (uint16_t) (Speccy::rotL(yCoord, 2) & 224);
-    Speccy::splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, msb, lsb);
     addr = Speccy::buildAddress(msb_bak, lsb | xCoord);
 
     // Set the attribute bytes for the guardian.

@@ -132,7 +132,7 @@ uint16_t Willy_adjustAttributes(uint8_t y_coord) {
 
     // Pick up Willy's screen x-coordinate (1-29) from bits 0-4 at LOCATION.
     uint8_t msb_dummy, x_lsb;
-    Speccy::splitAddress((uint16_t) (willy.LOCATION & 31), &msb_dummy, &x_lsb);
+    Speccy::splitAddress((uint16_t) (willy.LOCATION & 31), msb_dummy, x_lsb);
 
     // Now L holds the LSB of Willy's attribute buffer address.
     x_lsb |= lsb;
@@ -506,14 +506,14 @@ void Willy_draw() {
 
     // Pick up Willy's screen x-coordinate (0-31) from LOCATION.
     uint8_t msb_dummy, pix_x;
-    Speccy::splitAddress((uint16_t) (willy.LOCATION & 31), &msb_dummy, &pix_x);
+    Speccy::splitAddress((uint16_t) (willy.LOCATION & 31), msb_dummy, pix_x);
 
     // There are 16 rows of pixels in a sprite.
     uint8_t h, l;
     for (int i = 0; i < 16; i++) {
         // Set to the address in the screen buffer at 24576 that corresponds
         // to where we are going to draw the next pixel row of the sprite graphic.
-        Speccy::splitAddress(SBUFADDRS[pix_y], &h, &l);
+        Speccy::splitAddress(SBUFADDRS[pix_y], h, l);
         uint16_t addr = Speccy::buildAddress(h, l | pix_x);
 
         // Merge the sprite byte with the background.

@@ -144,7 +144,7 @@ public:
      */
 
     // Split a uint16_t memory address into its MSB and LSB values
-    static void splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb);
+    static void splitAddress(uint16_t addr, uint8_t &msb, uint8_t &lsb);
 
     // Build a uint16_t memory address from the MSB and LSB values
     static uint16_t buildAddress(uint8_t msb, uint8_t lsb);

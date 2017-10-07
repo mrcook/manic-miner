@@ -130,12 +130,12 @@ bool EugeneDraw() {
     uint16_t addr = (uint16_t) (SBUFADDRS[y_coord / 2] | 15);
 
     uint8_t msb, lsb;
-    Speccy::splitAddress(addr, &msb, &lsb);
+    Speccy::splitAddress(addr, msb, lsb);
 
     addr = SBUFADDRS[(y_coord + 1) / 2];
 
     uint8_t _lsb;
-    Speccy::splitAddress(addr, &msb, &_lsb);
+    Speccy::splitAddress(addr, msb, _lsb);
 
     addr = Speccy::buildAddress(msb, lsb);
 
@@ -256,13 +256,13 @@ bool SKYLABS() {
         addr = SBUFADDRS[y_coord / 2];
         addr += VGUARDS[i].xCoord;
 
-        Speccy::splitAddress(addr, &msb, &lsb);
+        Speccy::splitAddress(addr, msb, lsb);
         y_coord++;
 
         addr = SBUFADDRS[y_coord / 2];
 
         uint8_t y_msb, y_lsb;
-        Speccy::splitAddress(addr, &y_msb, &y_lsb);
+        Speccy::splitAddress(addr, y_msb, y_lsb);
         addr = Speccy::buildAddress(y_msb, lsb);
 
         // Pick up the animation frame (0-7). Multiply it by 32.

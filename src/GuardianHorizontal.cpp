@@ -29,7 +29,7 @@ bool GuardianHorizontal::update() {
     uint8_t msb, lsb;
     if (frame == 3) {
         // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552.
-        Speccy::splitAddress(attributeAddress, &msb, &lsb);
+        Speccy::splitAddress(attributeAddress, msb, lsb);
 
         // Has the guardian reached the rightmost point in its path?
         if (lsb == addressRightLSB) {
@@ -49,7 +49,7 @@ bool GuardianHorizontal::update() {
         // If so move the guardian left across a cell boundary or turn it round.
     } else if (frame == 4) {
         // Pick up the LSB of the address of the guardian's location in the attribute buffer at 23552.
-        Speccy::splitAddress(attributeAddress, &msb, &lsb);
+        Speccy::splitAddress(attributeAddress, msb, lsb);
 
         // Has the guardian reached the leftmost point in its path?
         if (lsb == addressLeftLSB) {
@@ -117,7 +117,7 @@ bool GuardianHorizontal::draw() {
     // Point DE at the graphic data for the appropriate guardian sprite (at GGDATA+E),
     // Point HL at the address of the guardian's location in the screen buffer at 24576,
     uint8_t msb, lsb;
-    Speccy::splitAddress(attributeAddress, &msb, &lsb);
+    Speccy::splitAddress(attributeAddress, msb, lsb);
     addr = Speccy::buildAddress((uint8_t) addressMSB, lsb);
 
     // Draw the guardian to the screen buffer at 24576,

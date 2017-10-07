@@ -131,7 +131,7 @@ void Speccy::drawSprite(void *character, uint16_t address, uint8_t len) {
         writeMemory(address, chr[i]);
 
         // increment address to next pixel row
-        Speccy::splitAddress(address, &msb, &lsb);
+        Speccy::splitAddress(address, msb, lsb);
         msb++;
         address = Speccy::buildAddress(msb, lsb);
     }
@@ -204,9 +204,9 @@ void Speccy::redrawWindow() {
 //
 
 // Split a uint16_t memory address into its MSB and LSB values
-void Speccy::splitAddress(uint16_t addr, uint8_t *msb, uint8_t *lsb) {
-    *lsb = (uint8_t) (addr & 0xFF);
-    *msb = (uint8_t) (addr >> 8);
+void Speccy::splitAddress(uint16_t addr, uint8_t &msb, uint8_t &lsb) {
+    lsb = (uint8_t) (addr & 0xFF);
+    msb = (uint8_t) (addr >> 8);
 }
 
 // Build a uint16_t memory address from the MSB and LSB values

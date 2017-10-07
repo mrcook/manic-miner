@@ -72,7 +72,7 @@ void Kong_openWall(void) {
 
     uint8_t msb, lsb;
     while (true) {
-        Speccy::splitAddress(addr, &msb, &lsb);
+        Speccy::splitAddress(addr, msb, lsb);
 
         // Pick up a pixel row. Is it blank yet?
         if (speccy.readMemory(addr) != 0) {
@@ -135,7 +135,7 @@ void Kong_removeBeastFloor(void) {
         speccy.writeMemory(addr, 0);
         speccy.writeMemory(addr + 1, 0);
 
-        Speccy::splitAddress(addr, &msb, &lsb);
+        Speccy::splitAddress(addr, msb, lsb);
         msb++;
         addr = Speccy::buildAddress(msb, lsb);
     }
