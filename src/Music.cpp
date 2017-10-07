@@ -16,9 +16,7 @@ bool PLAYTUNE() {
     uint8_t freq1, freq2;
     uint16_t addr;
 
-    for (int i = 0; i < 95; i++) {
-        uint8_t *note = THEMETUNE[i];
-
+    for (auto &note : THEMETUNE) {
         // Copy the first byte of data for this note (which determines the duration) to C
         uint8_t duration = note[0];
 
