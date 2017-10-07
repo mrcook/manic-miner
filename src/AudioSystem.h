@@ -50,7 +50,7 @@ private:
     int soundOpen;
 
     Sample *buffer(int index);
-    void fillBuffer(uint8_t *out, int byteCount);
+    void fillBuffer(uint8_t &out, int byteCount);
     static void fillBuffer_(void *userData, uint8_t *out, int byteCount);
 };
 

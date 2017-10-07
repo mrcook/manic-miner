@@ -169,18 +169,18 @@ void AudioSystem::write(const Sample *in, int remaining) {
     }
 }
 
-void AudioSystem::fillBuffer(uint8_t *out, int byteCount) {
+void AudioSystem::fillBuffer(uint8_t &out, int byteCount) {
     if (SDL_SemValue(freeSemaphore) < (uint32_t) bufferCount - 1) {
-        memcpy(out, buffer(readBuffer), byteCount);
+        memcpy(&out, buffer(readBuffer), byteCount);
         readBuffer = (readBuffer + 1) % bufferCount;
         SDL_SemPost(freeSemaphore);
     } else {
-        memset(out, 0, byteCount);
+        memset(&out, 0, byteCount);
     }
 }
 
 void AudioSystem::fillBuffer_(void *userData, uint8_t *out, int byteCount) {
-    ((AudioSystem *) userData)->fillBuffer(out, byteCount);
+    ((AudioSystem *) userData)->fillBuffer(*out, byteCount);
 }
 
 int AudioSystem::initAudio() {
