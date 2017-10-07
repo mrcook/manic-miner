@@ -498,7 +498,6 @@ void DRAWSHEET() {
     uint8_t *sprite;
 
     int offset = 0;
-    int col = 0;
 
     // The following loop draws the 512 tiles for the cavern to the screen buffer at 28672.
     // This is done for each of the 2 screen blocks (top two thirds of the screen)
@@ -539,13 +538,8 @@ void DRAWSHEET() {
             msb++;
             row_addr = Speccy::buildAddress(msb, lsb);
         }
-        col++;
 
         Speccy::splitAddress(addr, msb, lsb);
-        if (col == 31) {
-            col = 0;
-            msb++;
-        }
         lsb++;
         addr = Speccy::buildAddress(msb, lsb);
     }
