@@ -17,6 +17,8 @@ bool PLAYTUNE() {
     uint16_t addr;
 
     for (auto &note : THEMETUNE) {
+        const int start_time_ms = getTickCount();
+
         // Copy the first byte of data for this note (which determines the duration) to C
         uint8_t duration = note[0];
 
@@ -68,6 +70,12 @@ bool PLAYTUNE() {
         speccy.writeMemory(addr, 56);
 
         speccy.redrawWindow();
+
+        const int elapsed_time_ms = getTickCount() - start_time_ms;
+        const int sleep_time = speccy.frameTick - elapsed_time_ms;
+        if (sleep_time >= 0) {
+            millisleep(sleep_time);
+        }
     }
 
     return false;

@@ -85,7 +85,7 @@ bool Game_play() {
 
     // The Main Loop
     while (gameIsRunning) {
-        keyIntput = processInput();
+        const int start_time_ms = getTickCount();
 
         if (reinitialiseCavern) {
             loadCurrentCavern();
@@ -98,6 +98,8 @@ bool Game_play() {
 
         // Next, prepare the screen and attribute buffers for drawing to the screen.
         resetScreenAttrBuffers();
+
+        keyIntput = processInput();
 
         // Check to see if the user muted the in-game music, or paused, or wants to quit.
         switch (keyIntput) {
@@ -226,7 +228,11 @@ bool Game_play() {
             }
         }
 
-        speccy.tick();
+        const int elapsed_time_ms = getTickCount() - start_time_ms;
+        const int sleep_time = speccy.frameTick - elapsed_time_ms;
+        if (sleep_time >= 0) {
+            millisleep(sleep_time);
+        }
     }
 
     // return, but don't quit!
@@ -353,7 +359,7 @@ bool MANDEAD() {
         // Update screen colours
         speccy.redrawWindow();
 
-        speccy.beep(pitch, duration, 5);
+        speccy.beep(pitch, duration * 2, 5); // FIXME: duration * 2 otherwise it's not long enough
     }
 
     // Finally, check whether any lives remain.
@@ -400,6 +406,8 @@ void ENDGAM() {
 
     // The following loop draws the boot's descent onto the plinth that supports Willy.
     for (bootDistanceFromTop = 0; bootDistanceFromTop < 98; bootDistanceFromTop += 4) {
+        const int start_time_ms = getTickCount();
+
         Speccy::splitAddress(SBUFADDRS[bootDistanceFromTop], msb, lsb);
 
         // center of screen
@@ -432,7 +440,11 @@ void ENDGAM() {
         speccy.fillTopTwoThirdsOfAttributeFileWith(attr);
         speccy.redrawWindow();
 
-        speccy.tick();
+        const int elapsed_time_ms = getTickCount() - start_time_ms;
+        const int sleep_time = speccy.frameTick - elapsed_time_ms;
+        if (sleep_time >= 0) {
+            millisleep(sleep_time);
+        }
     }
 
     // Now print the "Game Over" message, just to drive the point home.
@@ -1097,10 +1109,10 @@ void Game_play_intro() {
         return;
     }
 
-    speccy.tick();
-
     // Scroll intro message across the screen.
     for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
+        const int start_time_ms = getTickCount();
+
         // Is ENTER being pressed? If so, start the game.
         if (processInput() == Keyboard::MM_KEY_ENTER) {
             game.DEMO = 0;
@@ -1121,7 +1133,11 @@ void Game_play_intro() {
         speccy.redrawWindow();
 
         // Pause for about 0.1s
-        speccy.tick();
+        const int elapsed_time_ms = getTickCount() - start_time_ms;
+        const int sleep_time = speccy.frameTick - elapsed_time_ms;
+        if (sleep_time >= 0) {
+            millisleep(sleep_time);
+        }
     }
 }
 

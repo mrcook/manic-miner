@@ -43,7 +43,7 @@ static const char *sdl_error(const char *str) {
 }
 
 AudioSystem::AudioSystem() {
-    // must initialize to a default value
+    // must initialize to same as main FPS
     frame_rate = 16;
 
     bufferCount = 2;
@@ -216,15 +216,15 @@ int AudioSystem::playNote(int note, int duration, int volume) {
         amplitude = volume;
     }
 
-    // IMPORTANT: the duration calculations currently make the delay
+    // FIXME: the duration calculations currently make the delay
     // twice as long as it should be, so we should not multiply by 2.
     // Of course, this may change in the future.
-    long durationInMilliseconds = duration / frame_rate / 2;
     // long durationInMilliseconds = duration / frame_rate * 2;
+    long durationInMilliseconds = duration / frame_rate;
 
     for (long n = durationInMilliseconds; n > 0; n--) {
         // Fill buffer with frame of sound
-        long length = (int) clockRate / frame_rate / 3;
+        long length = (int) clockRate / frame_rate / frame_rate; // FIXME: divide again to get correct length
 
         while (time < length) {
             amplitude = -amplitude;
