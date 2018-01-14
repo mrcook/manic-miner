@@ -74,53 +74,53 @@ set(VERSION_PATCH 0)
 
 set(source_dir ${PROJECT_SOURCE_DIR}/src)
 set(SOURCE_FILES
-        ${source_dir}/Version.h
-        ${source_dir}/Headers.h
-        ${source_dir}/Globals.h
-        ${source_dir}/Helpers.h
-        ${source_dir}/Helpers.cpp
-        ${source_dir}/Globals.cpp
-        ${source_dir}//BlipBuffer/Blip_Buffer.h
-        ${source_dir}//BlipBuffer/Blip_Buffer.cpp
-        ${source_dir}/Speccy.h
-        ${source_dir}/SpeccyFont.cpp
-        ${source_dir}/Speccy.cpp
-        ${source_dir}/SpeccyDisplay.h
-        ${source_dir}/SpeccyDisplay.cpp
-        ${source_dir}/Window.h
-        ${source_dir}/Window.cpp
-        ${source_dir}/AudioSystem.h
-        ${source_dir}/AudioSystem.cpp
-        ${source_dir}/Music.h
-        ${source_dir}/Music.cpp
-        ${source_dir}/SpeccyColour.h
-        ${source_dir}/Coord.h
-        ${source_dir}/Data.h
-        ${source_dir}/data/Caverns.cpp
-        ${source_dir}/data/GuardianSprites.cpp
-        ${source_dir}/data/Music.cpp
-        ${source_dir}/data/Tiles.cpp
-        ${source_dir}/data/TitleScreen.cpp
-        ${source_dir}/data/WillySprites.cpp
-        ${source_dir}/Conveyor.h
-        ${source_dir}/Cavern.h
-        ${source_dir}/Cavern.cpp
-        ${source_dir}/GuardianHorizontal.h
-        ${source_dir}/GuardianHorizontal.cpp
-        ${source_dir}/GuardianSpecial.h
-        ${source_dir}/GuardianSpecial.cpp
-        ${source_dir}/GuardianVertical.h
-        ${source_dir}/GuardianVertical.cpp
-        ${source_dir}/KongBeast.h
-        ${source_dir}/KongBeast.cpp
-        ${source_dir}/Item.h
-        ${source_dir}/Portal.h
-        ${source_dir}/Tile.h
-        ${source_dir}/Willy.h
-        ${source_dir}/Willy.cpp
-        ${source_dir}/Game.h
-        ${source_dir}/Game.cpp
-        ${source_dir}/Main.cpp
+        ${source_dir}/version.h
+        ${source_dir}/headers.h
+        ${source_dir}/globals.h
+        ${source_dir}/helpers.h
+        ${source_dir}/helpers.cpp
+        ${source_dir}/globals.cpp
+        ${source_dir}//blip_buffer/blip_buffer.h
+        ${source_dir}//blip_buffer/blip_buffer.cpp
+        ${source_dir}/speccy.h
+        ${source_dir}/speccy_font.cpp
+        ${source_dir}/speccy.cpp
+        ${source_dir}/speccy_display.h
+        ${source_dir}/speccy_display.cpp
+        ${source_dir}/window.h
+        ${source_dir}/window.cpp
+        ${source_dir}/audio_system.h
+        ${source_dir}/audio_system.cpp
+        ${source_dir}/music.h
+        ${source_dir}/music.cpp
+        ${source_dir}/speccy_colour.h
+        ${source_dir}/coord.h
+        ${source_dir}/data.h
+        ${source_dir}/data/caverns.cpp
+        ${source_dir}/data/guardian_sprites.cpp
+        ${source_dir}/data/music.cpp
+        ${source_dir}/data/tiles.cpp
+        ${source_dir}/data/title_screen.cpp
+        ${source_dir}/data/willy_sprites.cpp
+        ${source_dir}/conveyor.h
+        ${source_dir}/cavern.h
+        ${source_dir}/cavern.cpp
+        ${source_dir}/guardian_horizontal.h
+        ${source_dir}/guardian_horizontal.cpp
+        ${source_dir}/guardian_special.h
+        ${source_dir}/guardian_special.cpp
+        ${source_dir}/guardian_vertical.h
+        ${source_dir}/guardian_vertical.cpp
+        ${source_dir}/kong_beast.h
+        ${source_dir}/kong_beast.cpp
+        ${source_dir}/item.h
+        ${source_dir}/portal.h
+        ${source_dir}/tile.h
+        ${source_dir}/willy.h
+        ${source_dir}/willy.cpp
+        ${source_dir}/game.h
+        ${source_dir}/game.cpp
+        ${source_dir}/main.cpp
 )
 
 #
@@ -133,9 +133,9 @@ set(EXECUTABLE_OUTPUT_PATH ${build_dir})
 set(RUNTIME_OUTPUT_DIRECTORY ${build_dir})
 
 ##
-## Extract the Manic Miner version number from Version.h
+## Extract the Manic Miner version number from version.h
 ##
-#file(STRINGS "${source_dir}/Version.h" VERSION_HEADER)
+#file(STRINGS "${source_dir}/version.h" VERSION_HEADER)
 #
 #string(REGEX MATCH "VERSION_MAJOR = ([0-9]+);" ${VERSION_HEADER})
 #set(mm_version_major ${CMAKE_MATCH_1})
