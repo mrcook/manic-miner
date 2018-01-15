@@ -69,58 +69,58 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 ${cxx_warnings}")
 
 # Current game version
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 1)
+set(VERSION_MINOR 2)
 set(VERSION_PATCH 0)
 
 set(source_dir ${PROJECT_SOURCE_DIR}/src)
 set(SOURCE_FILES
-        ${source_dir}/version.h
-        ${source_dir}/headers.h
-        ${source_dir}/globals.h
-        ${source_dir}/helpers.h
-        ${source_dir}/helpers.cpp
-        ${source_dir}/globals.cpp
-        ${source_dir}//blip_buffer/blip_buffer.h
-        ${source_dir}//blip_buffer/blip_buffer.cpp
-        ${source_dir}/speccy.h
-        ${source_dir}/speccy_font.cpp
-        ${source_dir}/speccy.cpp
-        ${source_dir}/speccy_display.h
-        ${source_dir}/speccy_display.cpp
-        ${source_dir}/window.h
-        ${source_dir}/window.cpp
         ${source_dir}/audio_system.h
-        ${source_dir}/audio_system.cpp
-        ${source_dir}/music.h
-        ${source_dir}/music.cpp
-        ${source_dir}/speccy_colour.h
+        ${source_dir}/blip_buffer/blip_buffer.h
+        ${source_dir}/cavern.h
+        ${source_dir}/conveyor.h
         ${source_dir}/coord.h
         ${source_dir}/data.h
+        ${source_dir}/game.h
+        ${source_dir}/globals.h
+        ${source_dir}/guardian_horizontal.h
+        ${source_dir}/guardian_special.h
+        ${source_dir}/guardian_vertical.h
+        ${source_dir}/headers.h
+        ${source_dir}/helpers.h
+        ${source_dir}/item.h
+        ${source_dir}/kong_beast.h
+        ${source_dir}/music.h
+        ${source_dir}/portal.h
+        ${source_dir}/speccy.h
+        ${source_dir}/speccy_colour.h
+        ${source_dir}/speccy_display.h
+        ${source_dir}/tile.h
+        ${source_dir}/version.h
+        ${source_dir}/willy.h
+        ${source_dir}/window.h
+        ${source_dir}/audio_system.cpp
+        ${source_dir}/blip_buffer/blip_buffer.cpp
+        ${source_dir}/cavern.cpp
         ${source_dir}/data/caverns.cpp
         ${source_dir}/data/guardian_sprites.cpp
         ${source_dir}/data/music.cpp
         ${source_dir}/data/tiles.cpp
         ${source_dir}/data/title_screen.cpp
         ${source_dir}/data/willy_sprites.cpp
-        ${source_dir}/conveyor.h
-        ${source_dir}/cavern.h
-        ${source_dir}/cavern.cpp
-        ${source_dir}/guardian_horizontal.h
-        ${source_dir}/guardian_horizontal.cpp
-        ${source_dir}/guardian_special.h
-        ${source_dir}/guardian_special.cpp
-        ${source_dir}/guardian_vertical.h
-        ${source_dir}/guardian_vertical.cpp
-        ${source_dir}/kong_beast.h
-        ${source_dir}/kong_beast.cpp
-        ${source_dir}/item.h
-        ${source_dir}/portal.h
-        ${source_dir}/tile.h
-        ${source_dir}/willy.h
-        ${source_dir}/willy.cpp
-        ${source_dir}/game.h
         ${source_dir}/game.cpp
+        ${source_dir}/globals.cpp
+        ${source_dir}/guardian_horizontal.cpp
+        ${source_dir}/guardian_special.cpp
+        ${source_dir}/guardian_vertical.cpp
+        ${source_dir}/helpers.cpp
+        ${source_dir}/kong_beast.cpp
         ${source_dir}/main.cpp
+        ${source_dir}/music.cpp
+        ${source_dir}/speccy.cpp
+        ${source_dir}/speccy_display.cpp
+        ${source_dir}/speccy_font.cpp
+        ${source_dir}/willy.cpp
+        ${source_dir}/window.cpp
 )
 
 #
