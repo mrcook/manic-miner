@@ -1,7 +1,7 @@
 
 // Blip_Buffer 0.4.0. http://www.slack.net/~ant/
 
-#include "Blip_Buffer.h"
+#include "blip_buffer.h"
 
 #include <assert.h>
 #include <limits.h>

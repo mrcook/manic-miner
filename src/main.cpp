@@ -3,7 +3,7 @@
 
 #include "headers.h"
 #include "globals.h"
-#include "Version.h"
+#include "version.h"
 
 static bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool &cheat);
 
