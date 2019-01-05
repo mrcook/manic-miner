@@ -122,7 +122,7 @@ bool Game_play() {
         // Move the horizontal guardians in the current cavern.
         // The guardian-moving loop begins here.
         for (GuardianHorizontal &guardian : HGUARDS) {
-            if (guardian.update()) {
+            if (GuardianH_update(guardian)) {
                 break;
             }
         }
@@ -144,7 +144,7 @@ bool Game_play() {
         // Draw the horizontal guardians in the current cavern.
         // The guardian-drawing loop begins here.
         for (GuardianHorizontal &guardian : HGUARDS) {
-            if (guardian.draw()) {
+            if (GuardianH_draw(guardian)) {
                 goto LOOP_4; // Willy has died!
             }
         }
@@ -858,16 +858,17 @@ bool CHKPORTAL() {
 // Draw a sprite.
 //
 // Used by the routines at:
-//   START:      draw Willy on the title screen
-//   LOOP:       draw the remaining lives
-//   ENDGAM:     draw Willy, the boot and the plinth during the game over sequence
-//   GuardianHorizontal::draw:     draw horizontal guardians
-//   EUGENE:     draw Eugene in Eugene's Lair
-//   SKYLABS:    draw the Skylabs in Skylab Landing Bay
-//   GuardianVertical::updateAndDraw: draw vertical guardians
-//   CHKPORTAL:  draw the portal in the current cavern
-//   NXSHEET:    draw Willy above ground and the swordfish graphic over the portal in The Final Barrier
-//   KONGBEAST:  draw the Kong Beast in Miner Willy meets the Kong Beast and Return of the Alien Kong Beast
+//   START:            draw Willy on the title screen
+//   LOOP:             draw the remaining lives
+//   ENDGAM:           draw Willy, the boot and the plinth during the game over sequence
+//   GuardianH_draw:   draw horizontal guardians
+//   EUGENE:           draw Eugene in Eugene's Lair
+//   SKYLABS:          draw the Skylabs in Skylab Landing Bay
+//   GuardianV_update: draw vertical guardians
+//   GuardianV_draw:   draw vertical guardians
+//   CHKPORTAL:        draw the portal in the current cavern
+//   NXSHEET:          draw Willy above ground and the swordfish graphic over the portal in The Final Barrier
+//   KONGBEAST:        draw the Kong Beast in Miner Willy meets the Kong Beast and Return of the Alien Kong Beast
 //
 // If C=1 on entry, this routine returns with the zero flag reset if any of the
 // set bits in the sprite being drawn collides with a set bit in the background.

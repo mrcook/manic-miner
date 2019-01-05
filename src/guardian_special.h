@@ -13,18 +13,18 @@ bool UpdateSpecialVerticalGuardians(uint8_t sheet);
 void LIGHTBEAM();
 
 // EUGENE
-// Move and draw Eugene in Eugene's Lair.
+// Move and GuardianH_draw Eugene in Eugene's Lair.
 // First we move Eugene up or down, or change his direction.
 void EugeneMove();
 
-// After moving Eugene, it's time to draw him.
+// After moving Eugene, it's time to GuardianH_draw him.
 // return `true` if Willy has died.
 bool EugeneDraw();
 
 // EUGENE_3
 // Sets the colour attributes for a 16x16 pixel sprite.
 // SKYLABS:    to set the attributes for a Skylab.
-// GuardianVertical::updateAndDraw: to set the attributes for a vertical guardian.
+// GuardianV_updateAndDraw: to set the attributes for a vertical guardian.
 // KONGBEAST:  to set the attributes for the Kong Beast.
 void UpdateGuardianColourAttributes(uint16_t addr, uint8_t ink_colour);
 

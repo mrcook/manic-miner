@@ -29,7 +29,7 @@
     +------+--------------------------------------------------------------------+
 */
 
-class GuardianHorizontal {
+typedef struct GuardianHorizontal_ {
 public:
     // animation speed (0=normal, 1=slow)
     // Colour attribute (BRIGHT, PAPER and INK)
@@ -49,12 +49,12 @@ public:
 
     // Guardian graphic data (yes, it uses more memory, but gives greater flexibility)
     uint8_t GGDATA[256];
+} GuardianHorizontal;
 
-    // MOVEHG
-    // returning a true value stops iterating on any further guardians
-    bool update();
+// MOVEHG
+// returning a true value stops iterating on any further guardians
+bool GuardianH_update(GuardianHorizontal &guardian);
 
-    // DRAWHG
-    // returning a true value indicated Willy has been killed
-    bool draw();
-};
+// DRAWHG
+// returning a true value indicated Willy has been killed
+bool GuardianH_draw(GuardianHorizontal &guardian);

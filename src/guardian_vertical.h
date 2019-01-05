@@ -23,7 +23,7 @@
     +------+------------------------------+
 */
 
-class GuardianVertical {
+typedef struct GuardianVertical_ {
 public:
     uint8_t attribute;
     uint8_t frame;
@@ -36,6 +36,7 @@ public:
     // Guardian graphic data
     uint8_t GGDATA[256];
 
-    // VGUARDIANS
-    bool updateAndDraw();
-};
+} GuardianVertical;
+
+// VGUARDIANS
+bool GuardianV_updateAndDraw(GuardianVertical &guardian);

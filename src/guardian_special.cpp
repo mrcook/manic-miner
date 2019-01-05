@@ -27,7 +27,7 @@ bool UpdateSpecialVerticalGuardians(uint8_t sheet) {
     if (sheet >= 8 && sheet != 13) {
         // The guardian-moving loop begins here.
         for (GuardianVertical &guardian : VGUARDS) {
-            if (guardian.updateAndDraw()) {
+            if (GuardianV_updateAndDraw(guardian)) {
                 return true;
             }
         }
@@ -72,7 +72,7 @@ void LIGHTBEAM() {
             cavern.decreaseAir();
             cavern.decreaseAir();
             cavern.decreaseAir();
-            // Jump forward to draw the light beam over Willy.
+            // Jump forward to GuardianH_draw the light beam over Willy.
         } else {
             // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point).
             if (speccy.readMemory(addr) != cavern.BACKGROUND.id) {
@@ -161,7 +161,7 @@ bool EugeneDraw() {
 
     addr = Speccy::buildAddress(msb, y_coord);
 
-    // Assume we will draw Eugene with white INK.
+    // Assume we will GuardianH_draw Eugene with white INK.
     uint8_t ink_colour = 7;
 
     // Pick up the attribute of the last item drawn from ITEMATTR.
@@ -246,7 +246,7 @@ bool SKYLABS() {
             }
         }
 
-        // Now that the Skylab's movement has been dealt with, time to draw it.
+        // Now that the Skylab's movement has been dealt with, time to GuardianH_draw it.
 
         // Pickup the entry in the screen buffer address lookup table at SBUFADDRS
         // that corresponds to the Skylab's pixel y-coordinate.
