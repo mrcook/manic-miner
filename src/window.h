@@ -38,7 +38,7 @@ public:
         return *instance;
     }
 
-    bool initialize(std::string gameName, int zoom, SpeccyDisplay *display);
+    bool initialize(std::string gameName, int zoom);
 
     int getKey();
 
@@ -60,9 +60,6 @@ private:
 
     // Pixels array used to render to the screen
     uint32_t *pixels_ = nullptr;
-
-    // Pointer to the SpeccyDisplay, where we create a usable display array
-    SpeccyDisplay *display_ = nullptr;
 
     uint32_t GenerateSDLPixelColour(uint8_t colour_id);
 

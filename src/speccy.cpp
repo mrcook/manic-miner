@@ -6,7 +6,7 @@
 #include "window.h"
 
 bool Speccy::initialize(const std::string gameName, int fps, int zoom) {
-    if (!Window::instance().initialize(gameName, zoom, &SpeccyDisplay::instance())) {
+    if (!Window::instance().initialize(gameName, zoom)) {
         return false;
     }
 

@@ -3,9 +3,11 @@
 
 #include "headers.h"
 #include "globals.h"
+#include "speccy_display.h"
 
 // Setup all game objects
 Speccy speccy = {};
+SpeccyDisplay speccy_display = {};
 Cavern cavern = {};
 Game game = {};
 GuardianHorizontal HGUARDS[4] = {};

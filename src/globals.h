@@ -4,6 +4,7 @@
 #pragma once
 
 #include "speccy.h"
+#include "speccy_display.h"
 #include "cavern.h"
 #include "game.h"
 #include "guardian_horizontal.h"
@@ -12,6 +13,7 @@
 
 // Setup all game objects
 extern Speccy speccy;
+extern SpeccyDisplay speccy_display;
 extern Game game;
 extern Cavern cavern;
 extern GuardianHorizontal HGUARDS[4];

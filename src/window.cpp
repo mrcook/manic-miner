@@ -1,11 +1,11 @@
 // SDL Wrapper Copyright (c) 2016-2018 Michael R. Cook
 
 #include "headers.h"
+#include "globals.h"
 #include "window.h"
+#include "speccy_display.h"
 
-bool Window::initialize(const std::string gameName, const int zoom, SpeccyDisplay *display) {
-    display_ = display;
-
+bool Window::initialize(const std::string gameName, const int zoom) {
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return false;
@@ -98,10 +98,10 @@ int Window::getKey() {
 
 void Window::redraw() {
     // Update new screen format with latest display information
-    display_->convertSpeccyScreen();
+    Speccy_convertScreen();
 
-    for (int y = 0; y < display_->DISPLAY_PIXELS; y++) {
-        uint32_t pixel = GenerateSDLPixelColour(display_->read(y));
+    for (int y = 0; y < DISPLAY_PIXELS; y++) {
+        uint32_t pixel = GenerateSDLPixelColour(Speccy_read(y));
         if (pixels_[y] != pixel) {
             pixels_[y] = pixel;
         }
