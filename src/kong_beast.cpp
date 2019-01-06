@@ -22,7 +22,7 @@ bool KONGBEAST() {
 
     // Pick up the sixth pixel row of the left-hand switch from the screen buffer at 28672.
     // Has the switch been flipped?
-    if (speccy.readMemory(29958) == 16) {
+    if (Speccy_readMemory(29958) == 16) {
         return animateKongBeast(); // return dead-ness state of Willy! -MRC-
     }
     // Okay, the left-hand switch has been flipped...continue.
@@ -63,7 +63,7 @@ bool KONGBEAST() {
 void Kong_openWall() {
     // Pick up the attribute byte of the tile at (11,17) in the buffer at 24064.
     // Has the wall there been removed yet?
-    if (speccy.readMemory(24433) == 0) {
+    if (Speccy_readMemory(24433) == 0) {
         return;
     }
 
@@ -72,20 +72,20 @@ void Kong_openWall() {
 
     uint8_t msb, lsb;
     while (true) {
-        Speccy::splitAddress(addr, msb, lsb);
+        Speccy_splitAddress(addr, msb, lsb);
 
         // Pick up a pixel row. Is it blank yet?
-        if (speccy.readMemory(addr) != 0) {
+        if (Speccy_readMemory(addr) != 0) {
             // Clear a pixel row of the wall tile at (11,17) in the screen buffer at 28672.
-            speccy.writeMemory(addr, 0);
+            Speccy_writeMemory(addr, 0);
 
             // Point HL at the opposite pixel row of the wall tile one cell down at (12,17).
             lsb = 145;
             msb ^= 7;
-            addr = Speccy::buildAddress(msb, lsb);
+            addr = Speccy_buildAddress(msb, lsb);
 
             // Clear that pixel row as well.
-            speccy.writeMemory(addr, 0);
+            Speccy_writeMemory(addr, 0);
 
             break;
         }
@@ -98,8 +98,8 @@ void Kong_openWall() {
         if (msb == 119) {
             // Change the attributes at (11,17) and (12,17) in the buffer at 24064.
             // to match the background tile (the wall there is now gone).
-            speccy.writeMemory(24433, cavern.BACKGROUND.id);
-            speccy.writeMemory(24465, cavern.BACKGROUND.id);
+            Speccy_writeMemory(24433, cavern.BACKGROUND.id);
+            Speccy_writeMemory(24465, cavern.BACKGROUND.id);
 
             // Update the seventh byte of the guardian definition at HGUARD2 so
             // that the guardian moves through the opening in the wall.
@@ -108,7 +108,7 @@ void Kong_openWall() {
             break;
         }
 
-        addr = Speccy::buildAddress(msb, lsb);
+        addr = Speccy_buildAddress(msb, lsb);
     }
 }
 
@@ -124,20 +124,20 @@ void Kong_removeBeastFloor() {
 
     // Change the attributes of the floor beneath the Kong Beast in the
     // buffer at 24064 to match that of the background tile.
-    speccy.writeMemory(24143, cavern.BACKGROUND.id);
-    speccy.writeMemory(24144, cavern.BACKGROUND.id);
+    Speccy_writeMemory(24143, cavern.BACKGROUND.id);
+    Speccy_writeMemory(24144, cavern.BACKGROUND.id);
 
     // Point HL at (2,15) in the screen buffer at 28672.
     addr = 28751;
 
     // Clear the cells at (2,15) and (2,16), removing the floor beneath the Kong Beast.
     for (int i = 8; i > 0; i--) {
-        speccy.writeMemory(addr, 0);
-        speccy.writeMemory(addr + 1, 0);
+        Speccy_writeMemory(addr, 0);
+        Speccy_writeMemory(addr + 1, 0);
 
-        Speccy::splitAddress(addr, msb, lsb);
+        Speccy_splitAddress(addr, msb, lsb);
         msb++;
-        addr = Speccy::buildAddress(msb, lsb);
+        addr = Speccy_buildAddress(msb, lsb);
     }
 }
 
@@ -152,19 +152,19 @@ void Kong_beastFalls() {
 
     // D=16; this value determines the duration of the sound effect.
     // Pick up the border colour for the current cavern from BORDER.
-    speccy.setBorderColour(cavern.BORDER);
+    Speccy_setBorderColour(cavern.BORDER);
 
     // Make a falling sound effect.
-    speccy.beep(EUGHGT, 16, 5);
+    Speccy_beep(EUGHGT, 16, 5);
 
     // Point DE at the entry in the screen buffer address lookup table at
     // SBUFADDRS that corresponds to the Kong Beast's pixel y-coordinate.
     // Point HL at the address of the Kong Beast's location in the screen buffer at 24576.
-    uint8_t pixelY = Speccy::rotL(EUGHGT, 1);
+    uint8_t pixelY = Speccy_rotL(EUGHGT, 1);
 
     lsb = uint8_t(SBUFADDRS[pixelY / 2] | 15);
-    msb = Speccy::getAddressMSB(SBUFADDRS[(pixelY + 1) / 2]);
-    addr = Speccy::buildAddress(msb, lsb);
+    msb = Speccy_getAddressMSB(SBUFADDRS[(pixelY + 1) / 2]);
+    addr = Speccy_buildAddress(msb, lsb);
 
     // Use bit 5 of the value of the game clock at CLOCK (which is toggled
     // once every eight passes through the main loop) to point DE at the
@@ -181,16 +181,16 @@ void Kong_beastFalls() {
     // Point HL at the address of the Kong Beast's location in the attribute buffer at 23552.
     lsb = uint8_t(EUGHGT & 120);
     msb = 23;
-    addr = Speccy::buildAddress(msb, lsb);
+    addr = Speccy_buildAddress(msb, lsb);
 
     // NOTE: `ADD HL,HL` is this really correct? What is happening here?
     addr += addr;
     addr += addr;
 
-    msb = Speccy::getAddressMSB(addr);
-    lsb = Speccy::getAddressLSB(addr);
+    msb = Speccy_getAddressMSB(addr);
+    lsb = Speccy_getAddressLSB(addr);
     lsb |= 15;
-    addr = Speccy::buildAddress(msb, lsb);
+    addr = Speccy_buildAddress(msb, lsb);
 
     // The Kong Beast is drawn with yellow INK.
     // Set the attribute bytes for the Kong Beast.
@@ -215,10 +215,10 @@ bool animateKongBeast() {
 
     // A=68 (INK 4: PAPER 0: BRIGHT 1).
     // Set the attribute bytes for the Kong Beast in the buffer at 23552.
-    speccy.writeMemory(23599, 68);
-    speccy.writeMemory(23600, 68);
-    speccy.writeMemory(23567, 68);
-    speccy.writeMemory(23568, 68);
+    Speccy_writeMemory(23599, 68);
+    Speccy_writeMemory(23600, 68);
+    Speccy_writeMemory(23567, 68);
+    Speccy_writeMemory(23568, 68);
 
     return false; // NOTE: willy is not dead.
 }
@@ -227,11 +227,11 @@ bool animateKongBeast() {
 // Returns with the zero flag set if Willy flips the switch.
 // HL Address of the switch's location in the attribute buffer at 23552.
 bool CHKSWITCH(uint16_t switchAddress) {
-    uint8_t switchMSB = Speccy::getAddressMSB(switchAddress);
-    uint8_t switchLSB = Speccy::getAddressLSB(switchAddress);
+    uint8_t switchMSB = Speccy_getAddressMSB(switchAddress);
+    uint8_t switchLSB = Speccy_getAddressLSB(switchAddress);
 
     // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION.
-    uint8_t lsb = Speccy::getAddressLSB(willy.LOCATION);
+    uint8_t lsb = Speccy_getAddressLSB(willy.LOCATION);
 
     // Is it equal to or one less than the LSB of the address of the switch's location?
     // Return (with the zero flag reset) if not.
@@ -242,7 +242,7 @@ bool CHKSWITCH(uint16_t switchAddress) {
     }
 
     // Pick up the MSB of the address of Willy's location in the attribute buffer at 23552 from 32877.
-    uint8_t msb = Speccy::getAddressMSB(willy.LOCATION);
+    uint8_t msb = Speccy_getAddressMSB(willy.LOCATION);
 
     // Does it match the MSB of the address of the switch's location?
     // Return (with the zero flag reset) if not.
@@ -267,31 +267,31 @@ bool Kong_switchFlipped(uint16_t switchAddress) {
     uint8_t sixthByte = cavern.EXTRA.sprite[5];
 
     // Point HL at the sixth row of pixels of the switch tile in the screen buffer at 28672.
-    uint8_t switchMSB = Speccy::getAddressMSB(switchAddress);
-    uint8_t switchLSB = Speccy::getAddressLSB(switchAddress);
+    uint8_t switchMSB = Speccy_getAddressMSB(switchAddress);
+    uint8_t switchLSB = Speccy_getAddressLSB(switchAddress);
     switchMSB += 25; // 92 + 25 = 117 .... but why 25, and why 117?
-    switchAddress = Speccy::buildAddress(switchMSB, switchLSB);
+    switchAddress = Speccy_buildAddress(switchMSB, switchLSB);
 
-    return speccy.readMemory(switchAddress) != sixthByte;
+    return Speccy_readMemory(switchAddress) != sixthByte;
 }
 
 // Willy is flipping the switch.
 void Kong_flipSwitch(uint16_t switchAddress) {
     // Point HL at the sixth row of pixels of the switch tile in the screen buffer at 28672.
-    uint8_t switchMSB = Speccy::getAddressMSB(switchAddress);
-    uint8_t switchLSB = Speccy::getAddressLSB(switchAddress);
+    uint8_t switchMSB = Speccy_getAddressMSB(switchAddress);
+    uint8_t switchLSB = Speccy_getAddressLSB(switchAddress);
     switchMSB += 25; // 92 + 25 = 117 .... but why 25, and why 117?
-    switchAddress = Speccy::buildAddress(switchMSB, switchLSB);
+    switchAddress = Speccy_buildAddress(switchMSB, switchLSB);
 
     // Update the sixth, seventh and eighth rows of pixels of the switch tile
     // in the screen buffer at 28672 to make it appear flipped.
-    speccy.writeMemory(switchAddress, 8);
+    Speccy_writeMemory(switchAddress, 8);
 
     switchMSB++;
-    switchAddress = Speccy::buildAddress(switchMSB, switchLSB);
-    speccy.writeMemory(switchAddress, 6);
+    switchAddress = Speccy_buildAddress(switchMSB, switchLSB);
+    Speccy_writeMemory(switchAddress, 6);
 
     switchMSB++;
-    switchAddress = Speccy::buildAddress(switchMSB, switchLSB);
-    speccy.writeMemory(switchAddress, 6);
+    switchAddress = Speccy_buildAddress(switchMSB, switchLSB);
+    Speccy_writeMemory(switchAddress, 6);
 }

@@ -59,14 +59,14 @@ void LIGHTBEAM() {
     // The beam-drawing loop begins here.
     while (true) {
         // Does HL point at a floor or wall tile? Return if so (the light beam stops here).
-        if (speccy.readMemory(addr) == cavern.FLOOR.id || speccy.readMemory(addr) == cavern.WALL.id) {
+        if (Speccy_readMemory(addr) == cavern.FLOOR.id || Speccy_readMemory(addr) == cavern.WALL.id) {
             return;
         }
 
         // A=39 (INK 7: PAPER 4)
         // Does HL point at a tile with this attribute value?
         // Jump if not (the light beam is not touching Willy).
-        if (speccy.readMemory(addr) == 39) {
+        if (Speccy_readMemory(addr) == 39) {
             // Decrease the air supply by four units
             Cavern_decreaseAir();
             Cavern_decreaseAir();
@@ -75,7 +75,7 @@ void LIGHTBEAM() {
             // Jump forward to GuardianH_draw the light beam over Willy.
         } else {
             // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point).
-            if (speccy.readMemory(addr) != cavern.BACKGROUND.id) {
+            if (Speccy_readMemory(addr) != cavern.BACKGROUND.id) {
                 // Toggle the value in DE between 32 and -1 (and therefore the direction of the light beam between
                 // vertically downwards and horizontally to the left): the light beam has hit a guardian.
                 if (dir == 32) {
@@ -87,7 +87,7 @@ void LIGHTBEAM() {
         }
 
         // Draw a portion of the light beam with attribute value 119 (INK 7: PAPER 6: BRIGHT 1).
-        speccy.writeMemory(addr, 119);
+        Speccy_writeMemory(addr, 119);
 
         // Point HL at the cell where the next portion of the light beam will be drawn.
         addr += dir;
@@ -126,18 +126,18 @@ bool EugeneDraw() {
     // Point DE at the entry in the screen buffer address lookup table at
     // SBUFADDRS that corresponds to Eugene's y-coordinate.
     // Point HL at the address of Eugene's location in the screen buffer at 24576.
-    uint8_t y_coord = Speccy::rotL(uint8_t(EUGHGT & 127), 1);
+    uint8_t y_coord = Speccy_rotL(uint8_t(EUGHGT & 127), 1);
     uint16_t addr = uint16_t(SBUFADDRS[y_coord / 2] | 15);
 
     uint8_t msb, lsb;
-    Speccy::splitAddress(addr, msb, lsb);
+    Speccy_splitAddress(addr, msb, lsb);
 
     addr = SBUFADDRS[(y_coord + 1) / 2];
 
     uint8_t _lsb;
-    Speccy::splitAddress(addr, msb, _lsb);
+    Speccy_splitAddress(addr, msb, _lsb);
 
-    addr = Speccy::buildAddress(msb, lsb);
+    addr = Speccy_buildAddress(msb, lsb);
 
     // Draw Eugene to the screen buffer at 24576.
     bool kill_willy = DRWFIX(&EUGENEG, addr, 1);
@@ -150,16 +150,16 @@ bool EugeneDraw() {
 
     // Pick up Eugene's pixel y-coordinate from EUGHGT.
     // Point HL at the address of Eugene's location in the attribute buffer at 23552.
-    y_coord = (uint8_t) (Speccy::rotL(uint8_t(EUGHGT & 120), 1) | 7);
+    y_coord = (uint8_t) (Speccy_rotL(uint8_t(EUGHGT & 120), 1) | 7);
 
     // IMPORTANT: SCF should set the carry flag, and the following RL loads that into bit 0 -MRC-
     msb = 92;
     if (y_coord >> 7 == 1) {
         msb = 93;
     }
-    y_coord = uint8_t(Speccy::rotL(y_coord, 1) | (1 << 0));
+    y_coord = uint8_t(Speccy_rotL(y_coord, 1) | (1 << 0));
 
-    addr = Speccy::buildAddress(msb, y_coord);
+    addr = Speccy_buildAddress(msb, y_coord);
 
     // Assume we will GuardianH_draw Eugene with white INK.
     uint8_t ink_colour = 7;
@@ -172,7 +172,7 @@ bool EugeneDraw() {
         // Move bits 2-4 into bits 0-2 and clear the other bits; this value
         // (which decreases by one on each pass through the main loop) will
         // be Eugene's INK colour.
-        ink_colour = uint8_t(Speccy::rotR(cavern.CLOCK, 2) & 7);
+        ink_colour = uint8_t(Speccy_rotR(cavern.CLOCK, 2) & 7);
     }
 
     UpdateGuardianColourAttributes(addr, ink_colour);
@@ -186,27 +186,27 @@ void UpdateGuardianColourAttributes(uint16_t addr, uint8_t ink_colour) {
     ink_colour = uint8_t((cavern.BACKGROUND.id & 248) | ink_colour);
 
     // Set the attribute byte for the top-left cell of the sprite in the attribute buffer at 23552.
-    speccy.writeMemory(addr, ink_colour);
+    Speccy_writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the top-right cell of the sprite in the attribute buffer at 23552.
     addr++;
-    speccy.writeMemory(addr, ink_colour);
+    Speccy_writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the middle-left cell of the sprite in the attribute buffer at 23552.
     addr += 31;
-    speccy.writeMemory(addr, ink_colour);
+    Speccy_writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the middle-right cell of the sprite in the attribute buffer at 23552.
     addr++;
-    speccy.writeMemory(addr, ink_colour);
+    Speccy_writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the bottom-left cell of the sprite in the attribute buffer at 23552.
     addr += 31;
-    speccy.writeMemory(addr, ink_colour);
+    Speccy_writeMemory(addr, ink_colour);
 
     // Set the attribute byte for the bottom-right cell of the sprite in the attribute buffer at 23552.
     addr++;
-    speccy.writeMemory(addr, ink_colour);
+    Speccy_writeMemory(addr, ink_colour);
 }
 
 bool SKYLABS() {
@@ -250,24 +250,24 @@ bool SKYLABS() {
 
         // Pickup the entry in the screen buffer address lookup table at SBUFADDRS
         // that corresponds to the Skylab's pixel y-coordinate.
-        uint8_t y_coord = Speccy::rotL(VGUARDS[i].yCoord, 1);
+        uint8_t y_coord = Speccy_rotL(VGUARDS[i].yCoord, 1);
 
         // Point HL at the address of the Skylab's location in the screen buffer at 24576.
         addr = SBUFADDRS[y_coord / 2];
         addr += VGUARDS[i].xCoord;
 
-        Speccy::splitAddress(addr, msb, lsb);
+        Speccy_splitAddress(addr, msb, lsb);
         y_coord++;
 
         addr = SBUFADDRS[y_coord / 2];
 
         uint8_t y_msb, y_lsb;
-        Speccy::splitAddress(addr, y_msb, y_lsb);
-        addr = Speccy::buildAddress(y_msb, lsb);
+        Speccy_splitAddress(addr, y_msb, y_lsb);
+        addr = Speccy_buildAddress(y_msb, lsb);
 
         // Pick up the animation frame (0-7). Multiply it by 32.
         // Skylab sprite (at GGDATA+A).
-        uint8_t sprite_offset = Speccy::rotR(VGUARDS[i].frame, 3);
+        uint8_t sprite_offset = Speccy_rotR(VGUARDS[i].frame, 3);
 
         // Draw the Skylab to the screen buffer at 24576.
         bool kill_willy = DRWFIX(&VGUARDS[i].GGDATA[sprite_offset], addr, 1);
@@ -279,10 +279,10 @@ bool SKYLABS() {
         }
 
         // Point HL at the address of the Skylab's location in the attribute buffer at 23552.
-        msb = uint8_t(Speccy::rotL((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
-        lsb = uint8_t(Speccy::rotL(VGUARDS[i].yCoord, 2) & 224);
+        msb = uint8_t(Speccy_rotL((uint8_t) (VGUARDS[i].yCoord & 64), 2) + 92);
+        lsb = uint8_t(Speccy_rotL(VGUARDS[i].yCoord, 2) & 224);
         lsb |= VGUARDS[i].xCoord;
-        addr = Speccy::buildAddress(msb, lsb);
+        addr = Speccy_buildAddress(msb, lsb);
 
         // Set the attribute bytes for the Skylab.
         UpdateGuardianColourAttributes(addr, VGUARDS[i].attribute);

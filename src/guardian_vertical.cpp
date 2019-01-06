@@ -40,22 +40,22 @@ bool GuardianV_updateAndDraw(GuardianVertical &guardian) {
     // Pick up the guardian's pixel y-coordinate.
     // Point DE at the entry in the screen buffer address lookup table at
     // SBUFADDRS that corresponds to the guardian's pixel y-coordinate.
-    y_coord = Speccy::rotL(uint8_t(guardian.yCoord & 127), 1);
+    y_coord = Speccy_rotL(uint8_t(guardian.yCoord & 127), 1);
     uint16_t addr = SBUFADDRS[y_coord / 2];
 
     uint8_t msb, lsb;
     uint8_t msb_bak, lsb_bak;
 
     // Point HL at the address of the guardian's location in the screen buffer at 24576.
-    Speccy::splitAddress(addr, msb, lsb);
+    Speccy_splitAddress(addr, msb, lsb);
     lsb_bak = lsb | guardian.xCoord;
     y_coord++;
     addr = SBUFADDRS[y_coord / 2];
-    Speccy::splitAddress(addr, msb, lsb);
-    addr = Speccy::buildAddress(msb, lsb_bak);
+    Speccy_splitAddress(addr, msb, lsb);
+    addr = Speccy_buildAddress(msb, lsb_bak);
 
     // Pick up the guardian's animation frame (0-3). Multiply it by 32.
-    uint8_t anim_frame = Speccy::rotR(guardian.frame, 3);
+    uint8_t anim_frame = Speccy_rotR(guardian.frame, 3);
 
     // Draw the guardian to the screen buffer at 24576
     bool kill_willy = DRWFIX(&GGDATA[anim_frame], addr, 1);
@@ -68,12 +68,12 @@ bool GuardianV_updateAndDraw(GuardianVertical &guardian) {
 
     // Pick up the guardian's pixel y-coordinate.
     // Point HL at the address of the guardian's location in the attribute buffer at 23552.
-    addr = uint16_t(Speccy::rotL(uint8_t(guardian.yCoord & 64), 2) + 92);
-    Speccy::splitAddress(addr, msb, lsb);
+    addr = uint16_t(Speccy_rotL(uint8_t(guardian.yCoord & 64), 2) + 92);
+    Speccy_splitAddress(addr, msb, lsb);
     msb_bak = lsb;
-    addr = uint16_t(Speccy::rotL(guardian.yCoord, 2) & 224);
-    Speccy::splitAddress(addr, msb, lsb);
-    addr = Speccy::buildAddress(msb_bak, lsb | guardian.xCoord);
+    addr = uint16_t(Speccy_rotL(guardian.yCoord, 2) & 224);
+    Speccy_splitAddress(addr, msb, lsb);
+    addr = Speccy_buildAddress(msb_bak, lsb | guardian.xCoord);
 
     // Set the attribute bytes for the guardian.
     UpdateGuardianColourAttributes(addr, guardian.attribute);

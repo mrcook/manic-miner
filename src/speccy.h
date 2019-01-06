@@ -46,116 +46,14 @@ static const int TOTAL_MEMORY = 1024 * 64;
 static const int ATTR_SIZE = 768;
 static const int SPECCY_SCREEN = 6144;
 
-class Speccy {
-public:
+typedef struct Speccy_ {
     // Used to calculate the correct frame rate, during play
     int frameTick;
 
     // Initialize a 64K block of memory, for general use.
     // Mostly you'll use this as a buffer for user memory
     uint8_t memory[TOTAL_MEMORY];
-
-    // Initialize the speccy framework (FPS, etc.)
-    bool initialize(std::string gameName, int fps, int zoom);
-
-    void quit();
-
-    // Tick the world over.
-    // Call this whenever the display needs updating or FPS syncing.
-    void tick();
-
-    // General memory read.
-    uint8_t readMemory(int address);
-
-    // General memory write.
-    void writeMemory(int address, uint8_t byte);
-
-    //
-    // Core Input/Output functions
-    //
-
-    void setBorderColour(uint8_t colour);
-
-    // The Spectrum uses OUT to make a sound, but here we use a custom function
-    void beep(int pitch, uint8_t duration, uint8_t volume);
-
-    // IN from Keyboard and Joystick
-    // IN 65278 reads the half row CAPS SHIFT to V
-    // IN 65022 reads the half row A to G
-    // IN 64510 reads the half row Q to T
-    // IN 63486 reads the half row 1 to 5
-    // IN 61438 reads the half row O to 6
-    // IN 57342 reads the half row P to 7
-    // IN 49150 reads the half row ENTER to H
-    // IN 32766 reads the half row SPACE to B
-    //
-    // IN 254   reads every row of keys
-    // uint8_t IN(uint16_t addr);
-    int getKey();
-
-    // OUT(254) border/sound output.
-    static void OUT(uint8_t value);
-
-    static uint8_t Font[96][8];
-
-    void printCharacter(char ch, uint16_t address);
-
-    // Print a message string to the display file
-    void printString(void *msg, uint16_t address, uint8_t len);
-
-    // Draw a sprite item to the given screen address
-    void drawSprite(void *character, uint16_t address, uint8_t len);
-
-    //
-    // Display/Attribute file manipulation
-    //
-
-    // Clear the entire Spectrum display file
-    void clearDisplayFile();
-
-    // Clears the entire attributes file
-    void clearAttributesFile();
-
-    // Clear the top two-thirds of the display file
-    void clearTopTwoThirdsOfDisplayFile();
-
-    // Clear the bottom third of the display file.
-    void clearBottomThirdOfDisplayFile();
-
-    // Fill the top two thirds of the attribute file with the value given.
-    void fillTopTwoThirdsOfAttributeFileWith(uint8_t byte);
-
-    void writeScreen(int address, uint8_t byte);
-    uint8_t readAttribute(int address);
-    void writeAttribute(int address, uint8_t byte);
-    void redrawWindow();
-
-    /*
-     * Utility functions to help porting from Z80 to C
-     *
-     *   - Manipulating Address values (split/join MSB and LSB)
-     *   - Bit shift/rotate uint8_t values
-     *   - Manipulate Attribute bytes (split out colours)
-     */
-
-    // Split a uint16_t memory address into its MSB and LSB values
-    static void splitAddress(uint16_t addr, uint8_t &msb, uint8_t &lsb);
-
-    // Build a uint16_t memory address from the MSB and LSB values
-    static uint16_t buildAddress(uint8_t msb, uint8_t lsb);
-
-    // Return the MSB of a uint16_t address
-    static uint8_t getAddressMSB(uint16_t addr);
-
-    // Return the LSB of a uint16_t address
-    static uint8_t getAddressLSB(uint16_t addr);
-
-    // Rotate left n places
-    static uint8_t rotL(uint8_t a, uint8_t n);
-
-    // Rotate right n places
-    static uint8_t rotR(uint8_t a, uint8_t n);
-};
+} Speccy;
 
 enum SpeccyKeys {
     KEY_NONE,
@@ -173,3 +71,103 @@ enum SpeccyKeys {
     KEY_LEFT_SPACE,
     KEY_RIGHT_SPACE,
 };
+
+
+// Initialize the speccy framework (FPS, etc.)
+bool Speccy_initialize(std::string gameName, int fps, int zoom);
+
+void Speccy_quit();
+
+// Tick the world over.
+// Call this whenever the display needs updating or FPS syncing.
+void Speccy_tick();
+
+// General memory read.
+uint8_t Speccy_readMemory(int address);
+
+// General memory write.
+void Speccy_writeMemory(int address, uint8_t byte);
+
+//
+// Core Input/Output functions
+//
+
+void Speccy_setBorderColour(uint8_t colour);
+
+// The Spectrum uses OUT to make a sound, but here we use a custom function
+void Speccy_beep(int pitch, uint8_t duration, uint8_t volume);
+
+// IN from Keyboard and Joystick
+// IN 65278 reads the half row CAPS SHIFT to V
+// IN 65022 reads the half row A to G
+// IN 64510 reads the half row Q to T
+// IN 63486 reads the half row 1 to 5
+// IN 61438 reads the half row O to 6
+// IN 57342 reads the half row P to 7
+// IN 49150 reads the half row ENTER to H
+// IN 32766 reads the half row SPACE to B
+//
+// IN 254   reads every row of keys
+// uint8_t IN(uint16_t addr);
+int Speccy_getKey();
+
+// OUT(254) border/sound output.
+void Speccy_OUT(uint8_t value);
+
+void Speccy_printCharacter(char ch, uint16_t address);
+
+// Print a message string to the display file
+void Speccy_printString(void *msg, uint16_t address, uint8_t len);
+
+// Draw a sprite item to the given screen address
+void Speccy_drawSprite(void *character, uint16_t address, uint8_t len);
+
+//
+// Display/Attribute file manipulation
+//
+
+// Clear the entire Spectrum display file
+void Speccy_clearDisplayFile();
+
+// Clears the entire attributes file
+void Speccy_clearAttributesFile();
+
+// Clear the top two-thirds of the display file
+void Speccy_clearTopTwoThirdsOfDisplayFile();
+
+// Clear the bottom third of the display file.
+void Speccy_clearBottomThirdOfDisplayFile();
+
+// Fill the top two thirds of the attribute file with the value given.
+void Speccy_fillTopTwoThirdsOfAttributeFileWith(uint8_t byte);
+
+void Speccy_writeScreen(int address, uint8_t byte);
+uint8_t Speccy_readAttribute(int address);
+void Speccy_writeAttribute(int address, uint8_t byte);
+void Speccy_redrawWindow();
+
+/*
+ * Utility functions to help porting from Z80 to C
+ *
+ *   - Manipulating Address values (split/join MSB and LSB)
+ *   - Bit shift/rotate uint8_t values
+ *   - Manipulate Attribute bytes (split out colours)
+ */
+
+// Split a uint16_t memory address into its MSB and LSB values
+void Speccy_splitAddress(uint16_t addr, uint8_t &msb, uint8_t &lsb);
+
+// Build a uint16_t memory address from the MSB and LSB values
+uint16_t Speccy_buildAddress(uint8_t msb, uint8_t lsb);
+
+// Return the MSB of a uint16_t address
+uint8_t Speccy_getAddressMSB(uint16_t addr);
+
+// Return the LSB of a uint16_t address
+uint8_t Speccy_getAddressLSB(uint16_t addr);
+
+// Rotate left n places
+uint8_t Speccy_rotL(uint8_t a, uint8_t n);
+
+// Rotate right n places
+uint8_t Speccy_rotR(uint8_t a, uint8_t n);

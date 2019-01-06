@@ -33,17 +33,17 @@ void Game_clearBuffers() {
     // Screen buffers
     for (int i = 0; i < 4096; i++) {
         // Screen Buffer
-        speccy.writeMemory(24576 + i, 0);
+        Speccy_writeMemory(24576 + i, 0);
         // Empty Screen Buffer
-        speccy.writeMemory(28672 + i, 0);
+        Speccy_writeMemory(28672 + i, 0);
     }
 
     // Attributes Buffers
     for (int i = 0; i < 512; i++) {
         // Attributes Buffer
-        speccy.writeMemory(23552 + i, 0);
+        Speccy_writeMemory(23552 + i, 0);
         // Empty Attributes Buffer
-        speccy.writeMemory(24064 + i, 0);
+        Speccy_writeMemory(24064 + i, 0);
     }
 }
 
@@ -75,7 +75,7 @@ bool Game_play() {
     EUGHGT = 0;
 
     // Prepare the screen; clear the entire Spectrum display file.
-    speccy.clearDisplayFile();
+    Speccy_clearDisplayFile();
 
     // Store the keyboard input for use within the loop.
     int keyIntput;
@@ -112,7 +112,7 @@ bool Game_play() {
                 keyIntput = Keyboard::MM_KEY_NONE;
 
                 do {
-                    speccy.tick();
+                    Speccy_tick();
                 } while (processInput() != Keyboard::MM_KEY_PAUSE);
 
                 break;
@@ -172,7 +172,7 @@ bool Game_play() {
         LOOP_4:
         copyScrBufToDisplayFile();
 
-        speccy.redrawWindow();
+        Speccy_redrawWindow();
 
         // this also redraws the screen.
         flashScreen();
@@ -181,7 +181,7 @@ bool Game_play() {
 
         printScores();
 
-        speccy.redrawWindow();
+        Speccy_redrawWindow();
 
         // Decrease the air remaining in the current cavern.
         bool depletedAir = Cavern_decreaseAir();
@@ -257,7 +257,7 @@ void loadCurrentCavern() {
     // Copy the cavern definition into the game status buffer at 32768.
     if (!Cavern_loadData(cavern.SHEET)) {
         // Oops! We've not loaded the right amount of cavern data into memory.
-        speccy.quit();
+        Speccy_quit();
         exit(-1);
     }
 
@@ -268,30 +268,30 @@ void loadCurrentCavern() {
     // Copy the cavern's attribute bytes into the buffer at 24064.
     // FIXME: uses Attr Buff (Blank): Attr File = 22528
     for (int i = 0; i < 512; i++) {
-        speccy.writeMemory(24064 + i, cavern.layout[i]);
+        Speccy_writeMemory(24064 + i, cavern.layout[i]);
     }
 
     // Draw the current cavern to the screen buffer at 28672.
     DRAWSHEET();
 
-    speccy.clearBottomThirdOfDisplayFile();
+    Speccy_clearBottomThirdOfDisplayFile();
 
     // Print the cavern name at 20480 (16,0).
-    speccy.printString(cavern.CAVERNNAME, 20480, 32);
+    Speccy_printString(cavern.CAVERNNAME, 20480, 32);
 
     // Print 'AIR' label at 20512 (17,0).
-    speccy.printString(&game.airLabel, 20512, 3);
+    Speccy_printString(&game.airLabel, 20512, 3);
 
     Cavern_drawAirBar();
 
     // Print scores text at 20576 (19,0).
-    speccy.printString(&game.MESSHSSC, 20576, 32);
+    Speccy_printString(&game.MESSHSSC, 20576, 32);
 
     // Set the border colour.
-    // Speccy::OUT(cavern.BORDER);
-    speccy.setBorderColour(cavern.BORDER);
+    // Speccy_OUT(cavern.BORDER);
+    Speccy_setBorderColour(cavern.BORDER);
 
-    speccy.redrawWindow();
+    Speccy_redrawWindow();
 
     // Are we in demo mode?
     if (game.DEMO > 0) {
@@ -305,15 +305,15 @@ void flashScreen() {
         game.FLASH--;
 
         // Move bits 0-2 into bits 3-5 and clear all the other bits.
-        uint8_t new_flash_value = (uint8_t) (Speccy::rotL(game.FLASH, 3) & 56);
+        uint8_t new_flash_value = (uint8_t) (Speccy_rotL(game.FLASH, 3) & 56);
 
         // Set every attribute byte in the buffer at 23552 to this value.
         // FIXME: Uses Attr Buffer: Attr File= 22528
         for (int i = 0; i < 512; i++) {
-            speccy.writeMemory(23552 + i, new_flash_value);
+            Speccy_writeMemory(23552 + i, new_flash_value);
         }
 
-        speccy.redrawWindow();
+        Speccy_redrawWindow();
     }
 }
 
@@ -340,13 +340,13 @@ bool MANDEAD() {
     // Have we used attribute value 64 (INK 0) yet?
     // Update the INK colour in the top two thirds of the screen and make another sound effect.
     for (uint8_t attr = 71; attr > 64; attr--) {
-        speccy.fillTopTwoThirdsOfAttributeFileWith(attr);
+        Speccy_fillTopTwoThirdsOfAttributeFileWith(attr);
 
         // D=63-8*(E AND 7).
         // This value determines the pitch of the short note that will be played.
         pitch = ~attr;
         pitch = (uint8_t) (pitch & 7);
-        pitch = Speccy::rotL(pitch, 3);
+        pitch = Speccy_rotL(pitch, 3);
         pitch |= 7;
 
         // C=8+32*(E AND 7).
@@ -354,12 +354,12 @@ bool MANDEAD() {
         duration = (uint8_t) ((8 + 32) * (pitch & 7));
 
         // Set A=0 (this will make the border black).
-        speccy.setBorderColour(0);
+        Speccy_setBorderColour(0);
 
         // Update screen colours
-        speccy.redrawWindow();
+        Speccy_redrawWindow();
 
-        speccy.beep(pitch, uint8_t(duration * 2), 5); // FIXME: duration * 2 otherwise it's not long enough
+        Speccy_beep(pitch, uint8_t(duration * 2), 5); // FIXME: duration * 2 otherwise it's not long enough
     }
 
     // Finally, check whether any lives remain.
@@ -387,8 +387,8 @@ void ENDGAM() {
 
     // Now prepare the screen for the game over sequence.
 
-    speccy.clearTopTwoThirdsOfDisplayFile();
-    speccy.redrawWindow();
+    Speccy_clearTopTwoThirdsOfDisplayFile();
+    Speccy_redrawWindow();
 
     // determines the distance of the boot from the top of the screen.
     uint8_t bootDistanceFromTop = 0; // aka EUGHGT
@@ -399,7 +399,7 @@ void ENDGAM() {
     // Draw the plinth (see PLINTH) underneath Willy at 18639 (14,15).
     DRWFIX(&PLINTH, 18639, 0);
 
-    speccy.redrawWindow();
+    Speccy_redrawWindow();
 
     uint8_t msb, lsb;
     uint16_t addr;
@@ -408,10 +408,10 @@ void ENDGAM() {
     for (bootDistanceFromTop = 0; bootDistanceFromTop < 98; bootDistanceFromTop += 4) {
         const int start_time_ms = getTickCount();
 
-        Speccy::splitAddress(SBUFADDRS[bootDistanceFromTop], msb, lsb);
+        Speccy_splitAddress(SBUFADDRS[bootDistanceFromTop], msb, lsb);
 
         // center of screen
-        addr = Speccy::buildAddress((uint8_t) (msb - 32), (uint8_t) (lsb | 15));
+        addr = Speccy_buildAddress((uint8_t) (msb - 32), (uint8_t) (lsb | 15));
 
         // Draw the boot (see BOOT) at this location, without erasing the boot
         // at the previous location; this leaves the portion of the boot sprite
@@ -420,7 +420,7 @@ void ENDGAM() {
         DRWFIX(&BOOT, addr, 0);
 
         // (black border)
-        speccy.setBorderColour(0);
+        Speccy_setBorderColour(0);
 
         // Pick up the distance variable from EUGHGT  (A=255-A).
         // Store this value (63-255) in E; it determines the (rising) pitch of
@@ -428,17 +428,17 @@ void ENDGAM() {
         uint8_t pitch = uint8_t(255 - bootDistanceFromTop);
 
         // C=64; this value determines the duration of the sound effect
-        speccy.beep(pitch, 64, 5);
+        Speccy_beep(pitch, 64, 5);
 
         // Keep only bits 2 and 3.
         uint8_t attr = uint8_t(bootDistanceFromTop & 12);
         // Shift bits 2 and 3 into bits 3 and 4; these bits determine the PAPER colour: 0, 1, 2 or 3.
-        attr = Speccy::rotL(attr, 1);
+        attr = Speccy_rotL(attr, 1);
         // Set bits 0-2 (INK 7) and 6 (BRIGHT 1).
         attr |= 71;
 
-        speccy.fillTopTwoThirdsOfAttributeFileWith(attr);
-        speccy.redrawWindow();
+        Speccy_fillTopTwoThirdsOfAttributeFileWith(attr);
+        Speccy_redrawWindow();
 
         const int elapsed_time_ms = getTickCount() - start_time_ms;
         const int sleep_time = speccy.frameTick - elapsed_time_ms;
@@ -448,8 +448,8 @@ void ENDGAM() {
     }
 
     // Now print the "Game Over" message, just to drive the point home.
-    speccy.printString(&game.MESSG, 16586, 4);
-    speccy.printString(&game.MESSO, 16594, 4);
+    Speccy_printString(&game.MESSG, 16586, 4);
+    Speccy_printString(&game.MESSO, 16594, 4);
 
     // The following loop makes the "Game Over" message glisten for about 1.57s.
     // The counter will also determine the INK colours to use for the "Game Over" message.
@@ -492,9 +492,9 @@ void ENDGAM() {
             // LD (22741),A
 
             // IMPORTANT: haha, and you think this is correct? -MRC-
-            speccy.writeAttribute(22730 + a, (uint8_t) (((d + a) & 7) | 64));
-            speccy.redrawWindow();
-            speccy.tick();
+            Speccy_writeAttribute(22730 + a, (uint8_t) (((d + a) & 7) | 64));
+            Speccy_redrawWindow();
+            Speccy_tick();
         }
     }
 
@@ -544,16 +544,16 @@ void DRAWSHEET() {
         uint16_t row_addr = addr;
         for (int b = 0; b < 8; b++) {
             if (sprite != nullptr) {
-                speccy.writeMemory(row_addr + offset, sprite[b]);
+                Speccy_writeMemory(row_addr + offset, sprite[b]);
             }
-            Speccy::splitAddress(row_addr, msb, lsb);
+            Speccy_splitAddress(row_addr, msb, lsb);
             msb++;
-            row_addr = Speccy::buildAddress(msb, lsb);
+            row_addr = Speccy_buildAddress(msb, lsb);
         }
 
-        Speccy::splitAddress(addr, msb, lsb);
+        Speccy_splitAddress(addr, msb, lsb);
         lsb++;
-        addr = Speccy::buildAddress(msb, lsb);
+        addr = Speccy_buildAddress(msb, lsb);
     }
 
     // The empty cavern has been drawn to the screen buffer at 28672.
@@ -563,7 +563,7 @@ void DRAWSHEET() {
         // of the screen buffer at 28672.
         // FIXME: Blank Screen Buffer: Screen File = 16384
         for (int i = 0; i < 2048; i++) {
-            speccy.writeMemory(28672 + i, TITLESCR1[i]);
+            Speccy_writeMemory(28672 + i, TITLESCR1[i]);
         }
     }
 }
@@ -596,13 +596,13 @@ bool MOVEWILLY(int keyIntput) {
         // Pick up the attribute byte of the crumbling floor tile for the current cavern.
         // Does the left-hand cell below Willy's sprite contain a crumbling floor tile?
         // If so, make it crumble.
-        if (speccy.readMemory(addr) == cavern.CRUMBLING.id) {
+        if (Speccy_readMemory(addr) == cavern.CRUMBLING.id) {
             CRUMBLE(addr);
         }
 
-        if (speccy.readMemory(addr) == cavern.NASTY1.id) {
+        if (Speccy_readMemory(addr) == cavern.NASTY1.id) {
             // the left-hand cell below Willy's sprite contain a nasty tile.
-        } else if (speccy.readMemory(addr) == cavern.NASTY2.id) {
+        } else if (Speccy_readMemory(addr) == cavern.NASTY2.id) {
             // the left-hand cell below Willy's sprite contain a nasty tile.
         } else {
             // Point to the right-hand cell below Willy's sprite
@@ -610,13 +610,13 @@ bool MOVEWILLY(int keyIntput) {
 
             // Pick up the attribute byte of the crumbling floor tile for the current cavern.
             // Does the right-hand cell below Willy's sprite contain a crumbling floor tile?
-            if (speccy.readMemory(addr) == cavern.CRUMBLING.id) {
+            if (Speccy_readMemory(addr) == cavern.CRUMBLING.id) {
                 CRUMBLE(addr);
             }
 
-            if (speccy.readMemory(addr) == cavern.NASTY1.id) {
+            if (Speccy_readMemory(addr) == cavern.NASTY1.id) {
                 // the right-hand cell below Willy's sprite contain a nasty tile.
-            } else if (speccy.readMemory(addr) == cavern.NASTY2.id) {
+            } else if (Speccy_readMemory(addr) == cavern.NASTY2.id) {
                 // the right-hand cell below Willy's sprite contain a nasty tile.
             } else {
                 // Pick up the attribute byte of the background tile for the current cavern.
@@ -624,12 +624,12 @@ bool MOVEWILLY(int keyIntput) {
                 // Point HL at the left-hand cell below Willy's sprite.
 
                 // Is the right-hand cell below Willy's sprite empty?
-                if (speccy.readMemory(addr) != cavern.BACKGROUND.id) {
+                if (Speccy_readMemory(addr) != cavern.BACKGROUND.id) {
                     return Willy_gerUserInputAndMove(keyIntput, addr);
                 }
                 addr--;
                 // Is the left-hand cell below Willy's sprite empty?
-                if (speccy.readMemory(addr) != cavern.BACKGROUND.id) {
+                if (Speccy_readMemory(addr) != cavern.BACKGROUND.id) {
                     return Willy_gerUserInputAndMove(keyIntput, addr);
                 }
             }
@@ -658,14 +658,14 @@ bool MOVEWILLY(int keyIntput) {
     willy.AIRBORNE++;
 
     // D=16*A; this value determines the pitch of the falling sound effect.
-    uint8_t pitch = Speccy::rotL(willy.AIRBORNE, 4);
+    uint8_t pitch = Speccy_rotL(willy.AIRBORNE, 4);
 
     // Pick up the border colour for the current cavern.
     uint8_t border = cavern.BORDER;
-    speccy.setBorderColour(border);
+    Speccy_setBorderColour(border);
 
     // C=32; this value determines the duration of the falling sound effect.
-    speccy.beep(pitch, 32, 5);
+    Speccy_beep(pitch, 32, 5);
 
     // Add 8 to Willy's pixel y-coordinate at PIXEL_Y; this moves Willy downwards by 4 pixels.
     willy.PIXEL_Y += 8;
@@ -682,7 +682,7 @@ void CRUMBLE(uint16_t addr) {
 
     // Point to the bottom row of pixels of the crumbling
     // floor tile in the screen buffer at 28672.
-    Speccy::splitAddress(addr, msb, lsb);
+    Speccy_splitAddress(addr, msb, lsb);
 
     msb += 27;
     msb |= 7;
@@ -690,10 +690,10 @@ void CRUMBLE(uint16_t addr) {
     while (true) {
         // Collect the pixels from the row above.
         msb--;
-        uint8_t pixel = speccy.readMemory(Speccy::buildAddress(msb, lsb));
+        uint8_t pixel = Speccy_readMemory(Speccy_buildAddress(msb, lsb));
 
         // Copy these pixels into the row below it. Point BC at the next row of pixels up.
-        speccy.writeMemory(Speccy::buildAddress((uint8_t) (msb + 1), lsb), pixel);
+        Speccy_writeMemory(Speccy_buildAddress((uint8_t) (msb + 1), lsb), pixel);
 
         // Have we dealt with the bottom seven pixel rows of the crumbling floor tile yet?
         // If not, jump back to deal with the next one up.
@@ -703,19 +703,19 @@ void CRUMBLE(uint16_t addr) {
     }
 
     // Clear the top row of pixels in the crumbling floor tile.
-    speccy.writeMemory(Speccy::buildAddress(msb, lsb), 0);
+    Speccy_writeMemory(Speccy_buildAddress(msb, lsb), 0);
 
     // Point to the bottom row of pixels in the crumbling floor tile.
     msb += 7;
 
     // Pick up the bottom row of pixels. Is the bottom row clear? Return if not.
-    if (speccy.readMemory(Speccy::buildAddress(msb, lsb)) != 0) {
+    if (Speccy_readMemory(Speccy_buildAddress(msb, lsb)) != 0) {
         return;
     }
 
     // The bottom row of pixels in the crumbling floor tile is clear.
     // Time to put a background tile in its place.
-    speccy.writeMemory(addr, cavern.BACKGROUND.id);
+    Speccy_writeMemory(addr, cavern.BACKGROUND.id);
 }
 
 // Draw the items in the current cavern and collect any that Willy is touching.
@@ -745,7 +745,7 @@ void DRAWITEMS() {
 
         // Pick up the current attribute byte at the item's location.
         // Is the INK white (which happens if Willy is touching the item)?
-        if ((speccy.readMemory(addr) & 7) == 7) {
+        if ((Speccy_readMemory(addr) & 7) == 7) {
             // Willy is touching this item, so add it to his collection.
 
             // Add 100 to the score.
@@ -772,20 +772,20 @@ void DRAWITEMS() {
             cavern.ITEMS[i].attribute = attribute;
 
             // Update the attribute byte at the item's location in the buffer at 23552.
-            speccy.writeMemory(addr, attribute);
+            Speccy_writeMemory(addr, attribute);
 
             // Store the new attribute byte at ITEMATTR as well.
             game.ITEMATTR = attribute;
 
             // Point DE at the address of the item's location in the screen buffer at 24576.
-            Speccy::splitAddress(addr, msb, lsb);
+            Speccy_splitAddress(addr, msb, lsb);
             msb = (uint8_t) cavern.ITEMS[i].addressMSB;
-            addr = Speccy::buildAddress(msb, lsb);
+            addr = Speccy_buildAddress(msb, lsb);
 
             // Point HL at the item graphic for the current cavern (at ITEM).
             // There are eight pixel rows to copy.
             // Draw the item to the screen buffer at 24576.
-            speccy.drawSprite(cavern.ITEMS[i].tile, addr, 8);
+            Speccy_drawSprite(cavern.ITEMS[i].tile, addr, 8);
         }
 
         // The current item definition has been dealt with. Time for the next one.
@@ -812,11 +812,11 @@ bool CHKPORTAL() {
 
     // Pick up the address of the portal's location in the attribute buffer at 23552 from PORTALLOC1.
     uint16_t addr = cavern.portal.PORTALLOC1;
-    Speccy::splitAddress(addr, msb, lsb);
+    Speccy_splitAddress(addr, msb, lsb);
 
     // Pick up the LSB of the address of Willy's location in the attribute buffer at 23552 from LOCATION.
     uint16_t w_addr = willy.LOCATION;
-    Speccy::splitAddress(w_addr, w_msb, w_lsb);
+    Speccy_splitAddress(w_addr, w_msb, w_lsb);
 
     // Does it match that of the portal?
     if (lsb == w_lsb) {
@@ -838,13 +838,13 @@ bool CHKPORTAL() {
 
     // Pick up the portal's attribute byte from PORTAL.
     // Set the attribute bytes for the portal in the buffer at 23552.
-    speccy.writeMemory(addr, cavern.portal.PORTAL);
+    Speccy_writeMemory(addr, cavern.portal.PORTAL);
     addr++;
-    speccy.writeMemory(addr, cavern.portal.PORTAL);
+    Speccy_writeMemory(addr, cavern.portal.PORTAL);
     addr += 31;
-    speccy.writeMemory(addr, cavern.portal.PORTAL);
+    Speccy_writeMemory(addr, cavern.portal.PORTAL);
     addr++;
-    speccy.writeMemory(addr, cavern.portal.PORTAL);
+    Speccy_writeMemory(addr, cavern.portal.PORTAL);
 
     // Point DE at the graphic data for the portal at PORTALG.
     // Pick up the address of the portal's location in the screen buffer at 24576 from PORTALLOC2.
@@ -886,25 +886,25 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
     for (int i = 0; i < 32; i += 2) {
         // Are we in blend mode?
         if (mode == 1) {
-            if (sprite[i] & speccy.readMemory(addr) || sprite[i + 1] & speccy.readMemory(addr + 1)) {
+            if (sprite[i] & Speccy_readMemory(addr) || sprite[i + 1] & Speccy_readMemory(addr + 1)) {
                 // collision detected.
                 return true;
             }
-            sprite[i] |= speccy.readMemory(addr);
-            sprite[i + 1] |= speccy.readMemory(addr + 1);
+            sprite[i] |= Speccy_readMemory(addr);
+            sprite[i + 1] |= Speccy_readMemory(addr + 1);
         }
 
         // Copy the graphic bytes to their destination cells.
-        speccy.writeMemory(addr, sprite[i]);
-        speccy.writeMemory(addr + 1, sprite[i + 1]);
+        Speccy_writeMemory(addr, sprite[i]);
+        Speccy_writeMemory(addr + 1, sprite[i + 1]);
 
         // Move down to the next pixel row
-        Speccy::splitAddress(addr, msb, lsb);
+        Speccy_splitAddress(addr, msb, lsb);
         msb++;
 
         // Have we drawn the bottom pixel row in this pair of cells yet?
         if (msb & 7) {
-            addr = Speccy::buildAddress(msb, lsb);
+            addr = Speccy_buildAddress(msb, lsb);
             continue;
         }
 
@@ -919,7 +919,7 @@ bool DRWFIX(void *gfx_sprite, uint16_t addr, uint8_t mode) {
             msb += 8;
         }
 
-        addr = Speccy::buildAddress(msb, lsb);
+        addr = Speccy_buildAddress(msb, lsb);
     }
 
     // no collision detected.
@@ -952,16 +952,16 @@ bool NXSHEET() {
 
             // Set the attributes for the upper half of Willy's sprite
             // at (2,19) and (2,20) to 47 (INK 7: PAPER 5).
-            speccy.writeAttribute(addr, 47);
+            Speccy_writeAttribute(addr, 47);
             addr++;
-            speccy.writeAttribute(addr, 47);
+            Speccy_writeAttribute(addr, 47);
 
             // Set the attributes for the lower half of Willy's sprite
             // at (3,19) and (3,20) to 39 (INK 7: PAPER 4).
             addr += 31;
-            speccy.writeAttribute(addr, 39);
+            Speccy_writeAttribute(addr, 39);
             addr++;
-            speccy.writeAttribute(addr, 39);
+            Speccy_writeAttribute(addr, 39);
 
             // Point HL at (5,19) in the attribute file
             addr += 31;
@@ -969,32 +969,32 @@ bool NXSHEET() {
             addr += 31;
 
             // Set the attributes for the fish at (5,19) and (5,20) to 69 (INK 5: PAPER 0: BRIGHT 1).
-            speccy.writeAttribute(addr, 69);
+            Speccy_writeAttribute(addr, 69);
             addr++;
-            speccy.writeAttribute(addr, 69);
+            Speccy_writeAttribute(addr, 69);
 
             // Set the attribute for the handle of the sword at (6,19) to 70 (INK 6: PAPER 0: BRIGHT 1).
             addr += 31;
-            speccy.writeAttribute(addr, 70);
+            Speccy_writeAttribute(addr, 70);
 
             // Set the attribute for the blade of the sword at (6,20) to 71 (INK 7: PAPER 0: BRIGHT 1).
             addr++;
-            speccy.writeAttribute(addr, 71);
+            Speccy_writeAttribute(addr, 71);
 
             // Set the attributes at (7,19) and (7,20) to 0 (to hide Willy's feet just below where the portal was).
             addr += 31;
-            speccy.writeAttribute(addr, 0);
+            Speccy_writeAttribute(addr, 0);
             addr++;
-            speccy.writeAttribute(addr, 0);
+            Speccy_writeAttribute(addr, 0);
 
 
             // Prepare C and D for the celebratory sound effect.
             uint8_t border = 0;
-            speccy.setBorderColour(0); // (black border)
+            Speccy_setBorderColour(0); // (black border)
 
             // Produce the celebratory sound effect: Willy has escaped from the mine.
             for (int i = 0; i < 50; i++) {
-                Speccy::OUT(0);
+                Speccy_OUT(0);
                 border ^= 24;
 
                 millisleep(1);
@@ -1019,8 +1019,8 @@ bool NXSHEET() {
 
     // Iterate through all attribute values from 63 down to 1.
     for (uint8_t ink = colours; ink > 0; ink--) {
-        speccy.fillTopTwoThirdsOfAttributeFileWith(ink);
-        speccy.redrawWindow();
+        Speccy_fillTopTwoThirdsOfAttributeFileWith(ink);
+        Speccy_redrawWindow();
 
         // Pause for about 0.004s
         millisleep(4);
@@ -1052,18 +1052,18 @@ bool NXSHEET() {
         // Pick up the remaining air supply (S) from AIR.
         // D=2*(63-S); this value determines the pitch of the sound effect
         // (which decreases with the amount of air remaining).
-        uint8_t pitch = Speccy::rotL((uint8_t) (~(cavern.AIR & 63)), 1);
+        uint8_t pitch = Speccy_rotL((uint8_t) (~(cavern.AIR & 63)), 1);
 
         if (audioStep < 25) {
             audioStep++;
         } else {
-            speccy.beep(pitch, duration, 5);
+            Speccy_beep(pitch, duration, 5);
             audioStep = 0;
         }
         if (redrawStep < 4) {
             redrawStep++;
         } else {
-            speccy.redrawWindow();
+            Speccy_redrawWindow();
             redrawStep = 0;
         }
     }
@@ -1073,17 +1073,17 @@ bool NXSHEET() {
 
 void Game_play_intro() {
     // Clear the entire Spectrum display file.
-    speccy.clearDisplayFile();
+    Speccy_clearDisplayFile();
 
     // Copy TITLESCR1 and TITLESCR2 to the top two-thirds of the display file.
     for (int i = 0; i < 2048; i++) {
-        speccy.writeScreen(16384 + i, TITLESCR1[i]);
+        Speccy_writeScreen(16384 + i, TITLESCR1[i]);
     }
     for (int i = 0; i < 2048; i++) {
-        speccy.writeScreen(16384 + 2048 + i, TITLESCR2[i]);
+        Speccy_writeScreen(16384 + 2048 + i, TITLESCR2[i]);
     }
 
-    speccy.redrawWindow();
+    Speccy_redrawWindow();
 
     // Draw Willy at 18493 (9,29).
     DRWFIX(&willy.sprites[64], 18493, 0);
@@ -1091,16 +1091,16 @@ void Game_play_intro() {
     // Copy the attribute bytes from CAVERN19 to the top third of the attribute file.
     uint16_t addr = 22528;
     for (int i = 0; i < 256; i++) {
-        speccy.writeAttribute(addr + i, Data_cavernLayouts[19][i]);
+        Speccy_writeAttribute(addr + i, Data_cavernLayouts[19][i]);
     }
 
     // Copy LOWERATTRS to the bottom two-thirds of the attribute file.
     addr += 256;
     for (int i = 0; i < 512; i++) {
-        speccy.writeAttribute(addr + i, LOWERATTRS[i]);
+        Speccy_writeAttribute(addr + i, LOWERATTRS[i]);
     }
 
-    speccy.redrawWindow();
+    Speccy_redrawWindow();
 
     // And finally, play the theme tune and check for key presses.
 
@@ -1121,17 +1121,17 @@ void Game_play_intro() {
         }
 
         // Print 32 characters of the message at 20576 (19,0).
-        speccy.printString((void *) &MESSINTRO[pos], 20576, 32);
+        Speccy_printString((void *) &MESSINTRO[pos], 20576, 32);
 
         // Keep only bits 1 and 2, and move them into bits 6 and 7,
         // so that A holds 0, 64, 128 or 192;
         // this value determines the animation frame to use for Willy.
-        uint8_t sprite_id = Speccy::rotR((uint8_t) (pos & 6), 3);
+        uint8_t sprite_id = Speccy_rotR((uint8_t) (pos & 6), 3);
 
         // Draw Willy at 18493 (9,29).
         DRWFIX(&willy.sprites[sprite_id], 18493, 0);
 
-        speccy.redrawWindow();
+        Speccy_redrawWindow();
 
         // Pause for about 0.1s
         const int elapsed_time_ms = getTickCount() - start_time_ms;
@@ -1151,7 +1151,7 @@ void drawRemainingLives() {
         // Pick up the in-game music note index from NOTEINDEX;
         // this will determine the animation frame for the Willy sprites.
         // Now A=0 (frame 0), 32 (frame 1), 64 (frame 2) or 96 (frame 3).
-        uint8_t anim_frame = (uint8_t) (Speccy::rotL(game.NOTEINDEX, 3) & 96);
+        uint8_t anim_frame = (uint8_t) (Speccy_rotL(game.NOTEINDEX, 3) & 96);
 
         uint8_t &sprite = willy.sprites[anim_frame];
 
@@ -1195,7 +1195,7 @@ void printCurrentScore(int currentScore) {
     sprintf(score, "%06d", currentScore);
 
     // Print the score (see SCORBUF) at (19,26).
-    speccy.printString(&score, 20602, 6);
+    Speccy_printString(&score, 20602, 6);
 }
 
 void printHighScore(int highestScore) {
@@ -1205,7 +1205,7 @@ void printHighScore(int highestScore) {
     sprintf(score, "%06d", highestScore);
 
     // Print the high score (see HGHSCOR) at (19,11).
-    speccy.printString(&score, 20587, 6);
+    Speccy_printString(&score, 20587, 6);
 }
 
 void playGameMusic() {
@@ -1213,7 +1213,7 @@ void playGameMusic() {
     game.NOTEINDEX++;
 
     // Point HL at the appropriate entry in the tune data table at GAMETUNE.
-    uint8_t index = Speccy::rotR((uint8_t) (game.NOTEINDEX & 126), 1);
+    uint8_t index = Speccy_rotR((uint8_t) (game.NOTEINDEX & 126), 1);
 
     // Pick up the border colour for the current cavern from BORDER.
     // uint8_t border = cavern.BORDER;
@@ -1223,21 +1223,21 @@ void playGameMusic() {
 
     // Initialise the duration delay counters in B (0) and C (3)...3 milliseconds
     // Produce a note of the in-game music.
-    speccy.beep(pitch, 32, 3);
+    Speccy_beep(pitch, 32, 3);
 }
 
 void copyScrBufToDisplayFile() {
     // Copy the contents of the screen buffer at 24576 to the display file.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-        speccy.writeScreen(16384 + i, speccy.readMemory(24576 + i));
+        Speccy_writeScreen(16384 + i, Speccy_readMemory(24576 + i));
     }
 }
 
 void copyAttrBufToAttrFile() {
     // Copy the contents of the attribute buffer at 23552 to the attribute file.
     for (int i = 0; i < 512; i++) {
-        speccy.writeAttribute(22528 + i, speccy.readMemory(23552 + i));
+        Speccy_writeAttribute(22528 + i, Speccy_readMemory(23552 + i));
     }
 }
 
@@ -1248,20 +1248,20 @@ void resetScreenAttrBuffers() {
     // into the attribute buffer at 23552.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 512; i++) {
-        speccy.writeMemory(23552 + i, speccy.readMemory(24064 + i));
+        Speccy_writeMemory(23552 + i, Speccy_readMemory(24064 + i));
     }
     // Copy the contents of the screen buffer at 28672 (empty cavern tiles)
     // into the screen buffer at 24576.
     // FIXME: all good, uses the Display File
     for (int i = 0; i < 4096; i++) {
-        speccy.writeMemory(24576 + i, speccy.readMemory(28672 + i));
+        Speccy_writeMemory(24576 + i, Speccy_readMemory(28672 + i));
     }
 }
 
 int processInput() {
     int input;
 
-    switch (speccy.getKey()) {
+    switch (Speccy_getKey()) {
         case SpeccyKeys::KEY_SPACE:
             input = Keyboard::MM_KEY_JUMP;
             break;

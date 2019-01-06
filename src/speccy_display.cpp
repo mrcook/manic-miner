@@ -31,7 +31,7 @@ void SpeccyDisplay_convertScreen() {
 
         for (int byte_row = 0; byte_row < 2048; byte_row += 32) {
             for (int b = 0; b < 32; b++) {
-                uint8_t bite = speccy.readMemory(16384 + block_addr_offset + byte_row + b);
+                uint8_t bite = Speccy_readMemory(16384 + block_addr_offset + byte_row + b);
 
                 // Convert the Speccy display bytes to pixels and add to the new screen array
                 SpeccyDisplay_byteToBits(bite, pixels);
@@ -107,7 +107,7 @@ uint8_t SpeccyDisplay_getAttributeByte(int pixelAddress) {
     // Will calculate the column value from 0-31 regardless of the pixelAddress value
     int column = ((pixelAddress / 8) % 32);
 
-    return speccy.readAttribute(22528 + rowOffset + column);
+    return Speccy_readAttribute(22528 + rowOffset + column);
 }
 
 Colour SpeccyDisplay_colourFromAttribute(uint8_t attribute) {

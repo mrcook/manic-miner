@@ -24,3 +24,5 @@ extern Willy willy;
 extern uint8_t EUGDIR;
 extern uint8_t EUGHGT;
 extern uint8_t GGDATA[256];
+
+extern uint8_t SpeccyDisplay_Font[96][8];

@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    if (!speccy.initialize("Manic Miner: Retro!", fps, zoom)) {
+    if (!Speccy_initialize("Manic Miner: Retro!", fps, zoom)) {
         printf("Game initialization failure. Can not continue.");
         return -1;
     }
@@ -27,8 +27,8 @@ int main(int argc, char *argv[]) {
     Game_initialize(cheat, teleport);
 
     while (true) {
-        speccy.clearDisplayFile();
-        speccy.clearAttributesFile();
+        Speccy_clearDisplayFile();
+        Speccy_clearAttributesFile();
         Game_clearBuffers();
 
         Willy_reset(lives);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    speccy.quit();
+    Speccy_quit();
 
     printf("You helped Miner Willy acquire treasure worth %d.\n", game.highScore);
     if (game.highScore > 10000) {

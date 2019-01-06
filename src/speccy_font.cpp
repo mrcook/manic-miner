@@ -3,7 +3,7 @@
 #include "speccy.h"
 
 // The ZX Spectrum ASCII font graphics
-uint8_t Speccy::Font[96][8] = {
+uint8_t SpeccyDisplay_Font[96][8] = {
         {0,  0,   0,   0,   0,   0,   0,   0},   // $20 - character: ' '   CHR$(32)
         {0,  16,  16,  16,  16,  0,   16,  0},   // $21 - character: '!'   CHR$(33)
         {0,  36,  36,  0,   0,   0,   0,   0},   // $22 - character: '"'   CHR$(34)
