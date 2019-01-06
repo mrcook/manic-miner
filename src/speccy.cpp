@@ -10,7 +10,7 @@ bool Speccy_initialize(std::string gameName, int fps, int zoom) {
         return false;
     }
 
-    Window::instance().audio->frame_rate = fps;
+    // Window::instance().audio->frame_rate = fps;
 
     // The number of millisecond ticks per frame
     speccy.frameTick = 1000 / fps;
@@ -97,7 +97,10 @@ void Speccy_setBorderColour(uint8_t colour) {
 
 // The Spectrum uses OUT to make a sound, but here we use a custom function
 void Speccy_beep(int pitch, uint8_t duration, uint8_t volume) {
-    Window::instance().audio->playNote(pitch, duration, volume);
+    (void) pitch; // prevents compiler error
+    (void) duration; // prevents compiler error
+    (void) volume; // prevents compiler error
+    // Window::instance().audio->playNote(pitch, duration, volume);
 }
 
 // Print a ZX Spectrum font characters to the display file

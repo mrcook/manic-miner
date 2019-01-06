@@ -6,7 +6,6 @@
 #include "speccy_colour.h"
 #include "speccy.h"
 #include "speccy_display.h"
-#include "audio_system.h"
 #include <SDL2/SDL.h>
 #include <string>
 
@@ -48,7 +47,7 @@ public:
     // Destroys SDL window and quits SDL subsystems
     void quit();
 
-    AudioSystem *audio;
+    // AudioSystem *audio;
 
 private:
     // The window we'll be rendering to

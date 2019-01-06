@@ -74,8 +74,6 @@ set(VERSION_PATCH 0)
 
 set(source_dir ${PROJECT_SOURCE_DIR}/src)
 set(SOURCE_FILES
-        ${source_dir}/audio_system.h
-        ${source_dir}/blip_buffer/blip_buffer.h
         ${source_dir}/cavern.h
         ${source_dir}/conveyor.h
         ${source_dir}/coord.h
@@ -98,8 +96,6 @@ set(SOURCE_FILES
         ${source_dir}/version.h
         ${source_dir}/willy.h
         ${source_dir}/window.h
-        ${source_dir}/audio_system.cpp
-        ${source_dir}/blip_buffer/blip_buffer.cpp
         ${source_dir}/cavern.cpp
         ${source_dir}/data/caverns.cpp
         ${source_dir}/data/guardian_sprites.cpp

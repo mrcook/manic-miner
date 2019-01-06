@@ -55,7 +55,7 @@ bool Window::initialize(const std::string gameName, const int zoom) {
     pixels_ = new uint32_t[SCREEN_WIDTH * SCREEN_HEIGHT];
     memset(pixels_, 0, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t));
 
-    audio = new AudioSystem();
+//    audio = new AudioSystem();
 
     return true;
 }
