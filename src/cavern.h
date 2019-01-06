@@ -10,8 +10,7 @@
 #include "portal.h"
 #include "tile.h"
 
-class Cavern {
-public:
+typedef struct Cavern_ {
     // Current cavern number
     uint8_t SHEET;
 
@@ -21,10 +20,10 @@ public:
     // Game clock
     //
     // Initialised by the routine at STARTGAME, updated on every pass through
-    // the main loop by the routine at Cavern::decreaseAir, and used for timing purposes
+    // the main loop by the routine at Cavern_decreaseAir, and used for timing purposes
     // by the routines at GuardianH_update, EUGENE and KONGBEAST.
     // Its value (which is always a multiple of 4) is also used by the routine
-    // at Cavern::decreaseAir to compute the amount of air to draw in the cell at the right
+    // at Cavern_decreaseAir to compute the amount of air to draw in the cell at the right
     // end of the air bar.
     uint8_t CLOCK;
 
@@ -58,16 +57,11 @@ public:
 
     // Attributes that define the layout of the cavern. aka CAVERN0.
     uint8_t layout[512];
+} Cavern;
 
-    bool loadData(uint8_t id);
-
-    void updateGameClock();
-
-    bool isAirDepleted();
-
-    bool decreaseAir();
-
-    void drawAirBar();
-
-    void moveConveyorBelts();
-};
+bool Cavern_loadData(uint8_t id);
+void Cavern_updateGameClock();
+bool Cavern_isAirDepleted();
+bool Cavern_decreaseAir();
+void Cavern_drawAirBar();
+void Cavern_moveConveyorBelts();

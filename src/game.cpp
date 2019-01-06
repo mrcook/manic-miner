@@ -150,7 +150,7 @@ bool Game_play() {
         }
 
         // Move the conveyor in the current cavern.
-        cavern.moveConveyorBelts();
+        Cavern_moveConveyorBelts();
 
         // Draw the items in the current cavern and collect any that Willy is touching.
         DRAWITEMS();
@@ -184,7 +184,7 @@ bool Game_play() {
         speccy.redrawWindow();
 
         // Decrease the air remaining in the current cavern.
-        bool depletedAir = cavern.decreaseAir();
+        bool depletedAir = Cavern_decreaseAir();
 
         // Has willy ran our of air or had a fatal accident?
         // Has Willy landed after falling from too great a height, or collided with a nasty or a guardian?
@@ -255,7 +255,7 @@ void Game_scoreAdd(int amount) {
 //   * after NXSHEET.
 void loadCurrentCavern() {
     // Copy the cavern definition into the game status buffer at 32768.
-    if (!cavern.loadData(cavern.SHEET)) {
+    if (!Cavern_loadData(cavern.SHEET)) {
         // Oops! We've not loaded the right amount of cavern data into memory.
         speccy.quit();
         exit(-1);
@@ -282,7 +282,7 @@ void loadCurrentCavern() {
     // Print 'AIR' label at 20512 (17,0).
     speccy.printString(&game.airLabel, 20512, 3);
 
-    cavern.drawAirBar();
+    Cavern_drawAirBar();
 
     // Print scores text at 20576 (19,0).
     speccy.printString(&game.MESSHSSC, 20576, 32);
@@ -1038,7 +1038,7 @@ bool NXSHEET() {
     while (true) {
         // Decrease the air remaining in the current cavern.
         // Move to the next cavern if the air supply is now gone.
-        if (cavern.decreaseAir()) {
+        if (Cavern_decreaseAir()) {
             return true;
         }
 

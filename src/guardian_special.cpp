@@ -68,10 +68,10 @@ void LIGHTBEAM() {
         // Jump if not (the light beam is not touching Willy).
         if (speccy.readMemory(addr) == 39) {
             // Decrease the air supply by four units
-            cavern.decreaseAir();
-            cavern.decreaseAir();
-            cavern.decreaseAir();
-            cavern.decreaseAir();
+            Cavern_decreaseAir();
+            Cavern_decreaseAir();
+            Cavern_decreaseAir();
+            Cavern_decreaseAir();
             // Jump forward to GuardianH_draw the light beam over Willy.
         } else {
             // Does HL point at a background tile? Jump if so (the light beam will not be reflected at this point).
