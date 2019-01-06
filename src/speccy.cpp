@@ -5,8 +5,8 @@
 #include "globals.h"
 #include "window.h"
 
-bool Speccy::initialize(const std::string gameName, int fps) {
-    if (!Window::instance().initialize(gameName, &SpeccyDisplay::instance())) {
+bool Speccy::initialize(const std::string gameName, int fps, int zoom) {
+    if (!Window::instance().initialize(gameName, zoom, &SpeccyDisplay::instance())) {
         return false;
     }
 

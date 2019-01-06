@@ -56,7 +56,7 @@ public:
     uint8_t memory[TOTAL_MEMORY];
 
     // Initialize the speccy framework (FPS, etc.)
-    bool initialize(std::string gameName, int fps);
+    bool initialize(std::string gameName, int fps, int zoom);
 
     void quit();
 

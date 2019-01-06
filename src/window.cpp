@@ -3,7 +3,7 @@
 #include "headers.h"
 #include "window.h"
 
-bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
+bool Window::initialize(const std::string gameName, const int zoom, SpeccyDisplay *display) {
     display_ = display;
 
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
@@ -16,9 +16,9 @@ bool Window::initialize(const std::string gameName, SpeccyDisplay *display) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
 
     // 1 = 256 x 192
-    // 2 = 512 x 384
+    // 2 = 512 x 384 (default)
     // 4 = 1024 x 768
-    int scalingFactor = 3;
+    int scalingFactor = zoom;
 
     window_ = SDL_CreateWindow(
             gameName.c_str(),

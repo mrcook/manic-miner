@@ -38,7 +38,7 @@ public:
         return *instance;
     }
 
-    bool initialize(std::string gameName, SpeccyDisplay *display);
+    bool initialize(std::string gameName, int zoom, SpeccyDisplay *display);
 
     int getKey();
 

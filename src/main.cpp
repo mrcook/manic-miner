@@ -5,7 +5,7 @@
 #include "globals.h"
 #include "version.h"
 
-static bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool &cheat);
+static bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool &cheat, int &zoom);
 
 // The game has just loaded
 int main(int argc, char *argv[]) {
@@ -13,12 +13,13 @@ int main(int argc, char *argv[]) {
     bool cheat = false;
     int lives = 2;
     int teleport = -1;
+    int zoom = 2;
 
-    if (!getOptions(argc, argv, teleport, fps, lives, cheat)) {
+    if (!getOptions(argc, argv, teleport, fps, lives, cheat, zoom)) {
         return 0;
     }
 
-    if (!speccy.initialize("Manic Miner: Retro!", fps)) {
+    if (!speccy.initialize("Manic Miner: Retro!", fps, zoom)) {
         printf("Game initialization failure. Can not continue.");
         return -1;
     }
@@ -54,11 +55,11 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool &cheat) {
+bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool &cheat, int &zoom) {
     int c;
     int cavernNumber;
 
-    while ((c = getopt(argc, argv, "cl:s:t:h")) != -1) {
+    while ((c = getopt(argc, argv, "cl:s:t:z:h")) != -1) {
         switch (c) {
             case 'c':
                 cheat = true;
@@ -77,6 +78,12 @@ bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool
                     cheat = true;
                 }
                 break;
+            case 'z':
+                zoom = (int) strtol(optarg, (char **) nullptr, 10);
+                if (zoom < 1 || zoom > 4) {
+                    zoom = 2;
+                }
+                break;
             case 'h':
                 printf("Manic Miner %d.%d.%d\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
                 printf("Copyright (c) 1983 Matthew Smith\n");
@@ -92,6 +99,7 @@ bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool
                 printf("-l  NUMBER        Set number of lives (max: 2, default: 2)\n");
                 printf("-s  NUMBER        Set game speed / frames-per-second (default: 17)\n");
                 printf("-t  NUMBER        Teleport, and play only this cavern number (1-20, enables CHEAT mode)\n");
+                printf("-z  NUMBER        Zoom is the window size: 1 - 4 (default: 2 - 512px x 384px)\n");
                 printf("\n");
                 return false;
             default:;
