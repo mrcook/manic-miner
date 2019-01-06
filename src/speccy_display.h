@@ -20,26 +20,26 @@ typedef struct SpeccyDisplay_ {
 } SpeccyDisplay;
 
 // Read a byte from the NewScreen format
-uint8_t Speccy_read(int address);
+uint8_t SpeccyDisplay_read(int address);
 
 // Converts the entire spectrum screen format to the NewScreen standard format
 // ZX Spectrum to linear screen converter. FIXME: yucky goo!
-void Speccy_convertScreen();
+void SpeccyDisplay_convertScreen();
 
 // Write a colour pixel to the new screen.
 // The colour is taken from the Attributes File, using the given address.
-void Speccy_writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress);
+void SpeccyDisplay_writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress);
 
 // Given an address from the new screen array (256*192 pixels),
 // calculate the Spectrum Attribute File address
-uint8_t Speccy_getAttributeByte(int pixelAddress);
+uint8_t SpeccyDisplay_getAttributeByte(int pixelAddress);
 
 // Split a Spectrum attribute byte into it's colour parts
 // Extract the ink, paper, brightness values from the attribute
-Colour Speccy_colourFromAttribute(uint8_t attribute);
+Colour SpeccyDisplay_colourFromAttribute(uint8_t attribute);
 
-void Speccy_toggleFlashing();
+void SpeccyDisplay_toggleFlashing();
 
 // Handy function to convert a byte to an array of bits,
 // so you can more easily create pixel based graphics.
-void Speccy_byteToBits(uint8_t byte, uint8_t *bits);
+void SpeccyDisplay_byteToBits(uint8_t byte, uint8_t *bits);

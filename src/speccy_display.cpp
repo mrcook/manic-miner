@@ -6,13 +6,13 @@
 #include "globals.h"
 #include "speccy_display.h"
 
-uint8_t Speccy_read(int address) {
+uint8_t SpeccyDisplay_read(int address) {
     assert(address >= 0 && address < DISPLAY_PIXELS);
 
     return speccy_display.screen[address];
 }
 
-void Speccy_convertScreen() {
+void SpeccyDisplay_convertScreen() {
     int block_addr_offset;
     int address, line, offset;
 
@@ -20,7 +20,7 @@ void Speccy_convertScreen() {
 
 
     // Toggle the flashing state, before writing the new pixels.
-    Speccy_toggleFlashing();
+    SpeccyDisplay_toggleFlashing();
 
     // Iterate over each Display File block (top, middle, bottom)
     for (int block = 0; block < 3; block++) {
@@ -34,11 +34,11 @@ void Speccy_convertScreen() {
                 uint8_t bite = speccy.readMemory(16384 + block_addr_offset + byte_row + b);
 
                 // Convert the Speccy display bytes to pixels and add to the new screen array
-                Speccy_byteToBits(bite, pixels);
+                SpeccyDisplay_byteToBits(bite, pixels);
                 // read pixel bits from left-to-right: bit-7 down to bit-0
                 for (int pixel = 7; pixel >= 0; pixel--) {
                     // multiply offset by 8 pixels
-                    Speccy_writeColourPixelToNewScreen(pixels[pixel], block_addr_offset * 8 + address);
+                    SpeccyDisplay_writeColourPixelToNewScreen(pixels[pixel], block_addr_offset * 8 + address);
                     address++;
                 }
             }
@@ -64,10 +64,10 @@ void Speccy_convertScreen() {
 // Write a colour ID for the pixel to the new screen.
 // The colour is taken from the Attributes File, using the given address.
 // Normal colours are values 0-7, brights colour 8-15.
-void Speccy_writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
+void SpeccyDisplay_writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
     assert(newScreenAddress >= 0 && newScreenAddress < 256 * 192);
 
-    Colour colour = Speccy_colourFromAttribute(Speccy_getAttributeByte(newScreenAddress));
+    Colour colour = SpeccyDisplay_colourFromAttribute(SpeccyDisplay_getAttributeByte(newScreenAddress));
 
     // FLASH swaps the INK and PAPER colours
     uint8_t paperColour = colour.PAPER;
@@ -96,7 +96,7 @@ void Speccy_writeColourPixelToNewScreen(uint8_t pixel, int newScreenAddress) {
 
 // Given an address from the new screen array (256*192 pixels),
 // calculate the Spectrum Attribute File address
-uint8_t Speccy_getAttributeByte(int pixelAddress) {
+uint8_t SpeccyDisplay_getAttributeByte(int pixelAddress) {
     // each third of the screen is 16384 pixels.
     // bottom third starts at: 32768
 
@@ -110,7 +110,7 @@ uint8_t Speccy_getAttributeByte(int pixelAddress) {
     return speccy.readAttribute(22528 + rowOffset + column);
 }
 
-Colour Speccy_colourFromAttribute(uint8_t attribute) {
+Colour SpeccyDisplay_colourFromAttribute(uint8_t attribute) {
     Colour colour = {};
 
     // Flashing uses bit flag 7, save as boolean
@@ -134,7 +134,7 @@ Colour Speccy_colourFromAttribute(uint8_t attribute) {
 
 // Handy function to convert a byte to an array of bits,
 // so you can more easily create pixel based graphics.
-void Speccy_byteToBits(uint8_t byte, uint8_t *bits) {
+void SpeccyDisplay_byteToBits(uint8_t byte, uint8_t *bits) {
     for (int i = 0; i < 8; i++) {
         if (byte & (1 << i)) {
             bits[i] = 1;
@@ -144,7 +144,7 @@ void Speccy_byteToBits(uint8_t byte, uint8_t *bits) {
     }
 }
 
-void Speccy_toggleFlashing() {
+void SpeccyDisplay_toggleFlashing() {
     static int lastTick = 0;
 
     int currentTick = getTickCount();

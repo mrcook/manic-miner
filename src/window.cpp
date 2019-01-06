@@ -98,10 +98,10 @@ int Window::getKey() {
 
 void Window::redraw() {
     // Update new screen format with latest display information
-    Speccy_convertScreen();
+    SpeccyDisplay_convertScreen();
 
     for (int y = 0; y < DISPLAY_PIXELS; y++) {
-        uint32_t pixel = GenerateSDLPixelColour(Speccy_read(y));
+        uint32_t pixel = GenerateSDLPixelColour(SpeccyDisplay_read(y));
         if (pixels_[y] != pixel) {
             pixels_[y] = pixel;
         }
