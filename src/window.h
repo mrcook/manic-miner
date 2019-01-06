@@ -30,26 +30,9 @@ enum WindowKeys {
     INPUT_KEY_RIGHT_SPACE,
 };
 
-class Window {
-public:
-    static Window &instance() {
-        static Window *instance = new Window();
-        return *instance;
-    }
+typedef struct Window_ {
+    // AudioSystem *audio = nullptr;
 
-    bool initialize(std::string gameName, int zoom);
-
-    int getKey();
-
-    // Redraws the screen data.
-    void redraw();
-
-    // Destroys SDL window and quits SDL subsystems
-    void quit();
-
-    // AudioSystem *audio;
-
-private:
     // The window we'll be rendering to
     SDL_Window *window_ = nullptr;
     SDL_Renderer *renderer_ = nullptr;
@@ -60,12 +43,22 @@ private:
     // Pixels array used to render to the screen
     uint32_t *pixels_ = nullptr;
 
-    uint32_t GenerateSDLPixelColour(uint8_t colour_id);
-
     SDL_PixelFormat *pixelFormat = SDL_AllocFormat(SDL_PIXELFORMAT_RGB888);
 
     const uint8_t *sdlKeyState = nullptr;
-};
+} Window;
+
+bool Window_initialize(std::string gameName, int zoom);
+
+int Window_getKey();
+
+// Redraws the screen data.
+void Window_redraw();
+
+// Destroys SDL window and quits SDL subsystems
+void Window_quit();
+
+uint32_t Window_generateSDLPixelColour(uint8_t colour_id);
 
 
 // RIPPED from YAKC

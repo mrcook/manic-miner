@@ -6,7 +6,7 @@
 #include "window.h"
 
 bool Speccy_initialize(std::string gameName, int fps, int zoom) {
-    if (!Window::instance().initialize(gameName, zoom)) {
+    if (!Window_initialize(gameName, zoom)) {
         return false;
     }
 
@@ -19,7 +19,7 @@ bool Speccy_initialize(std::string gameName, int fps, int zoom) {
 }
 
 void Speccy_quit() {
-    Window::instance().quit();
+    Window_quit();
 }
 
 void Speccy_tick() {
@@ -62,7 +62,7 @@ void Speccy_writeMemory(int address, uint8_t byte) {
 //
 
 int Speccy_getKey() {
-    switch (Window::instance().getKey()) {
+    switch (Window_getKey()) {
         case WindowKeys::INPUT_KEY_M:
             return KEY_M;
         case WindowKeys::INPUT_KEY_P:
@@ -100,7 +100,7 @@ void Speccy_beep(int pitch, uint8_t duration, uint8_t volume) {
     (void) pitch; // prevents compiler error
     (void) duration; // prevents compiler error
     (void) volume; // prevents compiler error
-    // Window::instance().audio->playNote(pitch, duration, volume);
+    // audio.playNote(pitch, duration, volume);
 }
 
 // Print a ZX Spectrum font characters to the display file
@@ -199,7 +199,7 @@ void Speccy_writeAttribute(int address, uint8_t byte) {
 }
 
 void Speccy_redrawWindow() {
-    Window::instance().redraw();
+    Window_redraw();
 }
 
 //

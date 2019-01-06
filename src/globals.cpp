@@ -6,6 +6,7 @@
 #include "speccy_display.h"
 
 // Setup all game objects
+Window window = {};
 Speccy speccy = {};
 SpeccyDisplay speccy_display = {};
 Cavern cavern = {};

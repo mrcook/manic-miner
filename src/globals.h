@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "window.h"
 #include "speccy.h"
 #include "speccy_display.h"
 #include "cavern.h"
@@ -12,6 +13,7 @@
 #include "willy.h"
 
 // Setup all game objects
+extern Window window;
 extern Speccy speccy;
 extern SpeccyDisplay speccy_display;
 extern Game game;
