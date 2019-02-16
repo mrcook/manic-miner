@@ -30,7 +30,7 @@ enum WindowKeys {
     INPUT_KEY_RIGHT_SPACE,
 };
 
-typedef struct Window_ {
+typedef struct window_ {
     // AudioSystem *audio = nullptr;
 
     // The window we'll be rendering to

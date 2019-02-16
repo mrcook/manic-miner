@@ -23,7 +23,7 @@
     +------+------------------------------+
 */
 
-typedef struct GuardianVertical_ {
+typedef struct guardianVertical_ {
 public:
     uint8_t attribute;
     uint8_t frame;

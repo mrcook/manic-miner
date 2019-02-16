@@ -5,7 +5,7 @@
 
 #include "headers.h"
 
-typedef struct Tile_ {
+typedef struct tile_ {
     // Attribute byte is used both to match the appropriate location in the cavern mapping,
     // and set the sprite Attributes (colours)....I think!
     uint8_t id;

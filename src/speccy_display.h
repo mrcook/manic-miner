@@ -10,7 +10,7 @@
 
 static const int DISPLAY_PIXELS = SPECCY_SCREEN * 8;
 
-typedef struct SpeccyDisplay_ {
+typedef struct speccyDisplay_ {
     // Display in a standard (linear) format.
     // Useful for sending to ncurses/SDL/etc.
     // contains data for each pixel, not byte character

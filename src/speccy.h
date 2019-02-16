@@ -46,7 +46,7 @@ static const int TOTAL_MEMORY = 1024 * 64;
 static const int ATTR_SIZE = 768;
 static const int SPECCY_SCREEN = 6144;
 
-typedef struct Speccy_ {
+typedef struct speccy_ {
     // Used to calculate the correct frame rate, during play
     int frameTick;
 

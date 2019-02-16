@@ -29,7 +29,7 @@
     +------+--------------------------------------------------------------------+
 */
 
-typedef struct GuardianHorizontal_ {
+typedef struct guardianHorizontal_ {
 public:
     // animation speed (0=normal, 1=slow)
     // Colour attribute (BRIGHT, PAPER and INK)

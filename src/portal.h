@@ -5,7 +5,7 @@
 
 #include "headers.h"
 
-typedef struct Portal_ {
+typedef struct portal_ {
     // Attribute byte
     uint8_t PORTAL;
 

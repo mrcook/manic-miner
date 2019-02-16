@@ -19,7 +19,7 @@
     +---------+-----------------------------------------------------------------+
 */
 
-typedef struct Item_ {
+typedef struct item_ {
     uint8_t attribute;
     uint16_t address;
     uint8_t addressMSB;

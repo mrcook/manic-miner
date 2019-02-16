@@ -6,7 +6,7 @@
 #include "headers.h"
 #include "tile.h"
 
-typedef struct ConveyorTile_ {
+typedef struct conveyorTile_ {
     // ID used to match the appropriate location in the cavern mapping.
     int id;
 

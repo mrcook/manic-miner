@@ -18,7 +18,7 @@ enum Keyboard {
     MM_KEY_MUTE,
 };
 
-typedef struct Game_ {
+typedef struct game_ {
     int playerScore;
     int highScore;
 

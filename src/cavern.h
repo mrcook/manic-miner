@@ -10,7 +10,7 @@
 #include "portal.h"
 #include "tile.h"
 
-typedef struct Cavern_ {
+typedef struct cavern_ {
     // Current cavern number
     uint8_t SHEET;
 

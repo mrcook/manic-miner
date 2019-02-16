@@ -9,7 +9,7 @@ extern uint8_t LRMOVEMENT[16];
 
 enum WillyFacing { WillyRight, WillyLeft };
 
-typedef struct Willy_ {
+typedef struct willy_ {
     // Number of Lives
     int NOMEN;
 
