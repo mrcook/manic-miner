@@ -1,22 +1,22 @@
 # Manic Miner Video Game
 
-This is a work-in-progress port of Matthew Smith's classic 1980's Sinclair
-ZX Spectrum game to the C++ language.
+This is a work-in-progress port of Matthew Smith's classic 1983 Sinclair
+ZX Spectrum game to the C language.
 
 Manic Miner is Copyright (c) 1983 Matthew Smith.
-This C++ port is Copyright (c) 2016-2018 Michael R. Cook
+C/C++ port is Copyright (c) 2016-2019 Michael R. Cook
 
       Penguins, Man Eating Toilets, Seals, Mutant Telephones, Bugs,
       Falling Skylabs, Kangaroo's, plus many more, join forces
       to stop Willy in his quest to get the treasure
 
 This is my **EXPERIMENTAL** attempt to port the Manic Miner Z80 assembly code
-to the C/C++ language, allowing it to be played on Windows, macOS, and Linux,
+to the C language, allowing it to be played on Windows, macOS, and Linux,
 without the need of a ZX Spectrum emulator.
 
-When starting this project I had no previous experience with either Z80
-assembly nor C++, therefore this is a _learning project_, but who knows,
-perhaps one day the port will be complete.
+When starting this project I had no previous experience with Z80 assembly, and
+only a basic understanding of the C language, therefore this is a _learning
+project_, but who knows, perhaps one day the port will be complete.
 
 _The Z80 assembly I used as a starting point was disassembled by Richard Dymond
 as part of his Skoolkit project (http://skoolkit.ca)._
@@ -31,7 +31,7 @@ _NO EMULATORS were harmed in the making of this game!_
 - Space to jump
 - Enter to start
 - P to pause
-- M to mute sound (recommended!)
+- M to mute sound
 
 
 ## Current State of the Code
@@ -51,9 +51,9 @@ without changing any of the core game play!
 As the game is playable most things work as expected and there are not actually
 that many bugs. Therefore it's easier to list the things that don't work:
 
-- Sound: although there is sound, it is pretty awful!
-- No joystick support.
-- Conveyor belts: it's possible to reverse walking direction.
+- Sound.
+- Joystick support.
+- Conveyor belts: it's possible to reverse the walking direction.
 - GFX glitches: Willy picks up pixels from nearby baddies.
 - Game Over screen needs some work.
 - Performance: it's not the most performant code at the moment.

@@ -1,4 +1,4 @@
-// Helper utilities Copyright (c) 2016-2018 Michael R. Cook
+// Helper utilities Copyright (c) 2016-2019 Michael R. Cook
 
 #pragma once
 

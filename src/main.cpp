@@ -1,4 +1,4 @@
-// Manic Miner C++ port Copyright (c) 2016-2018 Michael R. Cook
+// Manic Miner C/C++ port Copyright (c) 2016-2019 Michael R. Cook
 // Manic Miner Copyright (c) 1983 Bug-Byte Ltd.
 
 #include "headers.h"
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     Speccy_quit();
 
     printf("You helped Miner Willy acquire treasure worth %d.\n", game.highScore);
-    if (game.highScore > 10000) {
+    if (game.highScore > 19837) {
         printf("He's on his way to joining the Jet Set!\n");
     }
 
@@ -87,7 +87,7 @@ bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool
             case 'h':
                 printf("Manic Miner %d.%d.%d\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
                 printf("Copyright (c) 1983 Matthew Smith\n");
-                printf("Z80 to C++ port Copyright (c) 2016-2018 Michael R. Cook\n");
+                printf("C/C++ port Copyright (c) 2016-2019 Michael R. Cook\n");
                 printf("\n");
                 printf("USAGE:\n");
                 printf("  manic_miner [FLAGS] [OPTIONS]\n");

@@ -1,4 +1,4 @@
-// Manic Miner C++ port Copyright (c) 2016-2018 Michael R. Cook
+// Manic Miner C/C++ port Copyright (c) 2016-2019 Michael R. Cook
 // Manic Miner Copyright (c) 1983 Bug-Byte Ltd.
 
 // Title screen data: attributes and intro message text.

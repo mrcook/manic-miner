@@ -1,4 +1,4 @@
-// Speccy library Copyright (c) 2016-2018 Michael R. Cook
+// Speccy library Copyright (c) 2016-2019 Michael R. Cook
 
 #include "headers.h"
 #include "helpers.h"
