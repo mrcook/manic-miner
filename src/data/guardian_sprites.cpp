@@ -465,7 +465,7 @@ uint8_t Data_verticalGuardianLocations[20][4][7] = {
 
 
 //
-// Guardia sprites for each cavern
+// Guardian sprites for each cavern
 //
 
 // Frames 1-8, consisting of 32 bytes per 16x16 pixel sprite

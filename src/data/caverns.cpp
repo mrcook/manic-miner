@@ -558,7 +558,7 @@ uint8_t Data_portalGraphics[20][32] = {
 
 // PORTALLOC1: Location in the attribute buffer at 23552
 uint16_t Data_portalAttributeLocations[20] = {
-        23997, // (13, 29)
+        23997, // (13, 29) (Y,X tiles)
         23997, // (13, 29)
         23933, // (11, 29)
         23613, // (1, 29)
@@ -580,9 +580,9 @@ uint16_t Data_portalAttributeLocations[20] = {
         23731, // (5, 19)
 };
 
-// PORTALLOC2: Location in the screen buffer at 24576
+// PORTALLOC2: Location in the screen buffer at 24576.
 uint16_t Data_portalScreenLocations[20] = {
-        26813, // (13, 29)
+        26813, // (13, 29) (Y,X tiles)
         26813, // (13, 29)
         26749, // (11, 29)
         24637, // (1, 29)
@@ -604,41 +604,41 @@ uint16_t Data_portalScreenLocations[20] = {
         24755, // (5, 19)
 };
 
+// AIR specifies the initial air supply in the cavern.
+// Note: a difficulty level could be added by reducing the available air!
+// Default is 63. Red bar starts at 41. Death when bar reaches 35!
+uint8_t Data_airSupplies[20] = { 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63 };
+
 // ITEM defines the item graphic for a particular cavern. E.g a "key" on the first cavern.
 uint8_t Data_itemGraphics[20][8] = {
-        {48, 72, 136, 144, 104, 4, 10, 4},
-        {80, 168, 84, 168, 84, 44, 2, 1},
-        {48, 72, 136, 144, 104, 4, 10, 4},
-        {48, 72, 136, 144, 104, 4, 10, 4},
-        {31, 35, 71, 255, 143, 142, 140, 248},
-        {48, 72, 136, 144, 104, 4, 10, 4},
-        {48, 72, 136, 144, 104, 4, 10, 4},
-        {128, 192, 236, 114, 40, 84, 138, 135},
-        {48, 72, 136, 144, 104, 4, 10, 4},
-        {8, 8, 62, 95, 95, 71, 97, 62},
-        {60, 90, 149, 213, 213, 213, 90, 60},
-        {128, 192, 236, 114, 40, 84, 138, 135},
-        {24, 110, 66, 219, 201, 98, 126, 24},
-        {170, 170, 254, 254, 254, 254, 170, 170},
-        {124, 56, 100, 222, 142, 222, 130, 124},
-        {15, 9, 61, 39, 244, 156, 144, 240},
-        {48, 72, 136, 144, 104, 4, 10, 4},
-        {48, 72, 136, 144, 104, 4, 10, 4},
-        {48, 72, 136, 144, 104, 4, 10, 4},
-        {48, 72, 136, 144, 104, 4, 10, 4},
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
+        {80, 168, 84, 168, 84, 44, 2, 1},         // Bat
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
+        {31, 35, 71, 255, 143, 142, 140, 248},    // Gold Bar
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
+        {128, 192, 236, 114, 40, 84, 138, 135},   // Banana
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
+        {8, 8, 62, 95, 95, 71, 97, 62},           // Apple
+        {60, 90, 149, 213, 213, 213, 90, 60},     // 10p Coin
+        {128, 192, 236, 114, 40, 84, 138, 135},   // Banana
+        {24, 110, 66, 219, 201, 98, 126, 24},     // Cog?
+        {170, 170, 254, 254, 254, 254, 170, 170}, // Skylab part?
+        {124, 56, 100, 222, 142, 222, 130, 124},  // Money Bag £
+        {15, 9, 61, 39, 244, 156, 144, 240},      // Diamonds?
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
+        {48, 72, 136, 144, 104, 4, 10, 4},        // Key
 };
-
-// AIR specifies the initial air supply in the cavern.
-// NOTE: although it's the same value, I think it's worth keeping as an array to
-// give more flexibility on future cavern design
-uint8_t Data_airSupplies[20] = { 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63 };
 
 // CLOCK: initialises the game clock.
 uint8_t Data_clockValues[20] = { 252, 252, 128, 128, 128, 128, 128, 128, 128, 248, 128, 128, 252, 248, 252, 248, 128, 128, 240, 252 };
 
 
 //
-// Cavern attribute to specify the tile layout
+// Cavern attribute to specify the tile GFX layout
 //
 
 uint8_t Data_cavernLayouts[20][512] = {
