@@ -51,10 +51,10 @@ without changing any of the core game play!
 As the game is playable most things work as expected and there are not actually
 that many bugs. Therefore it's easier to list the things that don't work:
 
+- Conveyor belts: interaction isn't correct.
+- GFX glitches: Sprites can 'pick up' pixels from other nearby sprites.
 - Sound.
 - Joystick support.
-- Conveyor belts: it's possible to reverse the walking direction.
-- GFX glitches: Willy picks up pixels from nearby baddies.
 - Game Over screen needs some work.
 - Performance: it's not the most performant code at the moment.
 
