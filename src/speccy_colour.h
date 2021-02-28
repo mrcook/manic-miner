@@ -1,4 +1,4 @@
-// Spectrum Colour library Copyright (c) 2016-2019 Michael R. Cook
+// Spectrum Colour library Copyright (c) 2016-2021 Michael R. Cook
 
 #pragma once
 

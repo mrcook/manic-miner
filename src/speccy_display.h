@@ -1,4 +1,4 @@
-// Spectrum Display library Copyright (c) 2016-2019 Michael R. Cook
+// Spectrum Display library Copyright (c) 2016-2021 Michael R. Cook
 
 // Converts the original Spectrum screen layout to a more standard linear
 // format; bytes are sequential reading from left-to-right, top-to-bottom.

@@ -1,4 +1,4 @@
-// Manic Miner C/C++ port Copyright (c) 2016-2019 Michael R. Cook
+// Manic Miner C/C++ port Copyright (c) 2016-2021 Michael R. Cook
 // Manic Miner Copyright (c) 1983 Bug-Byte Ltd.
 
 #include "headers.h"
@@ -1111,7 +1111,7 @@ void Game_play_intro() {
     }
 
     // Scroll intro message across the screen.
-    for (int pos = 0; game.DEMO > 0 && pos < 224; pos++) {
+    for (int pos = 0; game.DEMO > 0 && pos < 292; pos++) {
         const int start_time_ms = getTickCount();
 
         // Is ENTER being pressed? If so, start the game.

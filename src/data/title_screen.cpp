@@ -1,4 +1,4 @@
-// Manic Miner C/C++ port Copyright (c) 2016-2019 Michael R. Cook
+// Manic Miner C/C++ port Copyright (c) 2016-2021 Michael R. Cook
 // Manic Miner Copyright (c) 1983 Bug-Byte Ltd.
 
 // Title screen data: attributes and intro message text.
@@ -7,9 +7,10 @@
 
 // Intro message
 const char *MESSINTRO = ".  .  .  .  .  .  .  .  .  .  . MANIC MINER . . "
-        "(c) BUG-BYTE ltd. 1983 . . By Matthew Smith . . . "
-        "Q to P = Left & Right . . Bottom row = Jump . . "
-        "A to G = Pause . . H to L = Tune On/Off . . . "
+        "(c) 2021 Michael R. Cook . . By Matthew Smith . . . "
+        "Arrow keys = Left & Right . . Space = Jump . . "
+        "P = Pause . . M = Tune On/Off . . Q = Quit . . . "
+        "(c) BUG-BYTE ltd. 1983 . . . "
         "Guide Miner Willy through 20 lethal caverns"
         " .  .  .  .  .  .  .  .";
 

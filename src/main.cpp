@@ -1,4 +1,4 @@
-// Manic Miner C/C++ port Copyright (c) 2016-2019 Michael R. Cook
+// Manic Miner C/C++ port Copyright (c) 2016-2021 Michael R. Cook
 // Manic Miner Copyright (c) 1983 Bug-Byte Ltd.
 
 #include "headers.h"
@@ -9,7 +9,7 @@ static bool getOptions(int argc, char **argv, int &teleport, int &fps, int &live
 
 // The game has just loaded
 int main(int argc, char *argv[]) {
-    int fps = 16;
+    int fps = 50;
     bool cheat = false;
     int lives = 2;
     int teleport = -1;
@@ -87,7 +87,7 @@ bool getOptions(int argc, char **argv, int &teleport, int &fps, int &lives, bool
             case 'h':
                 printf("Manic Miner %d.%d.%d\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
                 printf("Copyright (c) 1983 Matthew Smith\n");
-                printf("C/C++ port Copyright (c) 2016-2019 Michael R. Cook\n");
+                printf("C/C++ port Copyright (c) 2016-2021 Michael R. Cook\n");
                 printf("\n");
                 printf("USAGE:\n");
                 printf("  manic_miner [FLAGS] [OPTIONS]\n");

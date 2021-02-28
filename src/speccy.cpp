@@ -1,4 +1,4 @@
-// Speccy library Copyright (c) 2016-2019 Michael R. Cook
+// Speccy library Copyright (c) 2016-2021 Michael R. Cook
 
 #include "headers.h"
 #include "helpers.h"
@@ -13,7 +13,7 @@ bool Speccy_initialize(std::string gameName, int fps, int zoom) {
     // Window::instance().audio->frame_rate = fps;
 
     // The number of millisecond ticks per frame
-    speccy.frameTick = 1000 / fps;
+    speccy.frameTick = 3850 / fps;
 
     return true;
 }
