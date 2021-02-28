@@ -164,15 +164,12 @@ void Willy_hitsWall() {
 // Move Willy (2)
 // This routine checks the keyboard and joystick, and moves Willy left or right if necessary.
 // HL Attribute buffer address of the left-hand cell below Willy's sprite.
-bool Willy_gerUserInputAndMove(int keyIntput, uint16_t addr) {
+bool Willy_getUserInputAndMove(int keyInput, uint16_t addr) {
     // Has Willy just landed after falling from too great a height? If so, kill him!
     if (willy.AIRBORNE >= 12) { // FIXME: should this be `== 12` ?
         Willy_kill();
         return true;
     }
-
-    // Initialise E to 255 (all bits set); it will be used to hold keyboard and joystick readings
-    // uint8_t input = 255;
 
     // Reset the airborne status indicator at AIRBORNE (Willy has landed safely)
     willy.AIRBORNE = 0;
@@ -181,46 +178,18 @@ bool Willy_gerUserInputAndMove(int keyIntput, uint16_t addr) {
     // Does the attribute byte of the left or right hand cell below Willy's sprite match that of the conveyor tile?
     if (Speccy_readMemory(addr) == cavern.CONVEYOR.id || Speccy_readMemory(addr + 1) == cavern.CONVEYOR.id) {
         // Pick up the direction byte of the conveyor definition from CONVDIR (0=left, 1=right)
-        // Now E=253 (bit 1 reset) if the conveyor is moving left, or 254 (bit 0 reset) if it's moving right
-        // input = (uint8_t) (cavern.CONVEYOR.CONVDIR - 3);
         conveyor_dir = cavern.CONVEYOR.CONVDIR;
     }
 
-    // Read keys P-O-I-U-Y (right, left, right, left, right) into bits 0-4 of A. Set bit 5 and reset bits 6 and 7
-    // Reset bit 0 if the conveyor is moving right, or bit 1 if it's moving left. Save the result in E
-    // Read keys Q-W-E-R-T (left, right, left, right, left) into bits 0-4 of A
-    // Keep only bits 0-4, shift them into bits 1-5, and set bit 0
-    // Merge this keyboard reading into bits 1-5 of E
-    // Read keys 1-2-3-4-5 ('5' is left) into bits 0-4 of A
-    // Rotate the result right and set bits 0-2 and 4-7; this ignores every key except '5' (left)
-    // Merge this reading of the '5' key into bit 3 of E
-    // Read keys 0-9-8-7-6 ('8' is right) into bits 0-4 of A
-    // Set bits 0, 1 and 3-7; this ignores every key except '8' (right)
-    // Merge this reading of the '8' key into bit 2 of E
+    uint8_t movement = 0; // no movement
+    bool keyLeft = keyInput == Keyboard::MM_KEY_LEFT || keyInput == Keyboard::MM_KEY_LEFT_JUMP;
+    bool keyRight = keyInput == Keyboard::MM_KEY_RIGHT || keyInput == Keyboard::MM_KEY_RIGHT_JUMP;
 
-    // At this point, bits 0-5 in E indicate the direction in which Willy is being
-    // moved or trying to move. If bit 0, 2 or 4 is reset, Willy is being moved or
-    // trying to move right; if bit 1, 3 or 5 is reset, Willy is being moved or
-    // trying to move left.
-
-    // LD C,0                  // Initialise C to 0 (no movement)
-    // LD A,E                  // Copy the movement bits into A
-    // AND 42                  // Keep only bits 1, 3 and 5 (the 'left' bits)
-    // CP 42                   // Are any of these bits reset?
-    // JR Z,MOVEWILLY2_3       // Jump if not
-    // LD C,4                  // Set bit 2 of C: Willy is moving left
-    // MOVEWILLY2_3:
-    // LD A,E                  // Copy the movement bits into A
-    // AND 21                  // Keep only bits 0, 2 and 4 (the 'right' bits)
-    // CP 21                   // Are any of these bits reset?
-    // JR Z,MOVEWILLY2_4       // Jump if not
-    // SET 3,C                 // Set bit 3 of C: Willy is moving right
-    // FIXME: does this really work?
-    uint8_t movement = 0;
-    if (keyIntput == Keyboard::MM_KEY_LEFT || keyIntput == Keyboard::MM_KEY_LEFT_JUMP || conveyor_dir == 0) {
-        movement = 4;
-    } else if (keyIntput == Keyboard::MM_KEY_RIGHT || keyIntput == Keyboard::MM_KEY_RIGHT_JUMP || conveyor_dir == 1) {
-        movement = (1 << 3);
+    if (keyLeft || conveyor_dir == 0) {
+        movement |= 4;
+    }
+    if (keyRight || conveyor_dir == 1) {
+        movement |= 8;
     }
 
     // Point HL at the entry in the left-right movement table at LRMOVEMENT
@@ -231,11 +200,10 @@ bool Willy_gerUserInputAndMove(int keyIntput, uint16_t addr) {
     // entry from the left-right movement table.
     willy.DMFLAGS = LRMOVEMENT[movement];
 
-
     // That is left-right movement taken care of. Now check the jump keys.
 
     // Is jump being pressed?
-    if (keyIntput == Keyboard::MM_KEY_JUMP || keyIntput == Keyboard::MM_KEY_LEFT_JUMP || keyIntput == Keyboard::MM_KEY_RIGHT_JUMP) {
+    if (keyInput == Keyboard::MM_KEY_JUMP || keyInput == Keyboard::MM_KEY_LEFT_JUMP || keyInput == Keyboard::MM_KEY_RIGHT_JUMP) {
         // Time to make Willy jump. Initialise the jumping animation counter.
         willy.JUMPING = 0;
 
@@ -534,7 +502,7 @@ void Willy_draw() {
 
 // Left-right movement table
 //
-// Used by the routine at Willy_gerUserInputAndMove. The entries in this table are used to map
+// Used by the routine at Willy_getUserInputAndMove. The entries in this table are used to map
 // the existing value (V) of Willy's direction and movement flags at DMFLAGS to
 // a new value (V'), depending on the direction Willy is facing and how he is
 // moving or being moved (by 'left' and 'right' keypresses and joystick input,

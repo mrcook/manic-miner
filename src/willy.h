@@ -13,10 +13,10 @@ typedef struct willy_ {
     // Number of Lives
     int NOMEN;
 
-    // Direction Willy is facing (reset=right, set=left) (DMFLAGS)
-    // enum WillyFacing direction;
-    // Willy's movement flag (set=moving)
-    // bool moving;
+    // Willy's direction and movement flags
+    // bit 0: Direction Willy is facing (right=0, left=1)
+    // bit 1: Willy's movement flag (moving=1)
+    // bits 2-7: Unused (always reset)
     uint8_t DMFLAGS;
 
     // Willy's pixel y-coordinate (x2)
@@ -66,7 +66,7 @@ uint16_t Willy_adjustAttributes(uint8_t y_coord);
 void Willy_hitsWall();
 
 // MOVEWILLY2
-bool Willy_gerUserInputAndMove(int keyIntput, uint16_t addr);
+bool Willy_getUserInputAndMove(int keyInput, uint16_t addr);
 
 // MOVEWILLY2_6
 void Willy_moveInDirectionFacing();
